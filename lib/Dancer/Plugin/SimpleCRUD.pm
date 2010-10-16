@@ -328,6 +328,27 @@ sub _find_columns {
     ];
 }
 
+=head1 DWIMmery
+
+This module tries to do what you'd expect it to do, so you can rock up your web
+app with as little code and effort as possible, whilst still giving you control
+to override its decisions wherever you need to.
+
+=head2 Field types
+
+CGI::FormBuilder is excellent at working out what kind of field to use by
+itself, but we give it a little help where needed.  For instance, if a field
+looks like it's supposed to contain a password, we'll have it rendered as a
+password entry box, rather than a standard text box.
+
+=head2 Automatic password confirmation TODO
+
+By default, if we recognise a field as a password field (the column name looks
+like pass, passwd, password), we'll add an extra "Type your password again"
+field, and check that the user entered the same password in both.
+
+
+
 
 =head1 AUTHORS
 
