@@ -111,6 +111,14 @@ field named C<first_name> will be shown as C<First Name>.
 
 A hashref of validation criteria which should be passed to HTML::FormFu.
 
+=item C<acceptable_values> (optional)
+
+A hashref of arrayrefs to declare that certain fields can take only a set of
+acceptable values, for instance:
+
+  { foo => [ qw(Foo Bar Baz) ] }
+
+
 =item C<editable> (optional)
 
 Specify an arrayref of fields which the user can edit.  By default, this is all
@@ -340,6 +348,12 @@ CGI::FormBuilder is excellent at working out what kind of field to use by
 itself, but we give it a little help where needed.  For instance, if a field
 looks like it's supposed to contain a password, we'll have it rendered as a
 password entry box, rather than a standard text box.
+
+If the column in the database is an ENUM, we'll limit the choices available for
+this field to the choices defined by the ENUM list.  (Unless you've provided a
+set of acceptable values for this field using the C<acceptable_values> option to
+C<simple_crud>, in which case what you say goes.)
+
 
 =head2 Automatic password confirmation TODO
 
