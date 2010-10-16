@@ -16,6 +16,7 @@ use strict;
 use Dancer::Plugin;
 use Dancer qw(:syntax);
 use Dancer::Plugin::Database;
+use HTML::Table::FromDatabase;
 use CGI::FormBuilder;
 
 our $VERSION = '0.01';
@@ -311,7 +312,20 @@ sub simple_crud {
     any ['get','post'] => "$args{prefix}/add"      => $handler;
     any ['get','post'] => "$args{prefix}/edit/:id" => $handler;
 
+    # And a route to list records already in the table:
+    get "$args{prefix}" => sub {
+        # TODO: handle pagination
+        my $sth = $dbh->prepare("select * from $table_name");
+        $sth->execute;
+        my $table = HTML::Table::FromDatabase->new(
+            -sth => $sth,
+            -border => 1,
+        );
+        return $table->getTable;
+    };
 
+    # If we should allow deletion of records, set up a route to handle that,
+    # too.
     if ($args{deletable}) {
         post "$args{prefix}/delete:id" => sub {
             database()->do('delete ....');
