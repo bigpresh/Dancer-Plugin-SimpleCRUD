@@ -233,9 +233,23 @@ sub simple_crud {
                 for @$all_table_columns;
         }
 
+        # If the user didn't supply a list of acceptable values for a field, but
+        # it's an ENUM column, use the possible values declared in the ENUM
+        my %constrain_values;
+        for my $field (@$all_table_columns) {
+            if (my $values = $args{acceptable_values}->{$field}) {
+                $constrain_values{$field} = $values;
+            } elsif (my $values = $field->{mysql_values}) {
+                $constrain_values{$field->{COLUMN_NAME}} = $values;
+            }
+        }
+        
+
         use Data::Dump;
         Dancer::Logger::debug("Required fields: "
             . Data::Dump::dump(\%required_fields));
+        Dancer::Logger::debug("Value constraints: "
+            . Data::Dump::dump(\%constrain_values));
 
 
         my $paramsobj = Dancer::Plugin::SimpleCRUD::ParamsObject->new({params()});
@@ -269,6 +283,10 @@ sub simple_crud {
             }
 
             $field_params{required} = $required_fields{$field};
+
+            if ($constrain_values{$field}) {
+                $field_params{options} = $constrain_values{$field};
+            }
 
             # Normally, CGI::FormBuilder can guess the type of field perfectly,
             # but give it some extra DWIMmy help:
