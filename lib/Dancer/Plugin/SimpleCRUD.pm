@@ -163,8 +163,13 @@ sub simple_crud {
 
     # Sanitise things we'll have to interpolate into queries (yes, that makes me
     # feel bad, but you can't use params for field/table names):
-    my $table_name = $dbh->quote($args{db_table});
-    my $key_column = $dbh->quote($args{key_column});
+    my $table_name = $args{db_table};
+    my $key_column = $args{key_column} || 'id';
+    for ($table_name, $key_column) {
+        die "Invalid table name/key column - SQL injection attempt?"
+            if /--/;
+        s/[^a-zA-Z0-9_-]//g;
+    }
 
     # OK, create a route handler to deal with adding/editing:
     my $handler = sub {
@@ -201,28 +206,77 @@ sub simple_crud {
         # Some DWIMery: if we don't have a validation rule specified for a
         # field, and it's pretty clear what it is supposed to be, just do it:
         my $validation = $args{validation} || {};
-        for my $field (@editable_columns) {
+        for my $field (grep { $_ ne $key_column } @editable_columns) 
+        {
             next if $validation->{$field};
             if ($field =~ /email/) {
                 $validation->{$field} = 'EMAIL';
             }
         }
 
-        my $paramsobj = Dancer::Plugin::SimpleCRUD::ParamsObject->new(params());
+        # More DWIMmery: if the user hasn't supplied a list of required fields,
+        # work out what fields are required by whether they're nullable in the
+        # DB:
+        my %required_fields;
+        if (exists $args{required}) {
+            $required_fields{$_}++ for @{ $args{required} };
+        } else {
+            $_->{NULLABLE} || $required_fields{ $_->{COLUMN_NAME} }++
+                for @$all_table_columns;
+        }
+
+        use Data::Dump;
+        Dancer::Logger::debug("Required fields: "
+            . Data::Dump::dump(\%required_fields));
+
+
+        my $paramsobj = Dancer::Plugin::SimpleCRUD::ParamsObject->new({params()});
+
+        use Data::Dump;
+        Dancer::Logger::debug("Params from Dancer are:" .
+            Data::Dump::dump(params()));
+        Dancer::Logger::debug("Params from paramsobj are: "
+            . Data::Dump::dump($paramsobj->param));
+        Dancer::Logger::debug("Default values from DB are: "
+            . Data::Dump::dump($default_field_values));
+
         my $form = CGI::FormBuilder->new(
-            params => $paramsobj,
             fields => \@editable_columns,
-            labels => $args{labels} || {},
-            required => $args{required} || 'ALL',
+            params => $paramsobj,
+            values => $default_field_values,
             validate => $validation,
             method => 'post',
             action => $args{prefix} . 
                 (params->{id} ? '/edit/' . params->{id} : '/add'),
         );
+        for my $field (@editable_columns) {
+            my %field_params = (
+                name => $field
+            );
+            if (my $label = $args{labels}->{$field}) {
+                $field_params{label} = $label;
+            }
+            if (my $validation = $args{validation}->{$field}) {
+                $field_params{validate} = $validation;
+            }
+
+            $field_params{required} = $required_fields{$field};
+
+            # Normally, CGI::FormBuilder can guess the type of field perfectly,
+            # but give it some extra DWIMmy help:
+            if ($field =~ /pass(?:wd|word)?$/i) {
+                $field_params{type} = 'password';
+            }
+
+            # OK, add the field to the form:
+            $form->field(%field_params);
+        }
 
         # Now, if all is OK, go ahead and process:
         if ($form->submitted && $form->validate) {
             debug("I would add/update here");
+            use Data::Dump;
+            debug("Params: " . Data::Dump::dump(params()) );
         } else {
             return $form->render;
         }
