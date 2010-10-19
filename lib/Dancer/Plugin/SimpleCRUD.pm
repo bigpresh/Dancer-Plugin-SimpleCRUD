@@ -315,11 +315,30 @@ sub simple_crud {
     # And a route to list records already in the table:
     get "$args{prefix}" => sub {
         # TODO: handle pagination
-        my $sth = $dbh->prepare("select * from $table_name");
+        my $sth = $dbh->prepare("select *, id as actions from $table_name");
         $sth->execute;
         my $table = HTML::Table::FromDatabase->new(
             -sth => $sth,
             -border => 1,
+            -callbacks => [
+                {
+                    column => 'actions',
+                    transform => sub {
+                        my $id = shift;
+                        my $action_links;
+                        my $edit_url = "$args{prefix}/edit/$id";
+                        $action_links .= 
+                            qq[<a href="$edit_url" class="edit_link">Edit</a>];
+                        if ($args{deleteable}) {
+                            my $del_url = "$args{prefix}/delete/$id";
+                            $action_links .=
+                                qq[<a href="$del_url" class="delete_link">]
+                                . qq[Delete</a>];
+                        }
+                        return $action_links;
+                    },
+                },
+            ],
         );
         return $table->getTable;
     };
