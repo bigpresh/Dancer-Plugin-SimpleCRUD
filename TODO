@@ -1,19 +1,36 @@
+=head1 TODO for Dancer::Plugin::SimpleCRUD
+
+=head2 Before release
+
+=over 
+
+=item Actually store new records in database
+
+=item Actually edit existing records
 
 
-To find out column details:
 
 
 
 
-my $sth = $dbh->column_info(undef, undef, 'tablename', undef);
+=back
 
-while (my $col = $sth->fetchrow_hashref) {
-    # useful keys:
-    # COLUMN_NAME, COLUMN_SIZE, NULLABLE, DATETIME
-    # TYPE_NAME (e.g. INT, VARCHAR, ENUM)
-    # mysql_type_name e.g. "enum('One', Two', 'Three')
-    # mysql_is_pri_key
-    # mysql_values (for an enum, ["One", "Two", "Three"]
-}
+=head2 Later
 
+=over
+
+=item Pagination support on list page
+
+Allow configurable pagination support on list page.
+
+
+=item Searching on list page
+
+Make it possible to search on the list page?
+
+
+=item Support more databases
+
+Refactor C<_find_columns()> to work in a DB-agnostic way, and support other
+databases - PostgreSQL?  SQLite?  DBIC?
 
