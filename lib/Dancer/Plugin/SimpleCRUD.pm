@@ -340,7 +340,10 @@ sub simple_crud {
                 },
             ],
         );
-        return $table->getTable;
+        my $html =  $table->getTable;
+        $html .= sprintf '<a href="%s">Add a new %s</a></p>',
+            $args{prefix} . '/add', $args{record_title};
+        return $html;
     };
 
     # If we should allow deletion of records, set up a route to handle that,
