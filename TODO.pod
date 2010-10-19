@@ -8,7 +8,9 @@
 
 =item Actually edit existing records
 
+=item Tidy up and refactor where possible.
 
+It's a bit of a mess at the moment.
 
 
 
@@ -28,6 +30,15 @@ Allow configurable pagination support on list page.
 
 Make it possible to search on the list page?
 
+=item Output JS to make list table sortable?
+
+Use sorttable or another JS solution to make the list page sortable, by clicking
+on column headings?
+
+=item Option to make the list page handler return template-ready params
+
+Provide option to make list page handler return template-ready params instead of
+plain HTML, for those who want to customise the page a lot more.
 
 =item Support more databases
 
