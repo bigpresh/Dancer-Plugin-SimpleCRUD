@@ -299,8 +299,9 @@ sub simple_crud {
             $form->field(%field_params);
         }
 
+
         # Now, if all is OK, go ahead and process:
-        if ($form->submitted && $form->validate) {
+        if (request->{method} eq 'POST' &&  $form->submitted && $form->validate) {
             debug("I would add/update here");
             use Data::Dump;
             debug("Params: " . Data::Dump::dump(params()) );
