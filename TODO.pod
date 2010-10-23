@@ -4,9 +4,7 @@
 
 =over 
 
-=item Actually store new records in database
-
-=item Actually edit existing records
+=item Handle deletion of records
 
 =item Tidy up and refactor where possible.
 
@@ -44,4 +42,16 @@ plain HTML, for those who want to customise the page a lot more.
 
 Refactor C<_find_columns()> to work in a DB-agnostic way, and support other
 databases - PostgreSQL?  SQLite?  DBIC?
+
+=item Show message when an entry has been created/edited/deleted
+
+At the moment we just send the user back to the list page, we should probably
+show a "Record {added,updated,deleted}" message to make it clear it was
+successful.
+
+=item Option to present form in facebox div?
+
+Maybe add the option for the add/edit form to be presented within a "popup div"
+using Facebox, rather than as a standalone page.  (When the form is submitted,
+it would need to reload the list page afterwards.)
 
