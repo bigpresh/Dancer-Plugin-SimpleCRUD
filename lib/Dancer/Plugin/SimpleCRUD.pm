@@ -31,6 +31,7 @@ use Dancer qw(:syntax);
 use Dancer::Plugin::Database;
 use HTML::Table::FromDatabase;
 use CGI::FormBuilder;
+use SQL::Abstract;
 
 our $VERSION = '0.01';
 
@@ -313,10 +314,39 @@ sub simple_crud {
 
 
         # Now, if all is OK, go ahead and process:
-        if (request->{method} eq 'POST' &&  $form->submitted && $form->validate) {
+        if (request->{method} eq 'POST' &&  $form->submitted && $form->validate) 
+        {
             debug("I would add/update here");
             use Data::Dump;
             debug("Params: " . Data::Dump::dump(params()) );
+            # Assemble a hash of only fields from the DB (if other fields were
+            # submitted with the form which don't belong in the DB, ignore them)
+            my %params;
+            $params{$_} = params->{$_} for @editable_columns;
+            my $sql = SQL::Abstract->new;
+            my ($statement, @bind_values);
+            my $verb;
+            if (exists params->{$key_column}) {
+                # We're editing an existing record
+                ($statement, @bind_values) = $sql->update($table_name, \%params, 
+                    { $key_column => params->{$key_column} }
+                );
+                $verb = 'update';
+            } else {
+                ($statement, @bind_values) = $sql->insert($table_name, \%params);
+                $verb = 'create new';
+            }
+
+            if (database->do($statement, undef, @bind_values)) {
+                # Redirect to the list page
+                # TODO: pass a param to cause it to show a message?
+                redirect $args{prefix};
+                return;
+            } else {
+                # TODO: better error handling
+                return "<p>Unable to $verb record</p>";
+            }
+
         } else {
             return $form->render;
         }
