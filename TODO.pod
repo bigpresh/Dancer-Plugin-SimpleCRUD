@@ -10,7 +10,10 @@
 
 It's a bit of a mess at the moment.
 
+=item Understand Dancer's route prefix option
 
+If called after using Dancer's prefix keyword, links to add/edit records will 
+be broken, as it doesn't know that a prefix will be added.
 
 
 =back
