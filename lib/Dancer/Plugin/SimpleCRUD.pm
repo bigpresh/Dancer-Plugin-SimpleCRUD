@@ -6,7 +6,20 @@ sub new {
     my ($class, $params) = @_; 
     return bless { params => $params }, $class;
 }
-sub param { shift->{params} };
+sub param {
+    my ($self, @args) = @_;
+    # If called with no args, return all param names
+    if (!@args) {
+        return $self->{params} if !$paramname;
+    # With one arg, act as an accessor
+    } elsif (@args == 1) {
+        return $self->{params}{$args[0]};
+    # With two args, act as a mutator
+    } elsif ($args == 2) {
+        return $self->{params}{$args[0]} = $args[1];
+    }
+}
+
 
 # Now, on to the real stuff
 package Dancer::Plugin::SimpleCRUD;
@@ -208,8 +221,9 @@ sub simple_crud {
             # easy:
             @editable_columns = @{ $args{editable_columns} };
         } else {
-            # OK, take all the columns from the table:
-            @editable_columns = map { $_->{COLUMN_NAME} } @$all_table_columns;
+            # OK, take all the columns from the table, except the key field:
+            @editable_columns = grep { $_ ne $key_column } 
+                map { $_->{COLUMN_NAME} } @$all_table_columns;
         }
 
         # Some DWIMery: if we don't have a validation rule specified for a
@@ -252,16 +266,11 @@ sub simple_crud {
         Dancer::Logger::debug("Value constraints: "
             . Data::Dump::dump(\%constrain_values));
 
-
-        my $paramsobj = Dancer::Plugin::SimpleCRUD::ParamsObject->new({params()});
-
-        use Data::Dump;
-        Dancer::Logger::debug("Params from Dancer are:" .
-            Data::Dump::dump(params()));
-        Dancer::Logger::debug("Params from paramsobj are: "
-            . Data::Dump::dump($paramsobj->param));
-        Dancer::Logger::debug("Default values from DB are: "
-            . Data::Dump::dump($default_field_values));
+        # Only give CGI::FormBuilder our fake CGI object if the form has been
+        # POSTed to us already; otherwise, it will ignore default values from
+        # the DB, it seems.
+        my $paramsobj = request->{method} eq 'POST' ?
+            Dancer::Plugin::SimpleCRUD::ParamsObject->new({params()}) : undef;
 
         my $form = CGI::FormBuilder->new(
             fields => \@editable_columns,
@@ -274,7 +283,8 @@ sub simple_crud {
         );
         for my $field (@editable_columns) {
             my %field_params = (
-                name => $field
+                name => $field,
+                value => $default_field_values->{$field} || '',
             );
             if (my $label = $args{labels}->{$field}) {
                 $field_params{label} = $label;
@@ -295,6 +305,8 @@ sub simple_crud {
                 $field_params{type} = 'password';
             }
 
+            use Data::Dump qw(dump);
+            debug("field params for $field: " . dump(\%field_params));
             # OK, add the field to the form:
             $form->field(%field_params);
         }
