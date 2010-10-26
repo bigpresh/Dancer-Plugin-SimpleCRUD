@@ -115,6 +115,16 @@ The name of the database table.
 Specify which column in the table is the primary key.  If not given, defaults to
 id.
 
+=item C<db_connection_name> (optional)
+
+We use L<Dancer::Plugin::Database> to obtain database connections.  This option
+allows you to specify the name of a connection defined in the config file to
+use.  See the documentation for L<Dancer::Plugin::Database> for how multiple
+database configurations work.  If this is not supplied or is empty, the default
+database connection details in your config file will be used - this is often
+what you want, so unless your app is dealing with multiple DBs, you probably
+won't need to worry about this option.
+
 =item <field_labels> (optional)
 
 A hashref of field_name => 'Label', if you want to provide more user-friendly
