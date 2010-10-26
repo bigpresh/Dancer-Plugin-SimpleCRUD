@@ -156,15 +156,8 @@ given, and the edit form will have a "Delete $record_title" button.
 sub simple_crud {
     my (%args) = @_;
 
-
-    # Either use a database handle passed to us, or get one via the
-    # Dancer::Plugin::Database plugin:
-    my $dbh;
-    if ($args{dbh}) {
-        $dbh = $args{dbh};
-    } else {
-        $dbh = database();
-    }
+    # Get a database connection to verify that the table name is OK, etc.
+    my $dbh = database($args{db_connection_name});
 
     if (!$dbh) {
         warn "No database handle";
@@ -198,6 +191,8 @@ sub simple_crud {
     my $handler = sub {
         my $params = params;
         my $id = $params->{id};
+
+        my $dbh = database($args{db_connection_name});
         
         my $default_field_values;
         if ($id) {
@@ -358,6 +353,7 @@ sub simple_crud {
     # And a route to list records already in the table:
     get "$args{prefix}" => sub {
         # TODO: handle pagination
+        my $dbh = database($args{db_connection_name};
         my $sth = $dbh->prepare("select *, id as actions from $table_name");
         $sth->execute;
         my $table = HTML::Table::FromDatabase->new(
@@ -386,14 +382,14 @@ sub simple_crud {
         my $html =  $table->getTable;
         $html .= sprintf '<a href="%s">Add a new %s</a></p>',
             $args{prefix} . '/add', $args{record_title};
-        return $html;
+        return Dancer::render_with_layout($html);
     };
 
     # If we should allow deletion of records, set up a route to handle that,
     # too.
     if ($args{deletable}) {
         post "$args{prefix}/delete:id" => sub {
-            database()->do('delete ....');
+            database($args{db_connection_name})->do('delete ....');
         };
     }
 
