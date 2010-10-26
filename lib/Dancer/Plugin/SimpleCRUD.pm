@@ -363,7 +363,7 @@ sub simple_crud {
     # And a route to list records already in the table:
     get "$args{prefix}" => sub {
         # TODO: handle pagination
-        my $dbh = database($args{db_connection_name};
+        my $dbh = database($args{db_connection_name});
         my $sth = $dbh->prepare("select *, id as actions from $table_name");
         $sth->execute;
         my $table = HTML::Table::FromDatabase->new(
