@@ -68,3 +68,7 @@ Maybe add the option for the add/edit form to be presented within a "popup div"
 using Facebox, rather than as a standalone page.  (When the form is submitted,
 it would need to reload the list page afterwards.)
 
+=item Automatic password confirmation
+
+If we recognise a field as a password field, present a "Type your password
+again" box, and add code to validate that the passwords match.

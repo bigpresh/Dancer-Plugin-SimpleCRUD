@@ -442,13 +442,6 @@ set of acceptable values for this field using the C<acceptable_values> option to
 C<simple_crud>, in which case what you say goes.)
 
 
-=head2 Automatic password confirmation TODO
-
-By default, if we recognise a field as a password field (the column name looks
-like pass, passwd, password), we'll add an extra "Type your password again"
-field, and check that the user entered the same password in both.
-
-
 
 
 =head1 AUTHORS
