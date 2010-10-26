@@ -258,10 +258,10 @@ sub simple_crud {
         # it's an ENUM column, use the possible values declared in the ENUM
         my %constrain_values;
         for my $field (@$all_table_columns) {
-            if (my $values = $args{acceptable_values}->{$field}) {
-                $constrain_values{$field} = $values;
-            } elsif (my $values = $field->{mysql_values}) {
-                $constrain_values{$field->{COLUMN_NAME}} = $values;
+            if (my $values_specified = $args{acceptable_values}->{$field}) {
+                $constrain_values{$field} = $values_specified;
+            } elsif (my $values_from_db = $field->{mysql_values}) {
+                $constrain_values{$field->{COLUMN_NAME}} = $values_from_db;
             }
         }
         
