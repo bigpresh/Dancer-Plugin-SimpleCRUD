@@ -214,11 +214,7 @@ sub simple_crud {
         }
 
         # Find out about table columns:
-        Dancer::Logger::debug("Looking for columns in $table_name (via $dbh)");
         my $all_table_columns = _find_columns($dbh, $args{db_table});
-        use Data::Dump;
-        Dancer::Logger::debug("All columns in $table_name:\n"
-            . Data::Dump::dump($all_table_columns));
 
         my @editable_columns;
         # Now, find out which ones we can edit.
@@ -265,13 +261,6 @@ sub simple_crud {
             }
         }
         
-
-        use Data::Dump;
-        Dancer::Logger::debug("Required fields: "
-            . Data::Dump::dump(\%required_fields));
-        Dancer::Logger::debug("Value constraints: "
-            . Data::Dump::dump(\%constrain_values));
-
         # Only give CGI::FormBuilder our fake CGI object if the form has been
         # POSTed to us already; otherwise, it will ignore default values from
         # the DB, it seems.
@@ -311,8 +300,6 @@ sub simple_crud {
                 $field_params{type} = 'password';
             }
 
-            use Data::Dump qw(dump);
-            debug("field params for $field: " . dump(\%field_params));
             # OK, add the field to the form:
             $form->field(%field_params);
         }
@@ -321,9 +308,6 @@ sub simple_crud {
         # Now, if all is OK, go ahead and process:
         if (request->{method} eq 'POST' &&  $form->submitted && $form->validate) 
         {
-            debug("I would add/update here");
-            use Data::Dump;
-            debug("Params: " . Data::Dump::dump(params()) );
             # Assemble a hash of only fields from the DB (if other fields were
             # submitted with the form which don't belong in the DB, ignore them)
             my %params;
