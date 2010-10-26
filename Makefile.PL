@@ -13,6 +13,11 @@ WriteMakefile(
     PL_FILES            => {},
     PREREQ_PM => {
         'Test::More' => 0,
+        'Dancer'     => 1.2,
+        'Dancer::Plugin::Database' => 0.08,
+        'HTML::Table::FromDatabase' => 0.07,
+        'CGI::FormBuilder' => 0,
+        'SQL::Abstract' => 0,
     },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'Dancer-Plugin-SimpleCRUD-*' },
