@@ -337,7 +337,7 @@ sub simple_crud {
             }
 
         } else {
-            return $form->render;
+            return Dancer::render_with_layout($form->render);
         }
     };
     Dancer::Logger::debug("Setting up routes for $args{prefix}/add etc");
