@@ -197,6 +197,10 @@ sub simple_crud {
     if ($db_type ne 'MySQL') {
         die "This module has so far only been tested with MySQL databases.";
     }
+    
+    # Accepta deleteable as a synonym for deletable
+    $args{deletable} = delete $args{deleteable}
+        if !exists $args{deletable} && exists $args{deleteable};
 
     # Sanitise things we'll have to interpolate into queries (yes, that makes me
     # feel bad, but you can't use params for field/table names):
@@ -373,11 +377,12 @@ sub simple_crud {
                         my $edit_url = "$args{prefix}/edit/$id";
                         $action_links .= 
                             qq[<a href="$edit_url" class="edit_link">Edit</a>];
-                        if ($args{deleteable}) {
+                        if ($args{deletable}) {
                             my $del_url = "$args{prefix}/delete/$id";
                             $action_links .=
-                                qq[<a href="$del_url" class="delete_link">]
-                                . qq[Delete</a>];
+                                qq[ / <a href="$del_url" class="delete_link"]
+                               .qq[ onclick="delrec('$id'); return false;">]
+                               .qq[Delete</a>];
                         }
                         return $action_links;
                     },
@@ -387,14 +392,57 @@ sub simple_crud {
         my $html =  $table->getTable;
         $html .= sprintf '<a href="%s">Add a new %s</a></p>',
             $args{prefix} . '/add', $args{record_title};
+
+        # Append a little Javascript which asks for confirmation that they'd
+        # like to delete the record, then makes a POST request via a hidden
+        # form.  This could be made AJAXy in future.
+        $html .= <<DELETEJS;
+<form name="deleteform" method="post" action="$args{prefix}/delete">
+<input name="record_id" type="hidden">
+</form>
+<script language="Javascript">
+function delrec(record_id) {
+    alert("delrec called");
+    if (confirm('Confirm you wish to delete this record?')) {
+        document.deleteform.rowid.value = record_id;
+        document.deleteform.submit();
+    }
+}
+</script>
+
+DELETEJS
         return Dancer::render_with_layout($html);
     };
 
-    # If we should allow deletion of records, set up a route to handle that,
+    # If we should allow deletion of records, set up routes to handle that,
     # too.
+
     if ($args{deletable}) {
-        post "$args{prefix}/delete:id" => sub {
-            database($args{db_connection_name})->do('delete ....');
+        # A route for GET requests, to present a "Do you want to delete this"
+        # message with a form to submit (this is only for browsers which didn't
+        # support Javascript, otherwise the list page will have POSTed the ID 
+        # to us) (or they just came here directly for some reason)
+        get "$args{prefix}/delete/:id" => sub {
+            return <<CONFIRMDELETE;
+<p>
+Do you really wish to delete this record?
+</p>
+
+<form method="post">
+<input type="button" value="Cancel" onclick="history.back();">
+<input type="submit" value="Delete record">
+</form>
+CONFIRMDELETE
+        
+        };
+
+        # A route for POST requests, to actually delete the record
+        post qr[$args{prefix}/delete/?(.+)?$] => sub {
+            my ($id) = params->{record_id} || splat;
+            my $sql = "DELETE FROM $args{db_table} where $args{key_column} = ?";
+            return $sql;
+            database($args{db_connection_name})->do($sql, undef, $id);
+            redirect $args{prefix};
         };
     }
 
