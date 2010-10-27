@@ -402,7 +402,6 @@ sub simple_crud {
 </form>
 <script language="Javascript">
 function delrec(record_id) {
-    alert("delrec called");
     if (confirm('Confirm you wish to delete this record?')) {
         document.deleteform.rowid.value = record_id;
         document.deleteform.submit();
@@ -423,7 +422,7 @@ DELETEJS
         # support Javascript, otherwise the list page will have POSTed the ID 
         # to us) (or they just came here directly for some reason)
         get "$args{prefix}/delete/:id" => sub {
-            return <<CONFIRMDELETE;
+            return Dancer::render_with_layout(<<CONFIRMDELETE);
 <p>
 Do you really wish to delete this record?
 </p>
@@ -439,8 +438,7 @@ CONFIRMDELETE
         # A route for POST requests, to actually delete the record
         post qr[$args{prefix}/delete/?(.+)?$] => sub {
             my ($id) = params->{record_id} || splat;
-            my $sql = "DELETE FROM $args{db_table} where $args{key_column} = ?";
-            return $sql;
+            my $sql = "DELETE FROM $table_name where $key_column = ?";
             database($args{db_connection_name})->do($sql, undef, $id);
             redirect $args{prefix};
         };
