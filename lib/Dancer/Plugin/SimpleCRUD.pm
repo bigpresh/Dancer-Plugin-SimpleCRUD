@@ -37,7 +37,8 @@ our $VERSION = '0.01';
 
 
 # Horrific bodge: if the version of Dancer in use doesn't have
-# render_with_layout(), inject our own version..
+# render_with_layout(), inject our own version.  This will require a view
+# named contentwrapper.tt, which contains a token for render_content.
 if (!Dancer->can('render_with_layout')) {
     *Dancer::render_with_layout = sub {
         my $content = shift;
