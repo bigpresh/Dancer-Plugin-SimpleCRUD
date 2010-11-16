@@ -1,0 +1,7 @@
+logger: console
+log: core
+layout: main
+plugins:
+    Database:
+        driver: SQLite
+        database: test.sqlite

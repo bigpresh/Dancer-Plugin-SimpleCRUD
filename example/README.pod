@@ -1,0 +1,23 @@
+=head1 NAME
+
+Dancer::SimpleCRUD example application
+
+=head1 DESCRIPTION
+
+A simple L<Dancer> application to demonstrate L<Dancer::SimpleCRUD> in action.
+
+
+=head1 USAGE
+
+Just change into the C<example/> directory and run it:
+
+  ./simplecrud-example.pl
+
+As it's a Dancer app you can run it on a specific port with e.g.
+
+  ./simplecrud-example.pl --port 5000
+
+
+=head1 AUTHOR
+
+David Precious <davidp@preshewb.co.uk>

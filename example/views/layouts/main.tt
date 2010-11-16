@@ -1,0 +1,10 @@
+<html>
+<head>
+<title>SimpleCRUD demo</title>
+</head>
+<body>
+
+<% content %>
+</body>
+</html>
+
