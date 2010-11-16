@@ -11,6 +11,7 @@ simple_crud(
     acceptable_values => {
         gender => [ qw( Male Female ) ],
     },
+    deletable => 'yes',
 );
 
 get '/' => sub {
