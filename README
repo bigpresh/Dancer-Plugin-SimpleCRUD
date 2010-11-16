@@ -1,48 +1,182 @@
-Dancer-Plugin-SimpleCRUD
+NAME
+    Dancer::Plugin::SimpleCRUD - very simple CRUD
+    (create/read/update/delete)
 
-A plugin for the Dancer Perl web framework, to provide very simple CRUD (create,
-read, update, delete) capabilities.
+DESCRIPTION
+    A plugin for Dancer web applications, to use a few lines of code to
+    create appropriate routes to support creating/editing/deleting records
+    within a database table. Uses L<HTML::FormFu> to generate, process and
+    validate forms, and L<Dancer::Plugin::Database> for database interaction.
 
-See the POD documentation for full details.
-
-INSTALLATION
-
-To install this module, run the following commands:
-
-	perl Makefile.PL
-	make
-	make test
-	make install
-
-SUPPORT AND DOCUMENTATION
-
-After installing, you can find documentation for this module with the
-perldoc command.
-
-    perldoc Dancer::Plugin::SimpleCRUD
-
-You can also look for information at:
-
-    RT, CPAN's request tracker
-        http://rt.cpan.org/NoAuth/Bugs.html?Dist=Dancer-Plugin-SimpleCRUD
-
-    AnnoCPAN, Annotated CPAN documentation
-        http://annocpan.org/dist/Dancer-Plugin-SimpleCRUD
-
-    CPAN Ratings
-        http://cpanratings.perl.org/d/Dancer-Plugin-SimpleCRUD
-
-    Search CPAN
-        http://search.cpan.org/dist/Dancer-Plugin-SimpleCRUD/
+    This is still alpha-quality code.  Reports of how well it works for you,
+    suggestions and improvements would be appreciated.
 
 
+SYNOPSIS
+    # In your Dancer app,
+    use Dancer::Plugin::SimpleCRUD;
+    # Simple example:
+    simple_crud(
+        record_title => 'Widget',
+        prefix => '/widgets',
+        db_table => 'widgets',
+    );
+
+    # The above would create a route to handle C</widget/add> and
+    # C</widget/:id>, presenting a form to add/edit a Widget respectively.
+    # All fields in the database table would be editable.
+
+    # A more in-depth synopsis, using all options:
+    simple_crud(
+        record_title => 'Widget',
+        prefix => '/widgets',
+        db_table => 'widgets',
+        field_labels => {
+            country => 'Country of Origin',
+            type    => 'Widget Type', 
+        },  
+        validation => {
+            weight => qr/\d+/,
+        },
+        key_column => 'sku',
+        editable => [ qw( f_name l_name adr_1 ),
+        deleteable => 1,
+    );
+
+USAGE
+    This plugin provides a `simple_crud' keyword, which takes a hash of
+    options as described below, and sets up the appropriate route to present
+    add/edit/delete options.
+
+OPTIONS
+    The options you can pass to simple_crud are:
+
+    `record_title' (required)
+        What we're editing, for instance, if you're editing widgets, use
+        'Widget'. Will be used in form titles (for instance "Add a ...",
+        "Edit ..."), and button labels.
+
+    `prefix' (required)
+        The prefix for the routes which will be created. Given a prefix of
+        `/widgets', then you can go to `/widgets/new' to create a new
+        Widget, and `/widgets/42' to edit the widget with the ID (see
+        keu_column) 42.
+
+    `db_table' (required)
+        The name of the database table.
+
+    `key_column' (optional, default: 'id')
+        Specify which column in the table is the primary key. If not given,
+        defaults to id.
+
+    `db_connection_name' (optional)
+        We use Dancer::Plugin::Database to obtain database connections. This
+        option allows you to specify the name of a connection defined in the
+        config file to use. See the documentation for
+        Dancer::Plugin::Database for how multiple database configurations
+        work. If this is not supplied or is empty, the default database
+        connection details in your config file will be used - this is often
+        what you want, so unless your app is dealing with multiple DBs, you
+        probably won't need to worry about this option.
+
+    <field_labels> (optional)
+        A hashref of field_name => 'Label', if you want to provide more
+        user-friendly labels for some or all fields. As we're using
+        CGI::FormBuilder, it will do a reasonable job of figuring these out
+        for itself usually anyway - for instance, a field named `first_name'
+        will be shown as `First Name'.
+
+    `validation' (optional)
+        A hashref of validation criteria which should be passed to
+        HTML::FormFu.
+
+    `acceptable_values' (optional)
+        A hashref of arrayrefs to declare that certain fields can take only
+        a set of acceptable values, for instance:
+
+          { foo => [ qw(Foo Bar Baz) ] }
+
+    `editable' (optional)
+        Specify an arrayref of fields which the user can edit. By default,
+        this is all columns in the database table, with the exception of the
+        key column.
+
+    <not_editable> (optional)
+        Specify an arrayref of fields which should not be editable.
+
+    `deletable'
+        Specify whether to support deleting records. If set to a true value,
+        a route will be created for `/prefix/delete/:id' to delete the
+        record with the ID given, and the edit form will have a "Delete
+        $record_title" button.
+
+DWIMmery
+        This module tries to do what you'd expect it to do, so you can rock
+        up your web app with as little code and effort as possible, whilst
+        still giving you control to override its decisions wherever you need
+        to.
+
+  Field types
+        CGI::FormBuilder is excellent at working out what kind of field to
+        use by itself, but we give it a little help where needed. For
+        instance, if a field looks like it's supposed to contain a password,
+        we'll have it rendered as a password entry box, rather than a
+        standard text box.
+
+        If the column in the database is an ENUM, we'll limit the choices
+        available for this field to the choices defined by the ENUM list.
+        (Unless you've provided a set of acceptable values for this field
+        using the `acceptable_values' option to `simple_crud', in which case
+        what you say goes.)
+
+AUTHORS
+        David Precious, `<davidp@preshweb.co.uk>'
+
+        James Ronan, `<james.ronan@ronanweb.co.uk>'
+
+BUGS
+        Please report any bugs or feature requests to
+        `bug-dancer-plugin-simplecrud at rt.cpan.org', or through the web
+        interface at
+        http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Dancer-Plugin-SimpleC
+        RUD. I will be notified, and then you'll automatically be notified
+        of progress on your bug as I make changes.
+
+CONTRIBUTING
+        This module is developed on Github:
+
+        http://github.com/bigpresh/Dancer-Plugin-SimpleCRUD
+
+SUPPORT
+        You can find documentation for this module with the perldoc command.
+
+            perldoc Dancer::Plugin::SimpleCRUD
+
+        You may find help with this module on the main Dancer IRC channel or
+        mailing list - see http://www.perldancer.org/
+
+        You can also look for information at:
+
+        * RT: CPAN's request tracker
+            http://rt.cpan.org/NoAuth/Bugs.html?Dist=Dancer-Plugin-SimpleCRU
+            D
+
+        * AnnoCPAN: Annotated CPAN documentation
+            http://annocpan.org/dist/Dancer-Plugin-SimpleCRUD
+
+        * CPAN Ratings
+            http://cpanratings.perl.org/d/Dancer-Plugin-SimpleCRUD
+
+        * Search CPAN
+            http://search.cpan.org/dist/Dancer-Plugin-SimpleCRUD/
+
+ACKNOWLEDGEMENTS
 LICENSE AND COPYRIGHT
+        Copyright 2010 David Precious.
 
-Copyright (C) 2010 David Precious
+        This program is free software; you can redistribute it and/or modify
+        it under the terms of either: the GNU General Public License as
+        published by the Free Software Foundation; or the Artistic License.
 
-This program is free software; you can redistribute it and/or modify it
-under the terms of either: the GNU General Public License as published
-by the Free Software Foundation; or the Artistic License.
-
-See http://dev.perl.org/licenses/ for more information.
+        See http://dev.perl.org/licenses/ for more information.
 
