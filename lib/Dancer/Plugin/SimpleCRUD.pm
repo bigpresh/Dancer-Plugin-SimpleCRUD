@@ -195,7 +195,7 @@ sub simple_crud {
     # Find out what kind of engine we're talking to:
     my $db_type = $dbh->get_info(17);
     if ($db_type ne 'MySQL') {
-        die "This module has so far only been tested with MySQL databases.";
+        warn "This module has so far only been tested with MySQL databases.";
     }
     
     # Accepta deleteable as a synonym for deletable
@@ -229,8 +229,7 @@ sub simple_crud {
         }
 
         # Find out about table columns:
-        my $all_table_columns = _find_columns($dbh, $args{db_table});
-
+        my $all_table_columns = _find_columns($dbh, $args{db_table}); 
         my @editable_columns;
         # Now, find out which ones we can edit.
         if ($args{editable_columns}) {
@@ -269,10 +268,11 @@ sub simple_crud {
         # it's an ENUM column, use the possible values declared in the ENUM
         my %constrain_values;
         for my $field (@$all_table_columns) {
-            if (my $values_specified = $args{acceptable_values}->{$field}) {
-                $constrain_values{$field} = $values_specified;
+            my $name = $field->{COLUMN_NAME};
+            if (my $values_specified = $args{acceptable_values}->{$name}) {
+                $constrain_values{$name} = $values_specified;
             } elsif (my $values_from_db = $field->{mysql_values}) {
-                $constrain_values{$field->{COLUMN_NAME}} = $values_from_db;
+                $constrain_values{$name} = $values_from_db;
             }
         }
         
@@ -363,8 +363,10 @@ sub simple_crud {
     get "$args{prefix}" => sub {
         # TODO: handle pagination
         my $dbh = database($args{db_connection_name});
-        my $sth = $dbh->prepare("select *, id as actions from $table_name");
-        $sth->execute;
+        my $sth = $dbh->prepare("select *, $key_column as actions from $table_name");
+        $sth->execute
+            or die "Failed to query for records in $table_name - "
+                . database->errstr;
         my $table = HTML::Table::FromDatabase->new(
             -sth => $sth,
             -border => 1,
