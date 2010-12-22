@@ -4,8 +4,6 @@
 
 =over 
 
-=item Handle deletion of records
-
 =item Tidy up and refactor where possible.
 
 It's a bit of a mess at the moment.
@@ -66,7 +64,8 @@ successful.
 
 Maybe add the option for the add/edit form to be presented within a "popup div"
 using Facebox, rather than as a standalone page.  (When the form is submitted,
-it would need to reload the list page afterwards.)
+it could need to reload the list page afterwards, or we could allow that to be
+done via an AJAX call too)
 
 =item Automatic password confirmation
 
