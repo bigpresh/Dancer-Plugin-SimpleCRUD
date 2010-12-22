@@ -93,6 +93,15 @@ and L<Dancer::Plugin::Database> for database interaction.
     );
 
 
+=head1 Beta-quality first release
+
+This should be considered beta software - this is an early release of code which
+works, but may be missing features, and could contain bugs.  Having said that,
+I'm using it a production app already where it's working great for me, and I
+will of course greatly appreciate anyone who is willing to give it a try and
+provide feedback/suggestions/bug reports/adoring praise.
+
+
 =head1 USAGE
 
 This plugin provides a C<simple_crud> keyword, which takes a hash of options as
@@ -502,12 +511,10 @@ C<simple_crud>, in which case what you say goes.)
 
 
 
-
-=head1 AUTHORS
+=head1 AUTHOR
 
 David Precious, C<< <davidp@preshweb.co.uk> >>
 
-James Ronan, C<< <james.ronan@ronanweb.co.uk> >>
 
 =head1 BUGS
 
@@ -521,6 +528,12 @@ automatically be notified of progress on your bug as I make changes.
 This module is developed on Github:
 
 http://github.com/bigpresh/Dancer-Plugin-SimpleCRUD
+
+Bug reports, ideas, suggestions, patches/pull requests all welcome.
+
+Even just a quick "Hey, this is great, thanks" or "This is no good to me
+because..." is greatly appreciated.  It's always good to know if people are
+using your code, and what they think.
 
 
 =head1 SUPPORT
