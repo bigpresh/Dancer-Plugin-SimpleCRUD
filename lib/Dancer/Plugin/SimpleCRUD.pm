@@ -491,6 +491,8 @@ sub _find_columns {
     ];
 }
 
+=back
+
 =head1 DWIMmery
 
 This module tries to do what you'd expect it to do, so you can rock up your web
