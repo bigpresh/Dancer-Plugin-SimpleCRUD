@@ -4,7 +4,8 @@ create table people (
     last_name   varchar,
     email       varchar,
     gender      varchar,
-    age         int
+    age         int,
+    notes       text
 );
 
 insert into people (first_name, last_name, email, gender, age)

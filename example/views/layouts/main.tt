@@ -1,6 +1,14 @@
 <html>
 <head>
 <title>SimpleCRUD demo</title>
+
+
+<style>
+TEXTAREA {
+    width: 400px;
+    height: 200px;
+}
+</style>
 </head>
 <body>
 
