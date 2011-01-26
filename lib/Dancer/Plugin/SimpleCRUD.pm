@@ -55,9 +55,10 @@ Dancer::Plugin::SimpleCRUD - very simple CRUD (create/read/update/delete)
 =head1 DESCRIPTION
 
 A plugin for Dancer web applications, to use a  few lines of code to create
-appropriate routes to support creating/editing/deleting records within a
+appropriate routes to support creating/editing/deleting/viewing records within a
 database table.  Uses L<HTML::FormFu> to generate, process and validate forms,
-and L<Dancer::Plugin::Database> for database interaction.
+L<Dancer::Plugin::Database> for database interaction and
+L<HTML::Table::FromDatabase> to display lists of records.
 
 
 =head1 SYNOPSIS
