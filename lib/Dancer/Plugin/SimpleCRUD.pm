@@ -370,7 +370,7 @@ sub simple_crud {
                 return;
             } else {
                 # TODO: better error handling
-                return "<p>Unable to $verb record</p>";
+                return "<p>Unable to $verb $args{record_title}</p>";
             }
 
         } else {
