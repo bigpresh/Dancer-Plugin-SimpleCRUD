@@ -12,17 +12,6 @@ It's a bit of a mess at the moment.
 
 If called after using Dancer's prefix keyword, links to add/edit records will 
 be broken, as it doesn't know that a prefix will be added.
-
-=item Don't rely on the original database handle still being valid
-
-At the moment, we close over the database handle supplied/obtained when
-simple_crud() is called; when the route is later hit, that might have gone away.
-
-Change to fetch a database handle within the handler via
-Dancer::Plugin::Database.  Change simple_crud() keyword to accept a connection
-definition name to pass to D::P::Database::database(), rather than taking an
-actual database handle.
-
 =back
 
 
