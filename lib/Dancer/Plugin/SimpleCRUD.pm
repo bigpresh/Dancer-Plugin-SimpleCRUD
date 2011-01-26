@@ -211,10 +211,14 @@ sub simple_crud {
     $args{deletable} = delete $args{deleteable}
         if !exists $args{deletable} && exists $args{deleteable};
 
+    # Sane default values:
+    $args{key_column}   ||= 'id';
+    $args{record_title} ||= 'record';
+
     # Sanitise things we'll have to interpolate into queries (yes, that makes me
     # feel bad, but you can't use params for field/table names):
     my $table_name = $args{db_table};
-    my $key_column = $args{key_column} || 'id';
+    my $key_column = $args{key_column};
     for ($table_name, $key_column) {
         die "Invalid table name/key column - SQL injection attempt?"
             if /--/;
@@ -336,7 +340,7 @@ sub simple_crud {
             # submitted with the form which don't belong in the DB, ignore them)
             my %params;
             $params{$_} = params->{$_} for @editable_columns;
-            my $sql = SQL::Abstract->new;
+            my $sql = SQL::Abstract->new( quote_char => '`' );
             my ($statement, @bind_values);
             my $verb;
             if (exists params->{$key_column}) {
