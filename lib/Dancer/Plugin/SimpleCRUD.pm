@@ -279,10 +279,13 @@ sub simple_crud {
         }
 
         # If the user didn't supply a list of acceptable values for a field, but
-        # it's an ENUM column, use the possible values declared in the ENUM
+        # it's an ENUM column, use the possible values declared in the ENUM.
+        # Also remember field types for easy reference later
         my %constrain_values;
+        my %field_type;
         for my $field (@$all_table_columns) {
             my $name = $field->{COLUMN_NAME};
+            $field_type{$name} = $field->{TYPE_NAME};
             if (my $values_specified = $args{acceptable_values}->{$name}) {
                 $constrain_values{$name} = $values_specified;
             } elsif (my $values_from_db = $field->{mysql_values}) {
@@ -327,6 +330,11 @@ sub simple_crud {
             # but give it some extra DWIMmy help:
             if ($field =~ /pass(?:wd|word)?$/i) {
                 $field_params{type} = 'password';
+            }
+
+            # use a <textarea> for large text fields.
+            if ($field_type{$field} eq 'TEXT') {
+                $field_params{type} = 'textarea';
             }
 
             # OK, add the field to the form:
