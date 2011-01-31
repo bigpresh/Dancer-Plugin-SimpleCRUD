@@ -62,6 +62,7 @@ L<HTML::Table::FromDatabase> to display lists of records.
 
 
 =head1 SYNOPSIS
+
     # In your Dancer app,
     use Dancer::Plugin::SimpleCRUD;
 
