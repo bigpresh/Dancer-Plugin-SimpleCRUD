@@ -35,11 +35,21 @@ use SQL::Abstract;
 
 our $VERSION = '0.01';
 
-
-# Horrific bodge: if the version of Dancer in use doesn't have
-# render_with_layout(), inject our own version.  This will require a view
-# named contentwrapper.tt, which contains a token for render_content.
-if (!Dancer->can('render_with_layout')) {
+# Render_with_layout is now deprecated (dancer 1.3).
+#
+# My solution would be: 
+#  1. require Dancer >= 1.3 in Makefile.PL
+#  2. define ourown _render_with_layout with the new code below
+#
+if ($Dancer::VERSION >= 1.3) {
+    *Dancer::render_with_layout = sub {
+        my $content = shift;
+        engine('template')->apply_layout($content);
+    };
+} elsif (!Dancer->can('render_with_layout')) {
+    # Horrific bodge: if the version of Dancer in use doesn't have
+    # render_with_layout(), inject our own version.  This will require a view
+    # named contentwrapper.tt, which contains a token for render_content.
     *Dancer::render_with_layout = sub {
         my $content = shift;
         template('contentwrapper', { render_content => $content });
