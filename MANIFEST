@@ -8,7 +8,6 @@ t/manifest.t
 t/pod-coverage.t
 t/pod.t
 example/config.yml
-example/logs/development.log
 example/README.pod
 example/schema.sql
 example/simplecrud-example.pl
