@@ -13,7 +13,7 @@ WriteMakefile(
     PL_FILES            => {},
     PREREQ_PM => {
         'Test::More' => 0,
-        'Dancer'     => 1.2,
+        'Dancer'     => 1.3,
         'Dancer::Plugin::Database' => 0.08,
         'HTML::Table::FromDatabase' => 0.07,
         'CGI::FormBuilder' => 0,
