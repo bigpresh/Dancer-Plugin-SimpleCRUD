@@ -1,6 +1,6 @@
 =head1 TODO for Dancer::Plugin::SimpleCRUD
 
-=head2 Before release
+=head2 Before declaring stable
 
 =over 
 
@@ -13,6 +13,11 @@ It's a bit of a mess at the moment.
 If called after using Dancer's prefix keyword, links to add/edit records will 
 be broken, as it doesn't know that a prefix will be added.
 =back
+
+=item Use quick_update() etc from Dancer::Plugin::Database
+
+Where possible, use Dancer::Plugin::Database's new quick_*() methods rather than
+generating queries ourselves.
 
 
 =head2 Later
