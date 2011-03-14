@@ -33,8 +33,9 @@ use HTML::Table::FromDatabase;
 use CGI::FormBuilder;
 use SQL::Abstract;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
+<<<<<<< HEAD
 # Render_with_layout is now deprecated (dancer 1.3).
 #
 # My solution would be: 
@@ -55,6 +56,8 @@ if ($Dancer::VERSION >= 1.3) {
         template('contentwrapper', { render_content => $content });
     };
 }
+=======
+>>>>>>> 91022bb2d810f9fef6ea61a30cc309c9701fbaa5
 
 
 =head1 NAME
@@ -385,7 +388,7 @@ sub simple_crud {
             }
 
         } else {
-            return Dancer::render_with_layout($form->render);
+            return engine('template')->apply_layout($form->render);
         }
     };
     Dancer::Logger::debug("Setting up routes for $args{prefix}/add etc");
@@ -445,7 +448,7 @@ function delrec(record_id) {
 </script>
 
 DELETEJS
-        return Dancer::render_with_layout($html);
+        return engine('template')->apply_layout($html);
     };
 
     # If we should allow deletion of records, set up routes to handle that,
@@ -457,7 +460,7 @@ DELETEJS
         # support Javascript, otherwise the list page will have POSTed the ID 
         # to us) (or they just came here directly for some reason)
         get "$args{prefix}/delete/:id" => sub {
-            return Dancer::render_with_layout(<<CONFIRMDELETE);
+            return engine('template')->apply_layout(<<CONFIRMDELETE);
 <p>
 Do you really wish to delete this record?
 </p>
