@@ -535,6 +535,12 @@ C<simple_crud>, in which case what you say goes.)
 
 David Precious, C<< <davidp@preshweb.co.uk> >>
 
+=head1 ACKNOWLEDGEMENTS
+
+Alberto Simões (ambs)
+
+WK
+
 
 =head1 BUGS
 
