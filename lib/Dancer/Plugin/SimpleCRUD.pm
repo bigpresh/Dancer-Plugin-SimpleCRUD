@@ -70,7 +70,7 @@ L<HTML::Table::FromDatabase> to display lists of records.
         record_title => 'Widget',
         prefix => '/widgets',
         db_table => 'widgets',
-        field_labels => {
+        labels => {
             country => 'Country of Origin',
             type    => 'Widget Type', 
         },  
@@ -135,7 +135,7 @@ database connection details in your config file will be used - this is often
 what you want, so unless your app is dealing with multiple DBs, you probably
 won't need to worry about this option.
 
-=item <field_labels> (optional)
+=item <labels> (optional)
 
 A hashref of field_name => 'Label', if you want to provide more user-friendly
 labels for some or all fields.  As we're using CGI::FormBuilder, it will do a
