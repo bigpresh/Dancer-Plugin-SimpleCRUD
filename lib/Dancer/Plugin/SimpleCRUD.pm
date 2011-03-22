@@ -163,13 +163,18 @@ columns in the database table, with the exception of the key column.
 
 Specify an arrayref of fields which should not be editable.
 
+=item C<required> (optional)
+
+Specify an arrayref of fields which must be completed.  If this is not provided,
+DWIMmery based on whether the field is set to allow null values in the database
+will be used - i.e. if that column can contain null, then it doesn't have to be
+completed, otherwise, it does.
 
 =item C<deletable>
 
 Specify whether to support deleting records.  If set to a true value, a route
 will be created for C</prefix/delete/:id> to delete the record with the ID
 given, and the edit form will have a "Delete $record_title" button.
-
 
 =cut
 
