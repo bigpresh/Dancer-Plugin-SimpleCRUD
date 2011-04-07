@@ -221,19 +221,19 @@ sub simple_crud {
     }
 
     # OK, create a route handler to deal with adding/editing:
-    my $handler = _create_add_edit_handler(\%args, $table_name, $key_column);
-
+    my $handler = sub { _create_add_edit_route(\%args, $table_name, $key_column); };
 
     Dancer::Logger::debug("Setting up routes for $args{prefix}/add etc");
     any ['get','post'] => "$args{prefix}/add"      => $handler;
     any ['get','post'] => "$args{prefix}/edit/:id" => $handler;
 
     # And a route to list records already in the table:
-    get "$args{prefix}" => _create_list_handler(\%args, $table_name, $key_column);
+    my $list_handler = sub { _create_list_handler(\%args, $table_name, $key_column); };
+    get  "$args{prefix}"        => $list_handler;
+    post "$args{prefix}/search" => $list_handler;
 
     # If we should allow deletion of records, set up routes to handle that,
     # too.
-
     if ($args{deletable}) {
         # A route for GET requests, to present a "Do you want to delete this"
         # message with a form to submit (this is only for browsers which didn't
@@ -423,9 +423,46 @@ sub _create_add_edit_route {
 
 sub _create_list_handler {
     my ($args, $table_name, $key_column) = @_;
-    # TODO: handle pagination
+
     my $dbh = database($args->{db_connection_name});
-    my $sth = $dbh->prepare("select *, $key_column as actions from $table_name");
+    my $columns = _find_columns($dbh, $table_name);
+    my $options = join("\n", map {
+        "<option value='$_->{COLUMN_NAME}'>$_->{COLUMN_NAME}</option>"
+    } @$columns);
+    my $html = <<"SEARCHFORM";
+ <p><form name="searchform" method="post" action="$args->{prefix}/search">
+     Field:  <select name="fieldname">$options</select> &nbsp;&nbsp;
+     Query: <input name="querystring" type="text" size="30"/> &nbsp;&nbsp;
+     <input name="searchsubmit" type="submit" value="Search"/>
+ </form></p>
+SEARCHFORM
+
+    # TODO: handle pagination
+    # TODO: Fix me with more data types. Make this global?
+    my %known_type = (
+                      INT     => q{%s = %d},
+                      VARCHAR => q{%s LIKE "%%%s%%"},
+                     );
+    my $query_string = "select *, $key_column as actions from $table_name";
+
+    if (params->{searchsubmit}) {
+        my ($column_data) = grep {
+            $_->{COLUMN_NAME} eq params->{fieldname}
+        } @{ $columns };
+
+        if ($column_data &&
+            $known_type{$column_data->{TYPE_NAME}}) {
+            $query_string .= " WHERE ";
+            $query_string .= sprintf $known_type{$column_data->{TYPE_NAME}},
+                                     params->{fieldname},
+                                     params->{querystring};
+
+            $html .= sprintf ("<p>Showing results from searching '%s' on '%s'",
+                              params->{querystring}, params->{fieldname});
+            $html .= "&mdash;<a href='$args->{prefix}'>Reset search</a></p>"
+        }
+    }
+    my $sth = $dbh->prepare($query_string);
     $sth->execute
       or die "Failed to query for records in $table_name - "
         . database->errstr;
@@ -454,7 +491,8 @@ sub _create_list_handler {
                       },
                      ],
       );
-    my $html =  $table->getTable;
+
+    $html .= $table->getTable;
     $html .= sprintf '<a href="%s">Add a new %s</a></p>',
       $args->{prefix} . '/add', $args->{record_title};
 

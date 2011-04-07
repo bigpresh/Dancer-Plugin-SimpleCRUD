@@ -1,5 +1,9 @@
 Revision history for Dancer-Plugin-SimpleCRUD
 
+0.03     someday
+        Added support to search when in the listing page;
+        Code refactoring;
+
 0.02    2011-03-06
         Discard render_with_layout bodgery in favour of using
         engines('template')->apply_layout().  Thanks to ambs for this.
