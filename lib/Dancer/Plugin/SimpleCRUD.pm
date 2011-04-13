@@ -230,7 +230,6 @@ sub simple_crud {
     # And a route to list records already in the table:
     my $list_handler = sub { _create_list_handler(\%args, $table_name, $key_column); };
     get  "$args{prefix}"        => $list_handler;
-    post "$args{prefix}/search" => $list_handler;
 
     # If we should allow deletion of records, set up routes to handle that,
     # too.
@@ -430,9 +429,9 @@ sub _create_list_handler {
         "<option value='$_->{COLUMN_NAME}'>$_->{COLUMN_NAME}</option>"
     } @$columns);
     my $html = <<"SEARCHFORM";
- <p><form name="searchform" method="post" action="$args->{prefix}/search">
-     Field:  <select name="fieldname">$options</select> &nbsp;&nbsp;
-     Query: <input name="querystring" type="text" size="30"/> &nbsp;&nbsp;
+ <p><form name="searchform" method="get">
+     Field:  <select name="searchfield">$options</select> &nbsp;&nbsp;
+     Query: <input name="q" type="text" size="30"/> &nbsp;&nbsp;
      <input name="searchsubmit" type="submit" value="Search"/>
  </form></p>
 SEARCHFORM
@@ -440,30 +439,35 @@ SEARCHFORM
     # TODO: handle pagination
     # TODO: Fix me with more data types. Make this global?
     my %known_type = (
-                      INT     => q{%s = %d},
-                      VARCHAR => q{%s LIKE "%%%s%%"},
+                      INT     => q{%s = %s},
+                      VARCHAR => q{%s LIKE %s},
                      );
-    my $query_string = "select *, $key_column as actions from $table_name";
+    my $query  = "SELECT *, $key_column AS actions FROM $table_name";
 
-    if (params->{searchsubmit}) {
+    if (params->{'q'}) {
         my ($column_data) = grep {
-            $_->{COLUMN_NAME} eq params->{fieldname}
+            lc $_->{COLUMN_NAME} eq lc params->{searchfield}
         } @{ $columns };
+        debug("Searching on $column_data->{COLUMN_NAME} which is a "
+            . "$column_data->{TYPE_NAME}");
 
-        if ($column_data &&
-            $known_type{$column_data->{TYPE_NAME}}) {
-            $query_string .= " WHERE ";
-            $query_string .= sprintf $known_type{$column_data->{TYPE_NAME}},
-                                     params->{fieldname},
-                                     params->{querystring};
+        if ($column_data and
+                my $add_clause = $known_type{uc $column_data->{TYPE_NAME}})
+        {
+            $query .=  ' WHERE ' . sprintf $add_clause,
+                $dbh->quote_identifier(params->{searchfield}),
+                $dbh->quote('%' . params->{'q'} . '%');
 
-            $html .= sprintf ("<p>Showing results from searching '%s' on '%s'",
-                              params->{querystring}, params->{fieldname});
-            $html .= "&mdash;<a href='$args->{prefix}'>Reset search</a></p>"
+            $html .= sprintf (
+                "<p>Showing results from searching for '%s' in '%s'",
+                params->{'q'}, params->{searchfield}
+            );
+            $html .= qq[&mdash;<a href="$args->{prefix}">Reset search</a></p>];
         }
     }
-    my $sth = $dbh->prepare($query_string);
-    $sth->execute
+    debug("Running query: $query");
+    my $sth = $dbh->prepare($query);
+    $sth->execute()
       or die "Failed to query for records in $table_name - "
         . database->errstr;
     my $table = HTML::Table::FromDatabase->new
