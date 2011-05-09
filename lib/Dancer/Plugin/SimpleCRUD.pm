@@ -638,6 +638,10 @@ L<http://search.cpan.org/dist/Dancer-Plugin-SimpleCRUD/>
 
 =head1 ACKNOWLEDGEMENTS
 
+Alberto Simões (ambs)
+
+Jonathan Barber
+
 
 =head1 LICENSE AND COPYRIGHT
 
