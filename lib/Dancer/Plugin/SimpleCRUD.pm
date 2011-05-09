@@ -43,7 +43,7 @@ Dancer::Plugin::SimpleCRUD - very simple CRUD (create/read/update/delete)
 
 A plugin for Dancer web applications, to use a  few lines of code to create
 appropriate routes to support creating/editing/deleting/viewing records within a
-database table.  Uses L<HTML::FormFu> to generate, process and validate forms,
+database table.  Uses L<CGI::FormBuilder> to generate, process and validate forms,
 L<Dancer::Plugin::Database> for database interaction and
 L<HTML::Table::FromDatabase> to display lists of records.
 
@@ -143,7 +143,7 @@ field named C<first_name> will be shown as C<First Name>.
 
 =item C<validation> (optional)
 
-A hashref of validation criteria which should be passed to HTML::FormFu.
+A hashref of validation criteria which should be passed to L<CGI::FormBuilder>.
 
 =item C<acceptable_values> (optional)
 
