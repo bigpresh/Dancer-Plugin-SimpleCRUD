@@ -580,6 +580,8 @@ Alberto Simões (ambs)
 
 WK
 
+Johnathan Barber
+
 
 =head1 BUGS
 
