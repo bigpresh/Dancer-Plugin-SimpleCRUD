@@ -1,8 +1,15 @@
 Revision history for Dancer-Plugin-SimpleCRUD
 
-0.03     someday
+0.03    2011-05-09
         Added support to search when in the listing page;
         Code refactoring - thanks to ambs for both!
+
+        Remove dependency on SQL::Abstract, use the convenience methods now
+        provided by Dancer::Plugin::Database instead.  Thanks to Jonathan
+        Berber for prompting this via RT #68040, reporting that setting
+        SQL::Abstract's quote_char to a backtick causes the generated queries to
+        be invalid for PostgreSQL.
+
 
 0.02    2011-03-06
         Discard render_with_layout bodgery in favour of using
