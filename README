@@ -4,44 +4,50 @@ NAME
 
 DESCRIPTION
     A plugin for Dancer web applications, to use a few lines of code to
-    create appropriate routes to support creating/editing/deleting records
-    within a database table. Uses L<HTML::FormFu> to generate, process and
-    validate forms, and L<Dancer::Plugin::Database> for database interaction.
-
-    This is still alpha-quality code.  Reports of how well it works for you,
-    suggestions and improvements would be appreciated.
-
+    create appropriate routes to support creating/editing/deleting/viewing
+    records within a database table. Uses CGI::FormBuilder to generate,
+    process and validate forms, Dancer::Plugin::Database for database
+    interaction and HTML::Table::FromDatabase to display lists of records.
 
 SYNOPSIS
-    # In your Dancer app,
-    use Dancer::Plugin::SimpleCRUD;
-    # Simple example:
-    simple_crud(
-        record_title => 'Widget',
-        prefix => '/widgets',
-        db_table => 'widgets',
-    );
+        # In your Dancer app,
+        use Dancer::Plugin::SimpleCRUD;
 
-    # The above would create a route to handle C</widget/add> and
-    # C</widget/:id>, presenting a form to add/edit a Widget respectively.
-    # All fields in the database table would be editable.
+        # Simple example:
+        simple_crud(
+            record_title => 'Widget',
+            prefix => '/widgets',
+            db_table => 'widgets',
+        );
 
-    # A more in-depth synopsis, using all options:
-    simple_crud(
-        record_title => 'Widget',
-        prefix => '/widgets',
-        db_table => 'widgets',
-        field_labels => {
-            country => 'Country of Origin',
-            type    => 'Widget Type', 
-        },  
-        validation => {
-            weight => qr/\d+/,
-        },
-        key_column => 'sku',
-        editable => [ qw( f_name l_name adr_1 ),
-        deleteable => 1,
-    );
+        # The above would create a route to handle C</widget/add> and
+        # C</widget/:id>, presenting a form to add/edit a Widget respectively.
+        # All fields in the database table would be editable.
+
+        # A more in-depth synopsis, using all options:
+        simple_crud(
+            record_title => 'Widget',
+            prefix => '/widgets',
+            db_table => 'widgets',
+            labels => {
+                country => 'Country of Origin',
+                type    => 'Widget Type', 
+            },  
+            validation => {
+                weight => qr/\d+/,
+            },
+            key_column => 'sku',
+            editable => [ qw( f_name l_name adr_1 ),
+            deleteable => 1,
+        );
+
+Beta-quality first release
+    This should be considered beta software - this is an early release of
+    code which works, but may be missing features, and could contain bugs.
+    Having said that, I'm using it a production app already where it's
+    working great for me, and I will of course greatly appreciate anyone who
+    is willing to give it a try and provide feedback/suggestions/bug
+    reports/adoring praise.
 
 USAGE
     This plugin provides a `simple_crud' keyword, which takes a hash of
@@ -79,7 +85,7 @@ OPTIONS
         what you want, so unless your app is dealing with multiple DBs, you
         probably won't need to worry about this option.
 
-    <field_labels> (optional)
+    <labels> (optional)
         A hashref of field_name => 'Label', if you want to provide more
         user-friendly labels for some or all fields. As we're using
         CGI::FormBuilder, it will do a reasonable job of figuring these out
@@ -88,7 +94,7 @@ OPTIONS
 
     `validation' (optional)
         A hashref of validation criteria which should be passed to
-        HTML::FormFu.
+        CGI::FormBuilder.
 
     `acceptable_values' (optional)
         A hashref of arrayrefs to declare that certain fields can take only
@@ -104,6 +110,13 @@ OPTIONS
     <not_editable> (optional)
         Specify an arrayref of fields which should not be editable.
 
+    `required' (optional)
+        Specify an arrayref of fields which must be completed. If this is
+        not provided, DWIMmery based on whether the field is set to allow
+        null values in the database will be used - i.e. if that column can
+        contain null, then it doesn't have to be completed, otherwise, it
+        does.
+
     `deletable'
         Specify whether to support deleting records. If set to a true value,
         a route will be created for `/prefix/delete/:id' to delete the
@@ -111,72 +124,80 @@ OPTIONS
         $record_title" button.
 
 DWIMmery
-        This module tries to do what you'd expect it to do, so you can rock
-        up your web app with as little code and effort as possible, whilst
-        still giving you control to override its decisions wherever you need
-        to.
+    This module tries to do what you'd expect it to do, so you can rock up
+    your web app with as little code and effort as possible, whilst still
+    giving you control to override its decisions wherever you need to.
 
   Field types
-        CGI::FormBuilder is excellent at working out what kind of field to
-        use by itself, but we give it a little help where needed. For
-        instance, if a field looks like it's supposed to contain a password,
-        we'll have it rendered as a password entry box, rather than a
-        standard text box.
+    CGI::FormBuilder is excellent at working out what kind of field to use
+    by itself, but we give it a little help where needed. For instance, if a
+    field looks like it's supposed to contain a password, we'll have it
+    rendered as a password entry box, rather than a standard text box.
 
-        If the column in the database is an ENUM, we'll limit the choices
-        available for this field to the choices defined by the ENUM list.
-        (Unless you've provided a set of acceptable values for this field
-        using the `acceptable_values' option to `simple_crud', in which case
-        what you say goes.)
+    If the column in the database is an ENUM, we'll limit the choices
+    available for this field to the choices defined by the ENUM list.
+    (Unless you've provided a set of acceptable values for this field using
+    the `acceptable_values' option to `simple_crud', in which case what you
+    say goes.)
 
-AUTHORS
-        David Precious, `<davidp@preshweb.co.uk>'
+AUTHOR
+    David Precious, `<davidp@preshweb.co.uk>'
 
-        James Ronan, `<james.ronan@ronanweb.co.uk>'
+ACKNOWLEDGEMENTS
+    Alberto Simões (ambs)
+
+    WK
+
+    Johnathan Barber
 
 BUGS
-        Please report any bugs or feature requests to
-        `bug-dancer-plugin-simplecrud at rt.cpan.org', or through the web
-        interface at
-        http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Dancer-Plugin-SimpleC
-        RUD. I will be notified, and then you'll automatically be notified
-        of progress on your bug as I make changes.
+    Please report any bugs or feature requests to
+    `bug-dancer-plugin-simplecrud at rt.cpan.org', or through the web
+    interface at
+    http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Dancer-Plugin-SimpleCRUD.
+    I will be notified, and then you'll automatically be notified of
+    progress on your bug as I make changes.
 
 CONTRIBUTING
-        This module is developed on Github:
+    This module is developed on Github:
 
-        http://github.com/bigpresh/Dancer-Plugin-SimpleCRUD
+    http://github.com/bigpresh/Dancer-Plugin-SimpleCRUD
+
+    Bug reports, ideas, suggestions, patches/pull requests all welcome.
+
+    Even just a quick "Hey, this is great, thanks" or "This is no good to me
+    because..." is greatly appreciated. It's always good to know if people
+    are using your code, and what they think.
 
 SUPPORT
-        You can find documentation for this module with the perldoc command.
+    You can find documentation for this module with the perldoc command.
 
-            perldoc Dancer::Plugin::SimpleCRUD
+        perldoc Dancer::Plugin::SimpleCRUD
 
-        You may find help with this module on the main Dancer IRC channel or
-        mailing list - see http://www.perldancer.org/
+    You may find help with this module on the main Dancer IRC channel or
+    mailing list - see http://www.perldancer.org/
 
-        You can also look for information at:
+    You can also look for information at:
 
-        * RT: CPAN's request tracker
-            http://rt.cpan.org/NoAuth/Bugs.html?Dist=Dancer-Plugin-SimpleCRU
-            D
+    * RT: CPAN's request tracker
+        http://rt.cpan.org/NoAuth/Bugs.html?Dist=Dancer-Plugin-SimpleCRUD
 
-        * AnnoCPAN: Annotated CPAN documentation
-            http://annocpan.org/dist/Dancer-Plugin-SimpleCRUD
+    * AnnoCPAN: Annotated CPAN documentation
+        http://annocpan.org/dist/Dancer-Plugin-SimpleCRUD
 
-        * CPAN Ratings
-            http://cpanratings.perl.org/d/Dancer-Plugin-SimpleCRUD
+    * CPAN Ratings
+        http://cpanratings.perl.org/d/Dancer-Plugin-SimpleCRUD
 
-        * Search CPAN
-            http://search.cpan.org/dist/Dancer-Plugin-SimpleCRUD/
+    * Search CPAN
+        http://search.cpan.org/dist/Dancer-Plugin-SimpleCRUD/
 
 ACKNOWLEDGEMENTS
 LICENSE AND COPYRIGHT
-        Copyright 2010 David Precious.
+    Copyright 2010 David Precious.
 
-        This program is free software; you can redistribute it and/or modify
-        it under the terms of either: the GNU General Public License as
-        published by the Free Software Foundation; or the Artistic License.
+    This program is free software; you can redistribute it and/or modify it
+    under the terms of either: the GNU General Public License as published
+    by the Free Software Foundation; or the Artistic License.
 
-        See http://dev.perl.org/licenses/ for more information.
+    See http://dev.perl.org/licenses/ for more information.
 
