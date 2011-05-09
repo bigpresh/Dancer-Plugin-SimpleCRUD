@@ -31,9 +31,8 @@ use Dancer qw(:syntax);
 use Dancer::Plugin::Database;
 use HTML::Table::FromDatabase;
 use CGI::FormBuilder;
-use SQL::Abstract;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 =head1 NAME
 
@@ -255,8 +254,8 @@ CONFIRMDELETE
         # A route for POST requests, to actually delete the record
         post qr[$args{prefix}/delete/?(.+)?$] => sub {
             my ($id) = params->{record_id} || splat;
-            my $sql = "DELETE FROM $table_name where $key_column = ?";
-            database($args{db_connection_name})->do($sql, undef, $id);
+            database->quick_delete($table_name, { $key_column => $id })
+                or return "<p>Failed to delete!</p>";
             redirect $args{prefix};
         };
     }
@@ -276,11 +275,9 @@ sub _create_add_edit_route {
 
     my $default_field_values;
     if ($id) {
-        my $record = database->selectrow_hashref(
-                 "select * from $table_name where $key_column = ?",
-                 {}, $id
-              );
-        $default_field_values = $record;
+        $default_field_values = database->quick_select(
+            $table_name, { $key_column => $id}
+        );
     }
 
     # Find out about table columns:
@@ -389,27 +386,27 @@ sub _create_add_edit_route {
           # submitted with the form which don't belong in the DB, ignore them)
           my %params;
           $params{$_} = params->{$_} for @editable_columns;
-          my $sql = SQL::Abstract->new( quote_char => '`' );
-          my ($statement, @bind_values);
           my $verb;
+          my $success;
           if (exists params->{$key_column}) {
               # We're editing an existing record
-              ($statement, @bind_values) = $sql->update($table_name, \%params, 
-                                                        { $key_column => params->{$key_column} }
-                                                       );
+              $success = database->quick_update($table_name, \%params, 
+                { $key_column => params->{$key_column} }
+              );
               $verb = 'update';
           } else {
-              ($statement, @bind_values) = $sql->insert($table_name, \%params);
+              $success = database->quick_insert($table_name, \%params);
               $verb = 'create new';
           }
 
-          if (database->do($statement, undef, @bind_values)) {
+          if ($success) {
               # Redirect to the list page
               # TODO: pass a param to cause it to show a message?
               redirect $args->{prefix};
               return;
           } else {
-              # TODO: better error handling
+              # TODO: better error handling - options to provide error templates
+              # etc
               return "<p>Unable to $verb $args->{record_title}</p>";
           }
 
