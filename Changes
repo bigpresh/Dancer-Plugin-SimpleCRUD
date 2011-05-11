@@ -1,5 +1,10 @@
 Revision history for Dancer-Plugin-SimpleCRUD
 
+0.04    2011-05-11
+        Avoid uninitialised var warnings if table is empty.
+        Thanks to Justin Case in RT #68120 for reporting this and providing a
+        patch to fix it - cheers!
+
 0.03    2011-05-09
         Added support to search when in the listing page;
         Code refactoring - thanks to ambs for both!
