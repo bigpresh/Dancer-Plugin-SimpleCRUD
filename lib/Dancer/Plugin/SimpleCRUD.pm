@@ -493,7 +493,7 @@ SEARCHFORM
                      ],
       );
 
-    $html .= $table->getTable;
+    $html .= $table->getTable || '';
     $html .= sprintf '<a href="%s">Add a new %s</a></p>',
       $args->{prefix} . '/add', $args->{record_title};
 
