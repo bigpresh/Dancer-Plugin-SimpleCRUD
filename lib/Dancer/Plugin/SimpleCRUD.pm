@@ -192,7 +192,7 @@ sub simple_crud {
     if ($args{prefix} !~ m{^/}) {
         $args{prefix} = '/' . $args{prefix};
     }
-
+    
     if (!$args{db_table}) { die "Need table name!"; }
 
     # Find out what kind of engine we're talking to:
@@ -256,7 +256,8 @@ CONFIRMDELETE
             my ($id) = params->{record_id} || splat;
             database->quick_delete($table_name, { $key_column => $id })
                 or return "<p>Failed to delete!</p>";
-            redirect $args{prefix};
+            
+            redirect _construct_url($args{prefix}, '/');
         };
     }
 
@@ -343,8 +344,11 @@ sub _create_add_edit_route {
                                      values => $default_field_values,
                                      validate => $validation,
                                      method => 'post',
-                                     action => $args->{prefix} . 
-                                     (params->{id} ? '/edit/' . params->{id} : '/add'),
+                                     action => _construct_url($args->{prefix}, 
+                                        (params->{id} ? 
+                                            '/edit/' . params->{id} : 
+                                            '/add')
+                                    ),
                                     );
     for my $field (@editable_columns) {
         my %field_params = (
@@ -402,7 +406,7 @@ sub _create_add_edit_route {
           if ($success) {
               # Redirect to the list page
               # TODO: pass a param to cause it to show a message?
-              redirect $args->{prefix};
+              redirect _construct_url($args->{prefix}, '/');
               return;
           } else {
               # TODO: better error handling - options to provide error templates
@@ -459,14 +463,17 @@ SEARCHFORM
                 "<p>Showing results from searching for '%s' in '%s'",
                 params->{'q'}, params->{searchfield}
             );
-            $html .= qq[&mdash;<a href="$args->{prefix}">Reset search</a></p>];
+            $html .= sprintf '&mdash;<a href="%s">Reset search</a></p>',
+                _construct_url($args->{prefix}, '/');;
         }
     }
+
     debug("Running query: $query");
     my $sth = $dbh->prepare($query);
     $sth->execute()
       or die "Failed to query for records in $table_name - "
         . database->errstr;
+
     my $table = HTML::Table::FromDatabase->new
       (
        -sth => $sth,
@@ -477,11 +484,15 @@ SEARCHFORM
                        transform => sub {
                            my $id = shift;
                            my $action_links;
-                           my $edit_url = "$args->{prefix}/edit/$id";
+                           my $edit_url = _construct_url(
+                                $args->{prefix}, "/edit/$id"
+                           );
                            $action_links .= 
                              qq[<a href="$edit_url" class="edit_link">Edit</a>];
                            if ($args->{deletable}) {
-                               my $del_url = "$args->{prefix}/delete/$id";
+                                my $del_url = _construct_url(
+                                    $args->{prefix}, "/delete/$id"
+                                );
                                $action_links .=
                                  qq[ / <a href="$del_url" class="delete_link"]
                                    .qq[ onclick="delrec('$id'); return false;">]
@@ -495,13 +506,14 @@ SEARCHFORM
 
     $html .= $table->getTable || '';
     $html .= sprintf '<a href="%s">Add a new %s</a></p>',
-      $args->{prefix} . '/add', $args->{record_title};
+      _construct_url($args->{prefix}, '/add'), $args->{record_title};
 
     # Append a little Javascript which asks for confirmation that they'd
     # like to delete the record, then makes a POST request via a hidden
     # form.  This could be made AJAXy in future.
+    my $del_action = _construct_url($args->{prefix}, '/delete');
     $html .= <<DELETEJS;
-<form name="deleteform" method="post" action="$args->{prefix}/delete">
+<form name="deleteform" method="post" action="$del_action">
 <input name="record_id" type="hidden">
 </form>
 <script language="Javascript">
@@ -546,6 +558,27 @@ sub _find_columns {
             $a->{ORDINAL_POSITION} <=> $b->{ORDINAL_POSITION} 
         } @columns
     ];
+}
+
+# Given parts of an URL, assemble them together, prepending the current prefix 
+# setting if needed, and taking care to get slashes right.
+# e.g. for the following example:
+#     prefix '/foo';
+#     simple_crud( prefix => '/bar', ....);
+# calling: _construct_url($args{prefix}, '/baz')
+# would return: /foo/bar/baz 
+sub _construct_url {
+    my @url_parts = @_;
+    my $prefix_setting = Dancer::App->current->prefix || '';
+    unshift @url_parts, $prefix_setting;
+    
+    my $url = '/';
+    for my $url_part (@url_parts) {
+        $url_part =~ s{^/}{};
+        $url_part =~ s{/?$}{/};
+        $url .= $url_part;
+    }
+    return $url;
 }
 
 =back
