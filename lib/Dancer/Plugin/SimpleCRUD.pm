@@ -580,11 +580,11 @@ sub _construct_url {
     my $prefix_setting = Dancer::App->current->prefix || '';
     unshift @url_parts, $prefix_setting;
 
-    my $url = '';
-    for my $url_part (@url_parts) {
-	$url_part =~ s{^/?}{/};
-	$url .= $url_part;
-    }
+    # Just concatenate all parts together, then deal with multiple slashes.
+    # This could be problematic if any URL was ever supposed to contain multiple
+    # slashes, but that shouldn't be an issue here.
+    my $url = '/' . join '/', @url_parts;
+    $url =~ s{/{2,}}{/}g;
     return $url;
 }
 
