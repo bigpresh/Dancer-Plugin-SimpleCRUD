@@ -2,24 +2,28 @@
 # Dancer params() keyword, and returns then when its param() method is called,
 # so that we can feed it to CGI::FormBuilder:
 package Dancer::Plugin::SimpleCRUD::ParamsObject;
+
 sub new {
-    my ($class, $params) = @_; 
+    my ($class, $params) = @_;
     return bless { params => $params }, $class;
 }
+
 sub param {
     my ($self, @args) = @_;
+
     # If called with no args, return all param names
     if (!@args) {
-        return $self->{params} if !$paramname;
-    # With one arg, act as an accessor
+	return $self->{params} if !$paramname;
+
+	# With one arg, act as an accessor
     } elsif (@args == 1) {
-        return $self->{params}{$args[0]};
-    # With two args, act as a mutator
+	return $self->{params}{ $args[0] };
+
+	# With two args, act as a mutator
     } elsif ($args == 2) {
-        return $self->{params}{$args[0]} = $args[1];
+	return $self->{params}{ $args[0] } = $args[1];
     }
 }
-
 
 # Now, on to the real stuff
 package Dancer::Plugin::SimpleCRUD;
@@ -184,26 +188,26 @@ sub simple_crud {
     my $dbh = database($args{db_connection_name});
 
     if (!$dbh) {
-        warn "No database handle";
-        return;
+	warn "No database handle";
+	return;
     }
 
-    if (!$args{prefix}) { die  "Need prefix to create routes!"; }
+    if (!$args{prefix}) { die "Need prefix to create routes!"; }
     if ($args{prefix} !~ m{^/}) {
-        $args{prefix} = '/' . $args{prefix};
+	$args{prefix} = '/' . $args{prefix};
     }
-    
+
     if (!$args{db_table}) { die "Need table name!"; }
 
     # Find out what kind of engine we're talking to:
     my $db_type = $dbh->get_info(17);
     if ($db_type ne 'MySQL') {
-        warn "This module has so far only been tested with MySQL databases.";
+	warn "This module has so far only been tested with MySQL databases.";
     }
 
     # Accepta deleteable as a synonym for deletable
     $args{deletable} = delete $args{deleteable}
-        if !exists $args{deletable} && exists $args{deleteable};
+	if !exists $args{deletable} && exists $args{deleteable};
 
     # Sane default values:
     $args{key_column}   ||= 'id';
@@ -214,31 +218,34 @@ sub simple_crud {
     my $table_name = $args{db_table};
     my $key_column = $args{key_column};
     for ($table_name, $key_column) {
-        die "Invalid table name/key column - SQL injection attempt?"
-            if /--/;
-        s/[^a-zA-Z0-9_-]//g;
+	die "Invalid table name/key column - SQL injection attempt?"
+	    if /--/;
+	s/[^a-zA-Z0-9_-]//g;
     }
 
     # OK, create a route handler to deal with adding/editing:
-    my $handler = sub { _create_add_edit_route(\%args, $table_name, $key_column); };
+    my $handler
+	= sub { _create_add_edit_route(\%args, $table_name, $key_column); };
 
     Dancer::Logger::debug("Setting up routes for $args{prefix}/add etc");
-    any ['get','post'] => "$args{prefix}/add"      => $handler;
-    any ['get','post'] => "$args{prefix}/edit/:id" => $handler;
+    any ['get', 'post'] => "$args{prefix}/add"      => $handler;
+    any ['get', 'post'] => "$args{prefix}/edit/:id" => $handler;
 
     # And a route to list records already in the table:
-    my $list_handler = sub { _create_list_handler(\%args, $table_name, $key_column); };
-    get  "$args{prefix}"        => $list_handler;
+    my $list_handler
+	= sub { _create_list_handler(\%args, $table_name, $key_column); };
+    get "$args{prefix}" => $list_handler;
 
     # If we should allow deletion of records, set up routes to handle that,
     # too.
     if ($args{deletable}) {
-        # A route for GET requests, to present a "Do you want to delete this"
-        # message with a form to submit (this is only for browsers which didn't
-        # support Javascript, otherwise the list page will have POSTed the ID 
-        # to us) (or they just came here directly for some reason)
-        get "$args{prefix}/delete/:id" => sub {
-            return engine('template')->apply_layout(<<CONFIRMDELETE);
+
+	# A route for GET requests, to present a "Do you want to delete this"
+	# message with a form to submit (this is only for browsers which didn't
+	# support Javascript, otherwise the list page will have POSTed the ID
+	# to us) (or they just came here directly for some reason)
+	get "$args{prefix}/delete/:id" => sub {
+	    return engine('template')->apply_layout(<<CONFIRMDELETE);
 <p>
 Do you really wish to delete this record?
 </p>
@@ -249,16 +256,16 @@ Do you really wish to delete this record?
 </form>
 CONFIRMDELETE
 
-        };
+	};
 
-        # A route for POST requests, to actually delete the record
-        post qr[$args{prefix}/delete/?(.+)?$] => sub {
-            my ($id) = params->{record_id} || splat;
-            database->quick_delete($table_name, { $key_column => $id })
-                or return "<p>Failed to delete!</p>";
-            
-            redirect _construct_url($args{prefix}, '/');
-        };
+	# A route for POST requests, to actually delete the record
+	post qr[$args{prefix}/delete/?(.+)?$] => sub {
+	    my ($id) = params->{record_id} || splat;
+	    database->quick_delete($table_name, { $key_column => $id })
+		or return "<p>Failed to delete!</p>";
+
+	    redirect _construct_url($args{prefix}, '/');
+	};
     }
 
 }
@@ -266,55 +273,55 @@ CONFIRMDELETE
 register simple_crud => \&simple_crud;
 register_plugin;
 
-
 sub _create_add_edit_route {
     my ($args, $table_name, $key_column) = @_;
     my $params = params;
-    my $id = $params->{id};
+    my $id     = $params->{id};
 
     my $dbh = database($args->{db_connection_name});
 
     my $default_field_values;
     if ($id) {
-        $default_field_values = database->quick_select(
-            $table_name, { $key_column => $id}
-        );
+	$default_field_values
+	    = database->quick_select($table_name, { $key_column => $id });
     }
 
     # Find out about table columns:
-    my $all_table_columns = _find_columns($dbh, $args->{db_table}); 
+    my $all_table_columns = _find_columns($dbh, $args->{db_table});
     my @editable_columns;
+
     # Now, find out which ones we can edit.
     if ($args->{editable_columns}) {
-        # We were given an explicit list of fields we can edit, so this is
-        # easy:
-        @editable_columns = @{ $args->{editable_columns} };
+
+	# We were given an explicit list of fields we can edit, so this is
+	# easy:
+	@editable_columns = @{ $args->{editable_columns} };
     } else {
-        # OK, take all the columns from the table, except the key field:
-        @editable_columns = grep { $_ ne $key_column } 
-          map { $_->{COLUMN_NAME} } @$all_table_columns;
+
+	# OK, take all the columns from the table, except the key field:
+	@editable_columns = grep { $_ ne $key_column }
+	    map { $_->{COLUMN_NAME} } @$all_table_columns;
     }
 
     # Some DWIMery: if we don't have a validation rule specified for a
     # field, and it's pretty clear what it is supposed to be, just do it:
     my $validation = $args->{validation} || {};
-        for my $field (grep { $_ ne $key_column } @editable_columns) 
-          {
-              next if $validation->{$field};
-              if ($field =~ /email/) {
-                  $validation->{$field} = 'EMAIL';
-              }
-          }
+    for my $field (grep { $_ ne $key_column } @editable_columns) {
+	next if $validation->{$field};
+	if ($field =~ /email/) {
+	    $validation->{$field} = 'EMAIL';
+	}
+    }
 
     # More DWIMmery: if the user hasn't supplied a list of required fields,
     # work out what fields are required by whether they're nullable in the
     # DB:
     my %required_fields;
     if (exists $args->{required}) {
-        $required_fields{$_}++ for @{ $args->{required} };
+	$required_fields{$_}++ for @{ $args->{required} };
     } else {
-        $_->{NULLABLE} || $required_fields{ $_->{COLUMN_NAME} }++
-          for @$all_table_columns;
+	$_->{NULLABLE} || $required_fields{ $_->{COLUMN_NAME} }++
+	    for @$all_table_columns;
     }
 
     # If the user didn't supply a list of acceptable values for a field, but
@@ -323,112 +330,119 @@ sub _create_add_edit_route {
     my %constrain_values;
     my %field_type;
     for my $field (@$all_table_columns) {
-        my $name = $field->{COLUMN_NAME};
-        $field_type{$name} = $field->{TYPE_NAME};
-        if (my $values_specified = $args->{acceptable_values}->{$name}) {
-            $constrain_values{$name} = $values_specified;
-        } elsif (my $values_from_db = $field->{mysql_values}) {
-            $constrain_values{$name} = $values_from_db;
-        }
+	my $name = $field->{COLUMN_NAME};
+	$field_type{$name} = $field->{TYPE_NAME};
+	if (my $values_specified = $args->{acceptable_values}->{$name}) {
+	    $constrain_values{$name} = $values_specified;
+	} elsif (my $values_from_db = $field->{mysql_values}) {
+	    $constrain_values{$name} = $values_from_db;
+	}
     }
 
     # Only give CGI::FormBuilder our fake CGI object if the form has been
     # POSTed to us already; otherwise, it will ignore default values from
     # the DB, it seems.
-    my $paramsobj = request->{method} eq 'POST' ?
-      Dancer::Plugin::SimpleCRUD::ParamsObject->new({params()}) : undef;
+    my $paramsobj
+	= request->{method} eq 'POST'
+	? Dancer::Plugin::SimpleCRUD::ParamsObject->new({ params() })
+	: undef;
 
     my $form = CGI::FormBuilder->new(
-                                     fields => \@editable_columns,
-                                     params => $paramsobj,
-                                     values => $default_field_values,
-                                     validate => $validation,
-                                     method => 'post',
-                                     action => _construct_url($args->{prefix}, 
-                                        (params->{id} ? 
-                                            '/edit/' . params->{id} : 
-                                            '/add')
-                                    ),
-                                    );
+	fields   => \@editable_columns,
+	params   => $paramsobj,
+	values   => $default_field_values,
+	validate => $validation,
+	method   => 'post',
+	action   => _construct_url(
+	    $args->{prefix},
+	    (
+		params->{id}
+		? '/edit/' . params->{id}
+		: '/add'
+	    )
+	),
+    );
     for my $field (@editable_columns) {
-        my %field_params = (
-                            name => $field,
-                            value => $default_field_values->{$field} || '',
-                           );
-        if (my $label = $args->{labels}->{$field}) {
-            $field_params{label} = $label;
-        }
-        if (my $validation = $args->{validation}->{$field}) {
-            $field_params{validate} = $validation;
-        }
+	my %field_params = (
+	    name  => $field,
+	    value => $default_field_values->{$field} || '',
+	);
+	if (my $label = $args->{labels}->{$field}) {
+	    $field_params{label} = $label;
+	}
+	if (my $validation = $args->{validation}->{$field}) {
+	    $field_params{validate} = $validation;
+	}
 
-        $field_params{required} = $required_fields{$field};
+	$field_params{required} = $required_fields{$field};
 
-        if ($constrain_values{$field}) {
-            $field_params{options} = $constrain_values{$field};
-        }
+	if ($constrain_values{$field}) {
+	    $field_params{options} = $constrain_values{$field};
+	}
 
-        # Normally, CGI::FormBuilder can guess the type of field perfectly,
-        # but give it some extra DWIMmy help:
-        if ($field =~ /pass(?:wd|word)?$/i) {
-            $field_params{type} = 'password';
-        }
+	# Normally, CGI::FormBuilder can guess the type of field perfectly,
+	# but give it some extra DWIMmy help:
+	if ($field =~ /pass(?:wd|word)?$/i) {
+	    $field_params{type} = 'password';
+	}
 
-        # use a <textarea> for large text fields.
-        if ($field_type{$field} eq 'TEXT') {
-            $field_params{type} = 'textarea';
-        }
+	# use a <textarea> for large text fields.
+	if ($field_type{$field} eq 'TEXT') {
+	    $field_params{type} = 'textarea';
+	}
 
-        # OK, add the field to the form:
-        $form->field(%field_params);
+	# OK, add the field to the form:
+	$form->field(%field_params);
     }
 
     # Now, if all is OK, go ahead and process:
-    if (request->{method} eq 'POST' &&  $form->submitted && $form->validate) 
-      {
-          # Assemble a hash of only fields from the DB (if other fields were
-          # submitted with the form which don't belong in the DB, ignore them)
-          my %params;
-          $params{$_} = params->{$_} for @editable_columns;
-          my $verb;
-          my $success;
-          if (exists params->{$key_column}) {
-              # We're editing an existing record
-              $success = database->quick_update($table_name, \%params, 
-                { $key_column => params->{$key_column} }
-              );
-              $verb = 'update';
-          } else {
-              $success = database->quick_insert($table_name, \%params);
-              $verb = 'create new';
-          }
+    if (request->{method} eq 'POST' && $form->submitted && $form->validate) {
 
-          if ($success) {
-              # Redirect to the list page
-              # TODO: pass a param to cause it to show a message?
-              redirect _construct_url($args->{prefix}, '/');
-              return;
-          } else {
-              # TODO: better error handling - options to provide error templates
-              # etc
-              return "<p>Unable to $verb $args->{record_title}</p>";
-          }
+	# Assemble a hash of only fields from the DB (if other fields were
+	# submitted with the form which don't belong in the DB, ignore them)
+	my %params;
+	$params{$_} = params->{$_} for @editable_columns;
+	my $verb;
+	my $success;
+	if (exists params->{$key_column}) {
 
-      } else {
-          return engine('template')->apply_layout($form->render);
-      }
+	    # We're editing an existing record
+	    $success = database->quick_update($table_name, \%params,
+		{ $key_column => params->{$key_column} });
+	    $verb = 'update';
+	} else {
+	    $success = database->quick_insert($table_name, \%params);
+	    $verb = 'create new';
+	}
+
+	if ($success) {
+
+	    # Redirect to the list page
+	    # TODO: pass a param to cause it to show a message?
+	    redirect _construct_url($args->{prefix}, '/');
+	    return;
+	} else {
+
+	    # TODO: better error handling - options to provide error templates
+	    # etc
+	    return "<p>Unable to $verb $args->{record_title}</p>";
+	}
+
+    } else {
+	return engine('template')->apply_layout($form->render);
+    }
 }
-
-
 
 sub _create_list_handler {
     my ($args, $table_name, $key_column) = @_;
 
-    my $dbh = database($args->{db_connection_name});
+    my $dbh     = database($args->{db_connection_name});
     my $columns = _find_columns($dbh, $table_name);
-    my $options = join("\n", map {
-        "<option value='$_->{COLUMN_NAME}'>$_->{COLUMN_NAME}</option>"
-    } @$columns);
+    my $options = join(
+	"\n",
+	map { "<option value='$_->{COLUMN_NAME}'>$_->{COLUMN_NAME}</option>" }
+	    @$columns
+    );
     my $html = <<"SEARCHFORM";
  <p><form name="searchform" method="get">
      Field:  <select name="searchfield">$options</select> &nbsp;&nbsp;
@@ -440,73 +454,70 @@ SEARCHFORM
     # TODO: handle pagination
     # TODO: Fix me with more data types. Make this global?
     my %known_type = (
-                      INT     => q{%s = %s},
-                      VARCHAR => q{%s LIKE %s},
-                     );
-    my $query  = "SELECT *, $key_column AS actions FROM $table_name";
+	INT     => q{%s = %s},
+	VARCHAR => q{%s LIKE %s},
+    );
+    my $query = "SELECT *, $key_column AS actions FROM $table_name";
 
     if (params->{'q'}) {
-        my ($column_data) = grep {
-            lc $_->{COLUMN_NAME} eq lc params->{searchfield}
-        } @{ $columns };
-        debug("Searching on $column_data->{COLUMN_NAME} which is a "
-            . "$column_data->{TYPE_NAME}");
+	my ($column_data)
+	    = grep { lc $_->{COLUMN_NAME} eq lc params->{searchfield} }
+	    @{$columns};
+	debug(    "Searching on $column_data->{COLUMN_NAME} which is a "
+		. "$column_data->{TYPE_NAME}");
 
-        if ($column_data and
-                my $add_clause = $known_type{uc $column_data->{TYPE_NAME}})
-        {
-            $query .=  ' WHERE ' . sprintf $add_clause,
-                $dbh->quote_identifier(params->{searchfield}),
-                $dbh->quote('%' . params->{'q'} . '%');
+	if ($column_data
+	    and my $add_clause = $known_type{ uc $column_data->{TYPE_NAME} })
+	{
+	    $query .= ' WHERE ' . sprintf $add_clause,
+		$dbh->quote_identifier(params->{searchfield}),
+		$dbh->quote('%' . params->{'q'} . '%');
 
-            $html .= sprintf (
-                "<p>Showing results from searching for '%s' in '%s'",
-                params->{'q'}, params->{searchfield}
-            );
-            $html .= sprintf '&mdash;<a href="%s">Reset search</a></p>',
-                _construct_url($args->{prefix}, '/');;
-        }
+	    $html
+		.= sprintf(
+		"<p>Showing results from searching for '%s' in '%s'",
+		params->{'q'}, params->{searchfield});
+	    $html .= sprintf '&mdash;<a href="%s">Reset search</a></p>',
+		_construct_url($args->{prefix}, '/');
+	}
     }
 
     debug("Running query: $query");
     my $sth = $dbh->prepare($query);
     $sth->execute()
-      or die "Failed to query for records in $table_name - "
-        . database->errstr;
+	or die "Failed to query for records in $table_name - "
+	. database->errstr;
 
-    my $table = HTML::Table::FromDatabase->new
-      (
-       -sth => $sth,
-       -border => 1,
-       -callbacks => [
-                      {
-                       column => 'actions',
-                       transform => sub {
-                           my $id = shift;
-                           my $action_links;
-                           my $edit_url = _construct_url(
-                                $args->{prefix}, "/edit/$id"
-                           );
-                           $action_links .= 
-                             qq[<a href="$edit_url" class="edit_link">Edit</a>];
-                           if ($args->{deletable}) {
-                                my $del_url = _construct_url(
-                                    $args->{prefix}, "/delete/$id"
-                                );
-                               $action_links .=
-                                 qq[ / <a href="$del_url" class="delete_link"]
-                                   .qq[ onclick="delrec('$id'); return false;">]
-                                     .qq[Delete</a>];
-                           }
-                           return $action_links;
-                       },
-                      },
-                     ],
-      );
+    my $table = HTML::Table::FromDatabase->new(
+	-sth       => $sth,
+	-border    => 1,
+	-callbacks => [
+	    {
+		column    => 'actions',
+		transform => sub {
+		    my $id = shift;
+		    my $action_links;
+		    my $edit_url
+			= _construct_url($args->{prefix}, "/edit/$id");
+		    $action_links
+			.= qq[<a href="$edit_url" class="edit_link">Edit</a>];
+		    if ($args->{deletable}) {
+			my $del_url
+			    = _construct_url($args->{prefix}, "/delete/$id");
+			$action_links
+			    .= qq[ / <a href="$del_url" class="delete_link"]
+			    . qq[ onclick="delrec('$id'); return false;">]
+			    . qq[Delete</a>];
+		    }
+		    return $action_links;
+		},
+	    },
+	],
+    );
 
     $html .= $table->getTable || '';
     $html .= sprintf '<a href="%s">Add a new %s</a></p>',
-      _construct_url($args->{prefix}, '/add'), $args->{record_title};
+	_construct_url($args->{prefix}, '/add'), $args->{record_title};
 
     # Append a little Javascript which asks for confirmation that they'd
     # like to delete the record, then makes a POST request via a hidden
@@ -529,7 +540,6 @@ DELETEJS
     return engine('template')->apply_layout($html);
 }
 
-
 # Given a table name, return an arrayref of hashrefs describing each column in
 # the table.
 # Expect to see the following keys:
@@ -545,38 +555,36 @@ DELETEJS
 sub _find_columns {
     my ($dbh, $table_name) = @_;
     my $sth = $dbh->column_info(undef, undef, $table_name, undef)
-        or die "Failed to get column info for $table_name - " . $dbh->errstr;
+	or die "Failed to get column info for $table_name - " . $dbh->errstr;
     my @columns;
     while (my $col = $sth->fetchrow_hashref) {
-        # Push a copy of the hashref, as I think DBI re-uses them
-        push @columns, { %$col };
+
+	# Push a copy of the hashref, as I think DBI re-uses them
+	push @columns, {%$col};
     }
 
     # Return the columns, sorted by their position in the table:
-    return [ 
-        sort { 
-            $a->{ORDINAL_POSITION} <=> $b->{ORDINAL_POSITION} 
-        } @columns
-    ];
+    return [sort { $a->{ORDINAL_POSITION} <=> $b->{ORDINAL_POSITION} }
+	    @columns];
 }
 
-# Given parts of an URL, assemble them together, prepending the current prefix 
+# Given parts of an URL, assemble them together, prepending the current prefix
 # setting if needed, and taking care to get slashes right.
 # e.g. for the following example:
 #     prefix '/foo';
 #     simple_crud( prefix => '/bar', ....);
 # calling: _construct_url($args{prefix}, '/baz')
-# would return: /foo/bar/baz 
+# would return: /foo/bar/baz
 sub _construct_url {
     my @url_parts = @_;
     my $prefix_setting = Dancer::App->current->prefix || '';
     unshift @url_parts, $prefix_setting;
-    
+
     my $url = '/';
     for my $url_part (@url_parts) {
-        $url_part =~ s{^/}{};
-        $url_part =~ s{/?$}{/};
-        $url .= $url_part;
+	$url_part =~ s{^/}{};
+	$url_part =~ s{/?$}{/};
+	$url .= $url_part;
     }
     return $url;
 }
@@ -689,4 +697,4 @@ See http://dev.perl.org/licenses/ for more information.
 
 =cut
 
-1; # End of Dancer::Plugin::SimpleCRUD
+1;    # End of Dancer::Plugin::SimpleCRUD
