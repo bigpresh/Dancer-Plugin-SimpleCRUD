@@ -1,5 +1,11 @@
 Revision history for Dancer-Plugin-SimpleCRUD
 
+0.05    2011-05-25
+        Pay attention to the app's prefix setting.  Thanks to saberworks for
+        reporting this (GH-6)
+        Fix bug with calling database->quick_update wrongly, preventing rows
+        from being updated... silly :|
+
 0.04    2011-05-11
         Avoid uninitialised var warnings if table is empty.
         Thanks to Justin Case in RT #68120 for reporting this and providing a
