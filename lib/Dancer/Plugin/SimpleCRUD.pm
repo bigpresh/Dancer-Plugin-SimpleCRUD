@@ -264,7 +264,7 @@ CONFIRMDELETE
 	    database->quick_delete($table_name, { $key_column => $id })
 		or return "<p>Failed to delete!</p>";
 
-	    redirect _construct_url($args{prefix}, '/');
+	    redirect _construct_url($args{prefix});
 	};
     }
 
@@ -419,7 +419,7 @@ sub _create_add_edit_route {
 
 	    # Redirect to the list page
 	    # TODO: pass a param to cause it to show a message?
-	    redirect _construct_url($args->{prefix}, '/');
+	    redirect _construct_url($args->{prefix});
 	    return;
 	} else {
 
@@ -478,7 +478,7 @@ SEARCHFORM
 		"<p>Showing results from searching for '%s' in '%s'",
 		params->{'q'}, params->{searchfield});
 	    $html .= sprintf '&mdash;<a href="%s">Reset search</a></p>',
-		_construct_url($args->{prefix}, '/');
+		_construct_url($args->{prefix});
 	}
     }
 
