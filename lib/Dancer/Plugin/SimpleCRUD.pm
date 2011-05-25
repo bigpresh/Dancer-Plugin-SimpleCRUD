@@ -407,8 +407,8 @@ sub _create_add_edit_route {
 	if (exists params->{$key_column}) {
 
 	    # We're editing an existing record
-	    $success = database->quick_update($table_name, \%params,
-		{ $key_column => params->{$key_column} });
+	    $success = database->quick_update($table_name,
+		{ $key_column => params->{$key_column} }, \%params);
 	    $verb = 'update';
 	} else {
 	    $success = database->quick_insert($table_name, \%params);
