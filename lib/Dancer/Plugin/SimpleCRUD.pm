@@ -580,10 +580,9 @@ sub _construct_url {
     my $prefix_setting = Dancer::App->current->prefix || '';
     unshift @url_parts, $prefix_setting;
 
-    my $url = '/';
+    my $url = '';
     for my $url_part (@url_parts) {
-	$url_part =~ s{^/}{};
-	$url_part =~ s{/?$}{/};
+	$url_part =~ s{^/?}{/};
 	$url .= $url_part;
     }
     return $url;
