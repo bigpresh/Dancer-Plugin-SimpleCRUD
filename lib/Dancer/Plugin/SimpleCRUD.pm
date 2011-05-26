@@ -81,7 +81,7 @@ L<HTML::Table::FromDatabase> to display lists of records.
             weight => qr/\d+/,
         },
         key_column => 'sku',
-        editable => [ qw( f_name l_name adr_1 ),
+        editable_columns => [ qw( f_name l_name adr_1 ),
         deleteable => 1,
     );
 
@@ -157,12 +157,12 @@ acceptable values, for instance:
   { foo => [ qw(Foo Bar Baz) ] }
 
 
-=item C<editable> (optional)
+=item C<editable_columns> (optional)
 
 Specify an arrayref of fields which the user can edit.  By default, this is all
 columns in the database table, with the exception of the key column.
 
-=item <not_editable> (optional)
+=item <not_editable_columns> (optional)
 
 Specify an arrayref of fields which should not be editable.
 
@@ -301,6 +301,12 @@ sub _create_add_edit_route {
 	# OK, take all the columns from the table, except the key field:
 	@editable_columns = grep { $_ ne $key_column }
 	    map { $_->{COLUMN_NAME} } @$all_table_columns;
+    }
+
+    if ($args->{not_editable_columns}) {
+        for my $col (@{$args->{not_editable_columns}}) {
+            @editable_columns = grep { $_ ne $col } @editable_columns;
+        }
     }
 
     # Some DWIMery: if we don't have a validation rule specified for a
