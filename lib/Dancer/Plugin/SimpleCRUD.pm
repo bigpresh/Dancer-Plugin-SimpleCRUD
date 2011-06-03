@@ -82,6 +82,7 @@ L<HTML::Table::FromDatabase> to display lists of records.
         },
         key_column => 'sku',
         editable_columns => [ qw( f_name l_name adr_1 ),
+        display_columns => [ qw( f_name l_name adr_1 ),
         deleteable => 1,
     );
 
@@ -178,6 +179,10 @@ completed, otherwise, it does.
 Specify whether to support deleting records.  If set to a true value, a route
 will be created for C</prefix/delete/:id> to delete the record with the ID
 given, and the edit form will have a "Delete $record_title" button.
+
+=item C<display_columns>
+
+Specify an arrayref of columns that should show up in the list.  Defaults to all.
 
 =cut
 
@@ -444,11 +449,31 @@ sub _create_list_handler {
 
     my $dbh     = database($args->{db_connection_name});
     my $columns = _find_columns($dbh, $table_name);
+
+    my $display_columns = $args->{'display_columns'};
+
+    # If display_columns argument was passed, filter the column list to only
+    # have the ones we asked for.
+    if(ref $display_columns eq 'ARRAY') {
+        my @filtered_columns;
+
+        foreach my $col (@$columns) {
+            if(grep { $_ eq $col->{'COLUMN_NAME'} } @$display_columns) {
+                push @filtered_columns, $col;
+            }
+        }
+
+        if(@filtered_columns) {
+            $columns = \@filtered_columns;
+        }
+    }
+
     my $options = join(
 	"\n",
 	map { "<option value='$_->{COLUMN_NAME}'>$_->{COLUMN_NAME}</option>" }
 	    @$columns
     );
+
     my $html = <<"SEARCHFORM";
  <p><form name="searchform" method="get">
      Field:  <select name="searchfield">$options</select> &nbsp;&nbsp;
@@ -463,7 +488,12 @@ SEARCHFORM
 	INT     => q{%s = %s},
 	VARCHAR => q{%s LIKE %s},
     );
-    my $query = "SELECT *, $key_column AS actions FROM $table_name";
+
+    # Explicitly select the columns we are displaying.  (May have been filtered
+    # by display_columns above.)
+    my $select_cols = join(',', map { $_->{'COLUMN_NAME'} } @$columns);
+
+    my $query = "SELECT $select_cols, $key_column AS actions FROM $table_name";
 
     if (params->{'q'}) {
 	my ($column_data)
