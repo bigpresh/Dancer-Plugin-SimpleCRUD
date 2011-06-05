@@ -491,7 +491,8 @@ SEARCHFORM
 
     # Explicitly select the columns we are displaying.  (May have been filtered
     # by display_columns above.)
-    my $select_cols = join(',', map { $_->{'COLUMN_NAME'} } @$columns);
+    my $select_cols = join(',', 
+        map { database->quote_identifier($_->{'COLUMN_NAME'}) } @$columns);
 
     my $query = "SELECT $select_cols, $key_column AS actions FROM $table_name";
 
