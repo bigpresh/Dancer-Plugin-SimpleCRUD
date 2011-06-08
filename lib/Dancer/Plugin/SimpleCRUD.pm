@@ -84,6 +84,7 @@ L<HTML::Table::FromDatabase> to display lists of records.
         editable_columns => [ qw( f_name l_name adr_1 ),
         display_columns => [ qw( f_name l_name adr_1 ),
         deleteable => 1,
+        template => 'simple_crud.tt',
     );
 
 
@@ -184,6 +185,14 @@ given, and the edit form will have a "Delete $record_title" button.
 
 Specify an arrayref of columns that should show up in the list.  Defaults to all.
 
+=item C<template>
+
+Specify a template that will be applied to all output.  This template must have
+a "simple_crud" placeholder defined or you won't get any output.  This template
+must be located in your "views" directory.  Any global layout will be applied
+automatically because this option causes the module to use the "template"
+keyword.
+
 =cut
 
 sub simple_crud {
@@ -207,7 +216,7 @@ sub simple_crud {
     # Find out what kind of engine we're talking to:
     my $db_type = $dbh->get_info(17);
     if ($db_type ne 'MySQL') {
-	warn "This module has so far only been tested with MySQL databases.";
+	    warning "This module has so far only been tested with MySQL databases.";
     }
 
     # Accepta deleteable as a synonym for deletable
@@ -250,7 +259,7 @@ sub simple_crud {
 	# support Javascript, otherwise the list page will have POSTed the ID
 	# to us) (or they just came here directly for some reason)
 	get "$args{prefix}/delete/:id" => sub {
-	    return engine('template')->apply_layout(<<CONFIRMDELETE);
+	    return _apply_template(<<CONFIRMDELETE, $args{'template'});
 <p>
 Do you really wish to delete this record?
 </p>
@@ -267,7 +276,7 @@ CONFIRMDELETE
 	post qr[$args{prefix}/delete/?(.+)?$] => sub {
 	    my ($id) = params->{record_id} || splat;
 	    database->quick_delete($table_name, { $key_column => $id })
-		or return "<p>Failed to delete!</p>";
+		or return _apply_template("<p>Failed to delete!</p>", $args{'template'});
 
 	    redirect _construct_url($args{prefix});
 	};
@@ -436,11 +445,11 @@ sub _create_add_edit_route {
 
 	    # TODO: better error handling - options to provide error templates
 	    # etc
-	    return "<p>Unable to $verb $args->{record_title}</p>";
+	    return _apply_template("<p>Unable to $verb $args->{record_title}</p>", $args->{'template'});
 	}
 
     } else {
-	return engine('template')->apply_layout($form->render);
+	    return _apply_template($form->render, $args->{'template'});
     }
 }
 
@@ -574,8 +583,19 @@ function delrec(record_id) {
 </script>
 
 DELETEJS
-    return engine('template')->apply_layout($html);
+    return _apply_template($html, $args->{'template'});
 }
+
+sub _apply_template {
+    my ($html, $template) = @_;
+
+    if($template) {
+        return template $template, { simple_crud => $html };
+    }
+    else {
+        return engine('template')->apply_layout($html);
+    }
+};
 
 # Given a table name, return an arrayref of hashrefs describing each column in
 # the table.
