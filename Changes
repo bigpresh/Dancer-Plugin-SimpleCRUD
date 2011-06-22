@@ -1,5 +1,13 @@
 Revision history for Dancer-Plugin-SimpleCRUD
 
+0.10    20111-06-05
+        Fix documentation on editable_columns;
+        Implement not_editable_columns (was documented, not implemented)
+        (ambs)
+
+        Add display_columns setting, to display which columns are shown when
+        listing records.  (PR-9 from saberworks - thanks!)
+
 0.05    2011-05-25
         Pay attention to the app's prefix setting.  Thanks to saberworks for
         reporting this (GH-6)
