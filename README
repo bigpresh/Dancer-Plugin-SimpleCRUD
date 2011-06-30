@@ -37,8 +37,8 @@ SYNOPSIS
                 weight => qr/\d+/,
             },
             key_column => 'sku',
-            editable_columns => [ qw( f_name l_name adr_1 ),
-            display_columns => [ qw( f_name l_name adr_1 ),
+            editable_columns => [ qw( f_name l_name adr_1 ) ],
+            display_columns => [ qw( f_name l_name adr_1 ) ],
             deleteable => 1,
         );
 
