@@ -353,6 +353,11 @@ sub _create_add_edit_route {
 	my $name = $field->{COLUMN_NAME};
 	$field_type{$name} = $field->{TYPE_NAME};
 	if (my $values_specified = $args->{acceptable_values}->{$name}) {
+            # It may have been given to us as a coderef; if so, execute it to
+            # get the results
+            if (ref $values_specified eq 'CODE') {
+                $values_specified = $values_specified->();
+            }
 	    $constrain_values{$name} = $values_specified;
 	} elsif (my $values_from_db = $field->{mysql_values}) {
 	    $constrain_values{$name} = $values_from_db;
