@@ -647,7 +647,7 @@ sub _construct_url {
     # slashes, but that shouldn't be an issue here.
     my $url = '/' . join '/', @url_parts;
     $url =~ s{/{2,}}{/}g;
-    return $url;
+    return uri_for($url);
 }
 
 =back
