@@ -36,7 +36,7 @@ use Dancer::Plugin::Database;
 use HTML::Table::FromDatabase;
 use CGI::FormBuilder;
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 =head1 NAME
 
@@ -745,6 +745,8 @@ Alberto Simões (ambs)
 Jonathan Barber
 
 saberworks
+
+jasonjayr
 
 
 =head1 LICENSE AND COPYRIGHT
