@@ -1,12 +1,13 @@
 Revision history for Dancer-Plugin-SimpleCRUD
 
-{{NEXT}
+0.11
 
         Documentation fix for editable_columns / display_columns)
          - thanks mlbright (Martin-Louis Bright)
         Allow coderefs to be passed to acceptable_values option (useful if
         you're generating acceptable values on the fly, say, based on another DB
         query)
+        Use uri_for() to construct URLs, fixes Issue 15 by jasonjayr
 
 0.10    20111-06-05
         Fix documentation on editable_columns;
