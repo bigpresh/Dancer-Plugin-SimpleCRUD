@@ -133,7 +133,7 @@ database connection details in your config file will be used - this is often
 what you want, so unless your app is dealing with multiple DBs, you probably
 won't need to worry about this option.
 
-=item <labels> (optional)
+=item C<labels> (optional)
 
 A hashref of field_name => 'Label', if you want to provide more user-friendly
 labels for some or all fields.  As we're using CGI::FormBuilder, it will do a
