@@ -84,17 +84,10 @@ L<HTML::Table::FromDatabase> to display lists of records.
         editable_columns => [ qw( f_name l_name adr_1 ),
         display_columns => [ qw( f_name l_name adr_1 ),
         deleteable => 1,
+        editable => 1,
         template => 'simple_crud.tt',
     );
 
-
-=head1 Beta-quality first release
-
-This should be considered beta software - this is an early release of code which
-works, but may be missing features, and could contain bugs.  Having said that,
-I'm using it a production app already where it's working great for me, and I
-will of course greatly appreciate anyone who is willing to give it a try and
-provide feedback/suggestions/bug reports/adoring praise.
 
 
 =head1 USAGE
@@ -181,6 +174,11 @@ Specify whether to support deleting records.  If set to a true value, a route
 will be created for C</prefix/delete/:id> to delete the record with the ID
 given, and the edit form will have a "Delete $record_title" button.
 
+=item C<editable>
+
+Specify whether to support editing records.  Defaults to true.  If set to a
+false value, it will not be possible to add or edit rows in the table.
+
 =item C<display_columns>
 
 Specify an arrayref of columns that should show up in the list.  Defaults to all.
@@ -219,13 +217,14 @@ sub simple_crud {
 	    warning "This module has so far only been tested with MySQL databases.";
     }
 
-    # Accepta deleteable as a synonym for deletable
+    # Accept deleteable as a synonym for deletable
     $args{deletable} = delete $args{deleteable}
 	if !exists $args{deletable} && exists $args{deleteable};
 
     # Sane default values:
     $args{key_column}   ||= 'id';
     $args{record_title} ||= 'record';
+    $args{editable} = 1 unless exists $args{editable};
 
     # Sanitise things we'll have to interpolate into queries (yes, that makes me
     # feel bad, but you can't use params for field/table names):
@@ -241,9 +240,11 @@ sub simple_crud {
     my $handler
 	= sub { _create_add_edit_route(\%args, $table_name, $key_column); };
 
-    Dancer::Logger::debug("Setting up routes for $args{prefix}/add etc");
-    any ['get', 'post'] => "$args{prefix}/add"      => $handler;
-    any ['get', 'post'] => "$args{prefix}/edit/:id" => $handler;
+    if ($args{editable}) {
+        Dancer::Logger::debug("Setting up routes for $args{prefix}/add etc");
+        any ['get', 'post'] => "$args{prefix}/add"      => $handler;
+        any ['get', 'post'] => "$args{prefix}/edit/:id" => $handler;
+    }
 
     # And a route to list records already in the table:
     my $list_handler
@@ -252,7 +253,7 @@ sub simple_crud {
 
     # If we should allow deletion of records, set up routes to handle that,
     # too.
-    if ($args{deletable}) {
+    if ($args{editable} && $args{deletable}) {
 
 	# A route for GET requests, to present a "Do you want to delete this"
 	# message with a form to submit (this is only for browsers which didn't
@@ -507,8 +508,8 @@ SEARCHFORM
     # by display_columns above.)
     my $select_cols = join(',', 
         map { database->quote_identifier($_->{'COLUMN_NAME'}) } @$columns);
-
-    my $query = "SELECT $select_cols, $key_column AS actions FROM $table_name";
+    my $add_actions = $args->{editable} ? ", $key_column AS actions" : '';
+    my $query = "SELECT $select_cols $add_actions FROM $table_name";
 
     if (params->{'q'}) {
 	my ($column_data)
@@ -548,18 +549,20 @@ SEARCHFORM
 		transform => sub {
 		    my $id = shift;
 		    my $action_links;
-		    my $edit_url
-			= _construct_url($args->{prefix}, "/edit/$id");
-		    $action_links
-			.= qq[<a href="$edit_url" class="edit_link">Edit</a>];
-		    if ($args->{deletable}) {
-			my $del_url
-			    = _construct_url($args->{prefix}, "/delete/$id");
-			$action_links
-			    .= qq[ / <a href="$del_url" class="delete_link"]
-			    . qq[ onclick="delrec('$id'); return false;">]
-			    . qq[Delete</a>];
-		    }
+                    if ($args->{editable}) {
+                        my $edit_url
+                            = _construct_url($args->{prefix}, "/edit/$id");
+                        $action_links
+                            .= qq[<a href="$edit_url" class="edit_link">Edit</a>];
+                        if ($args->{deletable}) {
+                            my $del_url
+                                = _construct_url($args->{prefix}, "/delete/$id");
+                            $action_links
+                                .= qq[ / <a href="$del_url" class="delete_link"]
+                                . qq[ onclick="delrec('$id'); return false;">]
+                                . qq[Delete</a>];
+                        }
+                    }
 		    return $action_links;
 		},
 	    },
@@ -567,14 +570,16 @@ SEARCHFORM
     );
 
     $html .= $table->getTable || '';
-    $html .= sprintf '<a href="%s">Add a new %s</a></p>',
-	_construct_url($args->{prefix}, '/add'), $args->{record_title};
 
-    # Append a little Javascript which asks for confirmation that they'd
-    # like to delete the record, then makes a POST request via a hidden
-    # form.  This could be made AJAXy in future.
-    my $del_action = _construct_url($args->{prefix}, '/delete');
-    $html .= <<DELETEJS;
+    if ($args->{editable}) {
+        $html .= sprintf '<a href="%s">Add a new %s</a></p>',
+            _construct_url($args->{prefix}, '/add'), $args->{record_title};
+
+        # Append a little Javascript which asks for confirmation that they'd
+        # like to delete the record, then makes a POST request via a hidden
+        # form.  This could be made AJAXy in future.
+        my $del_action = _construct_url($args->{prefix}, '/delete');
+        $html .= <<DELETEJS;
 <form name="deleteform" method="post" action="$del_action">
 <input name="record_id" type="hidden">
 </form>
@@ -588,6 +593,8 @@ function delrec(record_id) {
 </script>
 
 DELETEJS
+    }
+
     return _apply_template($html, $args->{'template'});
 }
 
