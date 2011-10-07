@@ -1,5 +1,9 @@
 Revision history for Dancer-Plugin-SimpleCRUD
 
+0.20   2011-10-07
+        New 'editable' option, for display-only usage - requested a long time
+        ago by @saberworks in Issue 12.
+
 0.11
 
         Documentation fix for editable_columns / display_columns)
