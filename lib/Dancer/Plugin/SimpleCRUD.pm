@@ -496,10 +496,14 @@ sub _create_list_handler {
 	    @$columns
     );
 
+    my $order_by_param=params->{'o'} || "";
+    my $order_by_direction=params->{'d'} || "";
     my $html = <<"SEARCHFORM";
  <p><form name="searchform" method="get">
      Field:  <select name="searchfield">$options</select> &nbsp;&nbsp;
      Query: <input name="q" type="text" size="30"/> &nbsp;&nbsp;
+     <input name="o" type="hidden" value="$order_by_param"/>
+     <input name="d" type="hidden" value="$order_by_direction"/>
      <input name="searchsubmit" type="submit" value="Search"/>
  </form></p>
 SEARCHFORM
@@ -545,29 +549,34 @@ SEARCHFORM
 	## (will be used with HTML::Table::FromDatabase's "-rename_columns" parameter.
 	my %columns_sort_options;
 	if ($args->{sortable}) {
-		my $current_order_by_column = params->{o} || $key_column;
+		my $q = params->{'q'} || "";
+		my $sf = params->{searchfield} || "";
+		my $order_by_column = params->{'o'} || $key_column;
 		# Invalid column name ? discard it
-		my $valid = grep { $_->{COLUMN_NAME} eq $current_order_by_column } @$columns;
-		$current_order_by_column = $key_column unless $valid;
+		my $valid = grep { $_->{COLUMN_NAME} eq $order_by_column } @$columns;
+		$order_by_column = $key_column unless $valid;
 
-		my $current_order_by_direction = (exists params->{d} && params->{d} eq "desc")?"desc":"asc";
-		my $opposite_order_by_direction = ($current_order_by_direction eq "asc")?"desc":"asc";
+		my $order_by_direction = (exists params->{'d'} && params->{'d'} eq "desc")?"desc":"asc";
+		my $opposite_order_by_direction = ($order_by_direction eq "asc")?"desc":"asc";
 
 		%columns_sort_options = map {
 			my $col_name = $_->{COLUMN_NAME};
-			my $direction = $current_order_by_direction;
+			my $direction = $order_by_direction;
 			my $direction_char = "";
-			if ($col_name eq $current_order_by_column) {
+			if ($col_name eq $order_by_column) {
 				$direction = $opposite_order_by_direction;
 				$direction_char = ($direction eq "asc")?"&uarr;":"&darr;";
 			}
-			my $url = _construct_url($args->{prefix}) . "?o=$col_name&d=$direction";
+			my $url = _construct_url($args->{prefix}) .
+				"?o=$col_name&d=$direction&q=$q&searchfield=$sf";
 			$col_name => "<a href=\"$url\">$col_name&nbsp;$direction_char</a>";
 			} @$columns;
 
-	    $query .= " ORDER BY " . database->quote_identifier($current_order_by_column) .
-			" " .$current_order_by_direction . " " ;
-    }
+	    $query .= " ORDER BY " . database->quote_identifier($order_by_column) .
+			" " .$order_by_direction . " " ;
+	}
+
+
 
     debug("Running query: $query");
     my $sth = $dbh->prepare($query);
