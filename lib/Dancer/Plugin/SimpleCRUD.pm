@@ -88,6 +88,7 @@ L<HTML::Table::FromDatabase> to display lists of records.
         sortable => 1,
         paginate => 300,
         template => 'simple_crud.tt',
+        query_auto_focus => 1,
     );
 
 
@@ -205,6 +206,12 @@ must be located in your "views" directory.  Any global layout will be applied
 automatically because this option causes the module to use the "template"
 keyword.
 
+=item C<query_auto_focus>
+
+Specify whether to automatically set input focus to the query input field.
+Defaults to true. If set to a false value, focus will not be set.
+The focus is set using a simple inlined javascript.
+
 =cut
 
 sub simple_crud {
@@ -239,6 +246,7 @@ sub simple_crud {
     $args{key_column}   ||= 'id';
     $args{record_title} ||= 'record';
     $args{editable} = 1 unless exists $args{editable};
+    $args{query_auto_focus} = 1 unless exists $args{query_auto_focus};
 
     # Sanitise things we'll have to interpolate into queries (yes, that makes me
     # feel bad, but you can't use params for field/table names):
@@ -511,12 +519,16 @@ sub _create_list_handler {
     my $html = <<"SEARCHFORM";
  <p><form name="searchform" method="get">
      Field:  <select name="searchfield">$options</select> &nbsp;&nbsp;
-     Query: <input name="q" type="text" size="30"/> &nbsp;&nbsp;
+     Query: <input name="q" id="searchquery" type="text" size="30"/> &nbsp;&nbsp;
      <input name="o" type="hidden" value="$order_by_param"/>
      <input name="d" type="hidden" value="$order_by_direction"/>
      <input name="searchsubmit" type="submit" value="Search"/>
  </form></p>
 SEARCHFORM
+
+    if ($args->{query_auto_focus}) {
+	$html .= "<script>document.getElementById(\"searchquery\").focus();</script>";
+    }
 
     # TODO: handle pagination
     # TODO: Fix me with more data types. Make this global?
