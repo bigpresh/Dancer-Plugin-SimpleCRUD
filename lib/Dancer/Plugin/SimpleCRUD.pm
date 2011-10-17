@@ -85,6 +85,7 @@ L<HTML::Table::FromDatabase> to display lists of records.
         display_columns => [ qw( f_name l_name adr_1 ),
         deleteable => 1,
         editable => 1,
+        sortable => 1,
         template => 'simple_crud.tt',
     );
 
@@ -178,6 +179,12 @@ given, and the edit form will have a "Delete $record_title" button.
 
 Specify whether to support editing records.  Defaults to true.  If set to a
 false value, it will not be possible to add or edit rows in the table.
+
+=item C<sortable>
+
+Specify whether to support sorting the table. Defaults to false. If set to a
+true value, column headers will become clickable, allowing the user to sort
+the output by each column, and with ascending/descending order.
 
 =item C<display_columns>
 
@@ -534,6 +541,34 @@ SEARCHFORM
 	}
     }
 
+	## Build a hash to add sorting CGI parameters + URL to each column header.
+	## (will be used with HTML::Table::FromDatabase's "-rename_columns" parameter.
+	my %columns_sort_options;
+	if ($args->{sortable}) {
+		my $current_order_by_column = params->{o} || $key_column;
+		# Invalid column name ? discard it
+		my $valid = grep { $_->{COLUMN_NAME} eq $current_order_by_column } @$columns;
+		$current_order_by_column = $key_column unless $valid;
+
+		my $current_order_by_direction = (exists params->{d} && params->{d} eq "desc")?"desc":"asc";
+		my $opposite_order_by_direction = ($current_order_by_direction eq "asc")?"desc":"asc";
+
+		%columns_sort_options = map {
+			my $col_name = $_->{COLUMN_NAME};
+			my $direction = $current_order_by_direction;
+			my $direction_char = "";
+			if ($col_name eq $current_order_by_column) {
+				$direction = $opposite_order_by_direction;
+				$direction_char = ($direction eq "asc")?"&uarr;":"&darr;";
+			}
+			my $url = _construct_url($args->{prefix}) . "?o=$col_name&d=$direction";
+			$col_name => "<a href=\"$url\">$col_name&nbsp;$direction_char</a>";
+			} @$columns;
+
+	    $query .= " ORDER BY " . database->quote_identifier($current_order_by_column) .
+			" " .$current_order_by_direction . " " ;
+    }
+
     debug("Running query: $query");
     my $sth = $dbh->prepare($query);
     $sth->execute()
@@ -567,6 +602,7 @@ SEARCHFORM
 		},
 	    },
 	],
+	-rename_headers => \%columns_sort_options,
     );
 
     $html .= $table->getTable || '';
