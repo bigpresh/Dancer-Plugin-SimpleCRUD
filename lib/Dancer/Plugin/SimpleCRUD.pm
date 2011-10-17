@@ -499,7 +499,10 @@ sub _create_list_handler {
 
     my $options = join(
 	"\n",
-	map { "<option value='$_->{COLUMN_NAME}'>$_->{COLUMN_NAME}</option>" }
+	map {	my $selected = (defined params->{searchfield}
+				&& params->{searchfield} eq $_->{COLUMN_NAME})
+				?"selected":"";
+		"<option $selected value='$_->{COLUMN_NAME}'>$_->{COLUMN_NAME}</option>" }
 	    @$columns
     );
 
