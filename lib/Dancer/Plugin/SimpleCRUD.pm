@@ -89,6 +89,7 @@ L<HTML::Table::FromDatabase> to display lists of records.
         paginate => 300,
         template => 'simple_crud.tt',
         query_auto_focus => 1,
+        downloadable => 1,
     );
 
 
@@ -211,6 +212,12 @@ keyword.
 Specify whether to automatically set input focus to the query input field.
 Defaults to true. If set to a false value, focus will not be set.
 The focus is set using a simple inlined javascript.
+
+=item C<downloadable>
+
+Specify whether to support downloading the results.  Defaults to false. If set to a
+true value, The results show on the HTML page can be downloaded as CSV/TSV/JSON/XML.
+The download links will appear at the top of the page.
 
 =cut
 
@@ -567,6 +574,22 @@ SEARCHFORM
 	}
     }
 
+	if ($args->{downloadable}) {
+		my $q = params->{'q'} || "";
+		my $sf = params->{searchfield} || "";
+		my $o = params->{'o'} || "";
+		my $d = params->{'d'} || "";
+		my $page = params->{'p'} || 0 ;
+
+		my @formats = qw/csv tabular json xml/;
+
+		my $url = _construct_url($args->{prefix}) .
+			"?o=$o&d=$d&q=$q&searchfield=$sf&p=$page";
+
+		$html .="<p>Download as: " . join(", ",
+			map { "<a href=\"$url&format=$_\">$_</a>" } @formats ) . "<p>";
+	}
+
 	## Build a hash to add sorting CGI parameters + URL to each column header.
 	## (will be used with HTML::Table::FromDatabase's "-rename_columns" parameter.
 	my %columns_sort_options;
@@ -638,6 +661,11 @@ SEARCHFORM
 	or die "Failed to query for records in $table_name - "
 	. database->errstr;
 
+    if ($args->{downloadable} && params->{format} ) {
+	    ##Return results as a downloaded file, instead of generating the HTML table.
+	    return _return_downloadable_query($args, $sth, params->{format});
+    }
+
     my $table = HTML::Table::FromDatabase->new(
 	-sth       => $sth,
 	-border    => 1,
@@ -707,6 +735,72 @@ sub _apply_template {
         return engine('template')->apply_layout($html);
     }
 };
+
+sub _return_downloadable_query {
+	my ($args, $sth, $format) = @_;
+
+	my $output;
+
+	## Generate an informative filename
+	my $filename = $args->{db_table};
+	if (params->{'o'}) {
+		my $order = params->{'o'};
+		$order =~ s/[^\w\.\-]+/_/g;
+		$filename .= "__sorted_by_" . $order;
+	}
+	if (params->{'q'}) {
+		my $query = params->{'q'};
+		$query =~ s/[^\w\.\-]+/_/g;
+		$filename .= "__query_" . $query ;
+	}
+	if (params->{'p'}) {
+		my $page = params->{'p'};
+		$page =~ s/[^0-9]+/_/g;
+		$filename .= "__page_" . $page ;
+	}
+
+	## Generate data in the requested format
+	if ($format eq "tabular") {
+		header('Content-Type' => 'text/tab-separated-values');
+		header('Content-Disposition' => "attachment; filename=\"$filename.txt\"");
+		my $aref = $sth->{NAME};
+		$output = join("\t", @$aref) . "\r\n";
+		while( $aref = $sth->fetchrow_arrayref ) {
+			$output .= join("\t", @{ $aref } ) . "\r\n";
+		}
+	}
+	elsif ($format eq "csv") {
+		eval { require Text::CSV };
+		return "Error: required module Text::CSV not installed. Can't generate CSV file." if $@;
+
+		header('Content-Type' => 'text/comma-separated-values');
+		header('Content-Disposition' => "attachment; filename=\"$filename.csv\"");
+
+		my $csv = Text::CSV->new();
+		my $aref = $sth->{NAME};
+		$csv->combine( @{ $aref } );
+		$output = $csv->string() . "\r\n";
+		while( $aref = $sth->fetchrow_arrayref ) {
+			$csv->combine( @{ $aref } );
+			$output .= $csv->string() . "\r\n";
+		}
+	}
+	elsif ($format eq "json") {
+		header('Content-Type' => 'text/json');
+		header('Content-Disposition' => "attachment; filename=\"$filename.json\"");
+		$output = to_json ( $sth->fetchall_arrayref ( {} ) );
+	}
+	elsif ($format eq "xml") {
+		header('Content-Type' => 'text/xml');
+		header('Content-Disposition' => "attachment; filename=\"$filename.xml\"");
+		$output = to_xml ( $sth->fetchall_arrayref ( {} ) );
+	}
+	else  {
+		$output = "Error: unknown format $format";
+	}
+
+	return $output;
+}
 
 # Given a table name, return an arrayref of hashrefs describing each column in
 # the table.
