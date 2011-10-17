@@ -86,6 +86,7 @@ L<HTML::Table::FromDatabase> to display lists of records.
         deleteable => 1,
         editable => 1,
         sortable => 1,
+        paginate => 300,
         template => 'simple_crud.tt',
     );
 
@@ -185,6 +186,12 @@ false value, it will not be possible to add or edit rows in the table.
 Specify whether to support sorting the table. Defaults to false. If set to a
 true value, column headers will become clickable, allowing the user to sort
 the output by each column, and with ascending/descending order.
+
+=item C<paginate>
+
+Specify whether to show results in pages (with next/previous buttons).
+Defaults to undef, meaning all records are shown on one page (not useful for large tables).
+When defined as a number, only this number of results will be shown.
 
 =item C<display_columns>
 
@@ -574,6 +581,38 @@ SEARCHFORM
 
 	    $query .= " ORDER BY " . database->quote_identifier($order_by_column) .
 			" " .$order_by_direction . " " ;
+	}
+
+	if ($args->{paginate} && $args->{paginate} =~ /^\d+$/ ) {
+		my $page_size = $args->{paginate};
+
+		my $q = params->{'q'} || "";
+		my $sf = params->{searchfield} || "";
+		my $o = params->{'o'} || "";
+		my $d = params->{'d'} || "";
+		my $page = params->{'p'} || 0 ;
+		$page = 0 unless $page =~ /^\d+$/;
+
+		my $offset = $page_size * $page ;
+		my $limit = $page_size ;
+
+		my $url = _construct_url($args->{prefix}) .
+			"?o=$o&d=$d&q=$q&searchfield=$sf";
+		$html .= "<p>";
+		if ($page > 0) {
+			$html .= sprintf("<a href=\"$url&p=%d\">&larr;&nbsp;prev.&nbsp;page</a>", $page-1)
+		} else {
+			$html .= "&larr;&nbsp;prev.&nbsp;page&nbsp";
+		}
+		$html .= "&nbsp;" x 5;
+		$html .= sprintf("Showing page %d (records %d to %d)",
+				$page+1, $offset+1, $offset+1 + $limit );
+		$html .= "&nbsp;" x 5;
+		$html .= sprintf("<a href=\"$url&p=%d\">next&nbsp;page&nbsp;&rarr;</a>", $page+1);
+		$html .= "<p>";
+
+
+		$query .= " LIMIT $limit OFFSET $offset " ;
 	}
 
 
