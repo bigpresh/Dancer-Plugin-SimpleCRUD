@@ -24,20 +24,6 @@ generating queries ourselves.
 
 =over
 
-=item Pagination support on list page
-
-Allow configurable pagination support on list page.
-
-
-=item Searching on list page
-
-Make it possible to search on the list page?
-
-=item Output JS to make list table sortable?
-
-Use sorttable or another JS solution to make the list page sortable, by clicking
-on column headings?
-
 =item Option to make the list page handler return template-ready params
 
 Provide option to make list page handler return template-ready params instead of
