@@ -12,6 +12,8 @@ simple_crud(
         gender => [ qw( Male Female ) ],
     },
     deletable => 'yes',
+    sortable => 'yes',
+    paginate => 5,
 );
 
 get '/' => sub {
