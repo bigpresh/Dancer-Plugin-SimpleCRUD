@@ -36,7 +36,7 @@ use Dancer::Plugin::Database;
 use HTML::Table::FromDatabase;
 use CGI::FormBuilder;
 
-our $VERSION = '0.20';
+our $VERSION = '0.30';
 
 =head1 NAME
 
