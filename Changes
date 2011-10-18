@@ -1,5 +1,15 @@
 Revision history for Dancer-Plugin-SimpleCRUD
 
+0.30    2011-10-18
+        New features all kindly contributed by Assaf Gordon - thanks!  :
+        - New 'sortable' option to make tables sortable
+        - New 'paginate' option to paginate data display table
+        - New 'downloadable' feature to allow data to be downloaded in various
+          formats
+        - New 'query_auto_focus' option, to automatically set focus to the
+          search field
+        Awesome contributions, thanks!
+
 0.20   2011-10-07
         New 'editable' option, for display-only usage - requested a long time
         ago by @saberworks in Issue 12.
