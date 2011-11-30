@@ -2,17 +2,33 @@
 <head>
 <title>SimpleCRUD demo</title>
 
-
 <style>
+BODY,TH,TD {
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-size: 10px;
+}
+TABLE { empty-cells: show; }
 TEXTAREA {
     width: 400px;
     height: 200px;
 }
+H1 {
+    border: 1px solid yellow;
+    color: yellow;
+    background: #008;
+    padding: 10px;
+    font-size: 20px;
+    font-weight: bold;
+}
 </style>
 </head>
 <body>
+<h1>Dancer::Plugin::SimpleCRUD demonstration</h1>
 
 <% content %>
+
+<br />
+<pre>Demonstrating Dancer::Plugin::SimpleCRUD by David Precious</pre>
 </body>
 </html>
 
