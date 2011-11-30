@@ -14,6 +14,7 @@ simple_crud(
     deletable => 'yes',
     sortable => 'yes',
     paginate => 5,
+    downloadable => 1,
 );
 
 get '/' => sub {
