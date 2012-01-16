@@ -1,5 +1,9 @@
 Revision history for Dancer-Plugin-SimpleCRUD
 
+0.40    2012-01-16
+        - New input_types option, to override the type of input used for some
+          fields, if the default choice isn't suitable.
+
 0.30    2011-10-18
         New features all kindly contributed by Assaf Gordon - thanks!  :
         - New 'sortable' option to make tables sortable
