@@ -80,6 +80,10 @@ L<HTML::Table::FromDatabase> to display lists of records.
         validation => {
             weight => qr/\d+/,
         },
+        input_types => {
+            supersecret => 'password',
+            lotsoftext' => 'textarea',
+        },
         key_column => 'sku',
         editable_columns => [ qw( f_name l_name adr_1 ),
         display_columns => [ qw( f_name l_name adr_1 ),
@@ -143,6 +147,16 @@ A hashref of field_name => 'Label', if you want to provide more user-friendly
 labels for some or all fields.  As we're using CGI::FormBuilder, it will do a
 reasonable job of figuring these out for itself usually anyway - for instance, a
 field named C<first_name> will be shown as C<First Name>.
+
+=item C<input_types> (optional)
+
+A hashref of field_name => input type, if you want to override the default type
+of input which would be selected by L<CGI::FormBuilder> or by our DWIMmery (by
+default, password fields will be used for field names like 'password', 'passwd'
+etc, and text area inputs will be used for columns with type 'TEXT').
+
+Valid values include anything allowed by HTML, e.g. C<text>, C<select>,
+C<textarea>, C<radio>, C<checkbox>, C<password>, C<hidden>.
 
 =item C<validation> (optional)
 
@@ -445,6 +459,12 @@ sub _create_add_edit_route {
 	if ($field_type{$field} eq 'TEXT') {
 	    $field_params{type} = 'textarea';
 	}
+
+        # ... unless the user specified a type for this field, in which case,
+        # use what they said
+        if (my $override_type = $args->{input_types}{$field}) {
+            $field_params{type} = $override_type;
+        }
 
 	# OK, add the field to the form:
 	$form->field(%field_params);
