@@ -694,6 +694,7 @@ SEARCHFORM
 	    },
 	],
 	-rename_headers => \%columns_sort_options,
+        -html => 'escape',
     );
 
     $html .= $table->getTable || '';
