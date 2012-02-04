@@ -94,6 +94,13 @@ L<HTML::Table::FromDatabase> to display lists of records.
         template => 'simple_crud.tt',
         query_auto_focus => 1,
         downloadable => 1,
+        foreign_keys => {
+            columnname => {
+                table => 'foo',
+                key_column => 'id',
+                label_column => 'foo',
+            },
+        },
     );
 
 
@@ -232,6 +239,12 @@ The focus is set using a simple inlined javascript.
 Specify whether to support downloading the results.  Defaults to false. If set to a
 true value, The results show on the HTML page can be downloaded as CSV/TSV/JSON/XML.
 The download links will appear at the top of the page.
+
+item C<foreign_keys>
+
+A hashref to specify columns in the table which are foreign keys; for each one,
+the value should be a hashref containing the keys C<table>, C<key_column> and
+C<label_column>.
 
 =cut
 
@@ -403,6 +416,18 @@ sub _create_add_edit_route {
                 $values_specified = $values_specified->();
             }
 	    $constrain_values{$name} = $values_specified;
+
+        } elsif (my $foreign_key = $args->{foreign_keys}{$name}) {
+            # Find out the possible values for this column from the other table:
+            my %possible_values;
+            debug "Looking for rows for foreign relation: " => $foreign_key;
+            for my $row (database->quick_select($foreign_key->{table}, {})) {
+                debug "Row from foreign relation: " => $row;
+                $possible_values{ $row->{ $foreign_key->{key_column} } }
+                    = $row->{ $foreign_key->{label_column} };
+            }
+            $constrain_values{$name} = \%possible_values;
+
 	} elsif (my $values_from_db = $field->{mysql_values}) {
 	    $constrain_values{$name} = $values_from_db;
 	}
