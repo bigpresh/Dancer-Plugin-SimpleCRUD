@@ -768,6 +768,7 @@ SEARCHFORM
 	    },
 	],
 	-rename_headers => \%columns_sort_options,
+        -auto_pretty_headers => 1,
         -html => 'escape',
     );
 
