@@ -598,7 +598,9 @@ SEARCHFORM
             @select_cols = grep { $_ ne $col } @select_cols;
             my $ftable = database->quote_identifier($foreign_key->{table});
             my $fcol   = database->quote_identifier($foreign_key->{label_column});
-            my $lcol   = database->quote_identifier($col);
+            my $lcol   = database->quote_identifier(
+                $args->{labels}{$col} || $col
+            );
             push @foreign_cols, "$ftable.$fcol AS $lcol";
         }
     }
