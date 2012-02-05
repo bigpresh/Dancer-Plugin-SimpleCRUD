@@ -619,84 +619,84 @@ SEARCHFORM
 	}
     }
 
-	if ($args->{downloadable}) {
-		my $q = params->{'q'} || "";
-		my $sf = params->{searchfield} || "";
-		my $o = params->{'o'} || "";
-		my $d = params->{'d'} || "";
-		my $page = params->{'p'} || 0 ;
+    if ($args->{downloadable}) {
+            my $q = params->{'q'} || "";
+            my $sf = params->{searchfield} || "";
+            my $o = params->{'o'} || "";
+            my $d = params->{'d'} || "";
+            my $page = params->{'p'} || 0 ;
 
-		my @formats = qw/csv tabular json xml/;
+            my @formats = qw/csv tabular json xml/;
 
-		my $url = _construct_url($args->{prefix}) .
-			"?o=$o&d=$d&q=$q&searchfield=$sf&p=$page";
+            my $url = _construct_url($args->{prefix}) .
+                    "?o=$o&d=$d&q=$q&searchfield=$sf&p=$page";
 
-		$html .="<p>Download as: " . join(", ",
-			map { "<a href=\"$url&format=$_\">$_</a>" } @formats ) . "<p>";
-	}
+            $html .="<p>Download as: " . join(", ",
+                    map { "<a href=\"$url&format=$_\">$_</a>" } @formats ) . "<p>";
+    }
 
-	## Build a hash to add sorting CGI parameters + URL to each column header.
-	## (will be used with HTML::Table::FromDatabase's "-rename_columns" parameter.
-	my %columns_sort_options;
-	if ($args->{sortable}) {
-		my $q = params->{'q'} || "";
-		my $sf = params->{searchfield} || "";
-		my $order_by_column = params->{'o'} || $key_column;
-		# Invalid column name ? discard it
-		my $valid = grep { $_->{COLUMN_NAME} eq $order_by_column } @$columns;
-		$order_by_column = $key_column unless $valid;
+    ## Build a hash to add sorting CGI parameters + URL to each column header.
+    ## (will be used with HTML::Table::FromDatabase's "-rename_columns" parameter.
+    my %columns_sort_options;
+    if ($args->{sortable}) {
+            my $q = params->{'q'} || "";
+            my $sf = params->{searchfield} || "";
+            my $order_by_column = params->{'o'} || $key_column;
+            # Invalid column name ? discard it
+            my $valid = grep { $_->{COLUMN_NAME} eq $order_by_column } @$columns;
+            $order_by_column = $key_column unless $valid;
 
-		my $order_by_direction = (exists params->{'d'} && params->{'d'} eq "desc")?"desc":"asc";
-		my $opposite_order_by_direction = ($order_by_direction eq "asc")?"desc":"asc";
+            my $order_by_direction = (exists params->{'d'} && params->{'d'} eq "desc")?"desc":"asc";
+            my $opposite_order_by_direction = ($order_by_direction eq "asc")?"desc":"asc";
 
-		%columns_sort_options = map {
-			my $col_name = $_->{COLUMN_NAME};
-			my $direction = $order_by_direction;
-			my $direction_char = "";
-			if ($col_name eq $order_by_column) {
-				$direction = $opposite_order_by_direction;
-				$direction_char = ($direction eq "asc")?"&uarr;":"&darr;";
-			}
-			my $url = _construct_url($args->{prefix}) .
-				"?o=$col_name&d=$direction&q=$q&searchfield=$sf";
-			$col_name => "<a href=\"$url\">$col_name&nbsp;$direction_char</a>";
-			} @$columns;
+            %columns_sort_options = map {
+                    my $col_name = $_->{COLUMN_NAME};
+                    my $direction = $order_by_direction;
+                    my $direction_char = "";
+                    if ($col_name eq $order_by_column) {
+                            $direction = $opposite_order_by_direction;
+                            $direction_char = ($direction eq "asc")?"&uarr;":"&darr;";
+                    }
+                    my $url = _construct_url($args->{prefix}) .
+                            "?o=$col_name&d=$direction&q=$q&searchfield=$sf";
+                    $col_name => "<a href=\"$url\">$col_name&nbsp;$direction_char</a>";
+                    } @$columns;
 
-	    $query .= " ORDER BY " . database->quote_identifier($order_by_column) .
-			" " .$order_by_direction . " " ;
-	}
+        $query .= " ORDER BY " . database->quote_identifier($order_by_column) .
+                    " " .$order_by_direction . " " ;
+    }
 
-	if ($args->{paginate} && $args->{paginate} =~ /^\d+$/ ) {
-		my $page_size = $args->{paginate};
+    if ($args->{paginate} && $args->{paginate} =~ /^\d+$/ ) {
+            my $page_size = $args->{paginate};
 
-		my $q = params->{'q'} || "";
-		my $sf = params->{searchfield} || "";
-		my $o = params->{'o'} || "";
-		my $d = params->{'d'} || "";
-		my $page = params->{'p'} || 0 ;
-		$page = 0 unless $page =~ /^\d+$/;
+            my $q = params->{'q'} || "";
+            my $sf = params->{searchfield} || "";
+            my $o = params->{'o'} || "";
+            my $d = params->{'d'} || "";
+            my $page = params->{'p'} || 0 ;
+            $page = 0 unless $page =~ /^\d+$/;
 
-		my $offset = $page_size * $page ;
-		my $limit = $page_size ;
+            my $offset = $page_size * $page ;
+            my $limit = $page_size ;
 
-		my $url = _construct_url($args->{prefix}) .
-			"?o=$o&d=$d&q=$q&searchfield=$sf";
-		$html .= "<p>";
-		if ($page > 0) {
-			$html .= sprintf("<a href=\"$url&p=%d\">&larr;&nbsp;prev.&nbsp;page</a>", $page-1)
-		} else {
-			$html .= "&larr;&nbsp;prev.&nbsp;page&nbsp";
-		}
-		$html .= "&nbsp;" x 5;
-		$html .= sprintf("Showing page %d (records %d to %d)",
-				$page+1, $offset+1, $offset+1 + $limit );
-		$html .= "&nbsp;" x 5;
-		$html .= sprintf("<a href=\"$url&p=%d\">next&nbsp;page&nbsp;&rarr;</a>", $page+1);
-		$html .= "<p>";
+            my $url = _construct_url($args->{prefix}) .
+                    "?o=$o&d=$d&q=$q&searchfield=$sf";
+            $html .= "<p>";
+            if ($page > 0) {
+                    $html .= sprintf("<a href=\"$url&p=%d\">&larr;&nbsp;prev.&nbsp;page</a>", $page-1)
+            } else {
+                    $html .= "&larr;&nbsp;prev.&nbsp;page&nbsp";
+            }
+            $html .= "&nbsp;" x 5;
+            $html .= sprintf("Showing page %d (records %d to %d)",
+                            $page+1, $offset+1, $offset+1 + $limit );
+            $html .= "&nbsp;" x 5;
+            $html .= sprintf("<a href=\"$url&p=%d\">next&nbsp;page&nbsp;&rarr;</a>", $page+1);
+            $html .= "<p>";
 
 
-		$query .= " LIMIT $limit OFFSET $offset " ;
-	}
+            $query .= " LIMIT $limit OFFSET $offset " ;
+    }
 
 
 
