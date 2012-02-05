@@ -591,10 +591,33 @@ SEARCHFORM
 
     # Explicitly select the columns we are displaying.  (May have been filtered
     # by display_columns above.)
-    my $select_cols = join(',', 
-        map { database->quote_identifier($_->{'COLUMN_NAME'}) } @$columns);
-    my $add_actions = $args->{editable} ? ", $key_column AS actions" : '';
-    my $query = "SELECT $select_cols $add_actions FROM $table_name";
+    
+    my @select_cols = map { $_->{COLUMN_NAME} } @$columns;
+
+    # If we have some columns declared as foreign keys, though, we don't want to
+    # see the raw values in the result; we'll add JOIN clauses to fetch the info
+    # from the related table, so for now just select the defined label column
+    # from the related table instead of the raw ID value
+    my @foreign_cols;
+    if ($args->{foreign_keys}) {
+        while (my($col, $foreign_key) = each(%{ $args->{foreign_keys} })) {
+            @select_cols = grep { $_ ne $col } @select_cols;
+            my $ftable = database->quote_identifier($foreign_key->{table});
+            my $fcol   = database->quote_identifier($foreign_key->{label_column});
+            my $lcol   = database->quote_identifier($col);
+            push @foreign_cols, "$ftable.$fcol AS $lcol";
+        }
+    }
+
+
+    my $col_list = join(',', 
+        map( { $table_name . "." .database->quote_identifier($_) } @select_cols ),
+        @foreign_cols, # already assembled from quoted identifiers
+    );
+    my $add_actions = $args->{editable} 
+        ? ", $table_name.$key_column AS actions" 
+        : '';
+    my $query = "SELECT $col_list $add_actions FROM $table_name";
 
     if (params->{'q'}) {
 	my ($column_data)
@@ -617,6 +640,18 @@ SEARCHFORM
 	    $html .= sprintf '&mdash;<a href="%s">Reset search</a></p>',
 		_construct_url($args->{prefix});
 	}
+    }
+    
+    # If we have foreign key relationship info, we need to join on those tables:
+    if ($args->{foreign_keys}) {
+        while (my($col, $foreign_key) = each %{ $args->{foreign_keys} }) {
+            my $ftable = database->quote_identifier($foreign_key->{table});
+            my $lkey   = database->quote_identifier($col);
+            my $rkey   = database->quote_identifier($foreign_key->{key_column});
+            # Identifiers quoted above, and $table_name quoted further up, so
+            # all safe to interpolate
+            $query .= " JOIN $ftable ON $table_name.$lkey = $ftable.$rkey ";
+        }
     }
 
     if ($args->{downloadable}) {
