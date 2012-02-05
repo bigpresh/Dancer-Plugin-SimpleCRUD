@@ -266,12 +266,6 @@ sub simple_crud {
 
     if (!$args{db_table}) { die "Need table name!"; }
 
-    # Find out what kind of engine we're talking to:
-    my $db_type = $dbh->get_info(17);
-    if ($db_type ne 'MySQL') {
-	    warning "This module has so far only been tested with MySQL databases.";
-    }
-
     # Accept deleteable as a synonym for deletable
     $args{deletable} = delete $args{deleteable}
 	if !exists $args{deletable} && exists $args{deleteable};
