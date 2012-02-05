@@ -66,25 +66,31 @@ easy to set up and use.
         record_title => 'Widget',
         prefix => '/widgets',
         db_table => 'widgets',
+        editable => 1,
     );
 
-    # The above would create a route to handle C</widget/add> and
-    # C</widget/:id>, presenting a form to add/edit a Widget respectively.
+    # The above would create a route to handle C</widgets>, listing all widgets,
+    # with options to add/edit entries (linking to C</widgets/add> and
+    # C</widgets/edit/:id> respectively) where a form to add a new entry or edit
+    # an existing entry will be created.
     # All fields in the database table would be editable.
 
-    # A more in-depth synopsis, using all options:
+    # A more in-depth synopsis, using all options (of course, usually you'd only
+    # need to use a few of the options where you need to change the default
+    # behaviour):
+
     simple_crud(
         record_title => 'Team',
         prefix => '/teams',
         db_table => 'team',
-        labels => {
+        labels => {     # More human-friendly labels for some columns
             venue_id => 'Home Venue',
             name     => 'Team Name', 
         },  
-        validation => {
+        validation => {  # validate values entered for some columns
             division => qr/\d+/,
         },
-        input_types => {
+        input_types => {  # overriding form input type for some columns
             supersecret => 'password',
             lotsoftext' => 'textarea',
         },
