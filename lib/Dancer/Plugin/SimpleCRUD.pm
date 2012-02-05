@@ -222,9 +222,9 @@ the output by each column, and with ascending/descending order.
 
 =item C<paginate>
 
-Specify whether to show results in pages (with next/previous buttons).
-Defaults to undef, meaning all records are shown on one page (not useful for large tables).
-When defined as a number, only this number of results will be shown.
+Specify whether to show results in pages (with next/previous buttons).  Defaults
+to undef, meaning all records are shown on one page (not useful for large
+tables).  When defined as a number, only this number of results will be shown.
 
 =item C<display_columns>
 
@@ -246,9 +246,9 @@ The focus is set using a simple inlined javascript.
 
 =item C<downloadable>
 
-Specify whether to support downloading the results.  Defaults to false. If set to a
-true value, The results show on the HTML page can be downloaded as CSV/TSV/JSON/XML.
-The download links will appear at the top of the page.
+Specify whether to support downloading the results.  Defaults to false. If set
+to a true value, The results show on the HTML page can be downloaded as
+CSV/TSV/JSON/XML.  The download links will appear at the top of the page.
 
 item C<foreign_keys>
 
@@ -529,7 +529,10 @@ sub _create_add_edit_route {
 
 	    # TODO: better error handling - options to provide error templates
 	    # etc
-	    return _apply_template("<p>Unable to $verb $args->{record_title}</p>", $args->{'template'});
+	    return _apply_template(
+                "<p>Unable to $verb $args->{record_title}</p>", 
+                $args->{'template'}
+            );
 	}
 
     } else {
@@ -563,11 +566,14 @@ sub _create_list_handler {
 
     my $options = join(
 	"\n",
-	map {	my $selected = (defined params->{searchfield}
-				&& params->{searchfield} eq $_->{COLUMN_NAME})
-				?"selected":"";
-		"<option $selected value='$_->{COLUMN_NAME}'>$_->{COLUMN_NAME}</option>" }
-	    @$columns
+	map {
+	    my $sel =
+		(defined params->{searchfield}
+		    && params->{searchfield} eq $_->{COLUMN_NAME})
+		? "selected"
+		: "";
+	    "<option $sel value='$_->{COLUMN_NAME}'>$_->{COLUMN_NAME}</option>"
+	    } @$columns
     );
 
     my $order_by_param=params->{'o'} || "";
@@ -680,31 +686,35 @@ SEARCHFORM
     ## (will be used with HTML::Table::FromDatabase's "-rename_columns" parameter.
     my %columns_sort_options;
     if ($args->{sortable}) {
-            my $q = params->{'q'} || "";
-            my $sf = params->{searchfield} || "";
-            my $order_by_column = params->{'o'} || $key_column;
-            # Invalid column name ? discard it
-            my $valid = grep { $_->{COLUMN_NAME} eq $order_by_column } @$columns;
-            $order_by_column = $key_column unless $valid;
+        my $q = params->{'q'} || "";
+        my $sf = params->{searchfield} || "";
+        my $order_by_column = params->{'o'} || $key_column;
+        # Invalid column name ? discard it
+        my $valid = grep { $_->{COLUMN_NAME} eq $order_by_column } @$columns;
+        $order_by_column = $key_column unless $valid;
 
-            my $order_by_direction = (exists params->{'d'} && params->{'d'} eq "desc")?"desc":"asc";
-            my $opposite_order_by_direction = ($order_by_direction eq "asc")?"desc":"asc";
+        my $order_by_direction = 
+            (exists params->{'d'} && params->{'d'} eq "desc")
+            ? "desc" : "asc";
+        my $opposite_order_by_direction = 
+            ($order_by_direction eq "asc")
+            ? "desc" : "asc";
 
-            %columns_sort_options = map {
-                    my $col_name = $_->{COLUMN_NAME};
-                    my $direction = $order_by_direction;
-                    my $direction_char = "";
-                    if ($col_name eq $order_by_column) {
-                            $direction = $opposite_order_by_direction;
-                            $direction_char = ($direction eq "asc")?"&uarr;":"&darr;";
-                    }
-                    my $url = _construct_url($args->{prefix}) .
-                            "?o=$col_name&d=$direction&q=$q&searchfield=$sf";
-                    $col_name => "<a href=\"$url\">$col_name&nbsp;$direction_char</a>";
-                    } @$columns;
+        %columns_sort_options = map {
+            my $col_name = $_->{COLUMN_NAME};
+            my $direction = $order_by_direction;
+            my $direction_char = "";
+            if ($col_name eq $order_by_column) {
+                    $direction = $opposite_order_by_direction;
+                    $direction_char = ($direction eq "asc")?"&uarr;":"&darr;";
+            }
+            my $url = _construct_url($args->{prefix}) .
+                    "?o=$col_name&d=$direction&q=$q&searchfield=$sf";
+            $col_name => "<a href=\"$url\">$col_name&nbsp;$direction_char</a>";
+        } @$columns;
 
-        $query .= " ORDER BY " . database->quote_identifier($order_by_column) .
-                    " " .$order_by_direction . " " ;
+        $query .= " ORDER BY " . database->quote_identifier($order_by_column)
+                . " " . $order_by_direction . " ";
     }
 
     if ($args->{paginate} && $args->{paginate} =~ /^\d+$/ ) {
