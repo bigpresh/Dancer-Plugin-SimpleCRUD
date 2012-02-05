@@ -51,6 +51,10 @@ database table.  Uses L<CGI::FormBuilder> to generate, process and validate form
 L<Dancer::Plugin::Database> for database interaction and
 L<HTML::Table::FromDatabase> to display lists of records.
 
+Setting up forms and code to display and edit database records is a very common
+requirement in web apps; this plugin tries to make something basic trivially
+easy to set up and use.
+
 
 =head1 SYNOPSIS
 
