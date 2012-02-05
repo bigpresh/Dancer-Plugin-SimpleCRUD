@@ -1,5 +1,18 @@
 Revision history for Dancer-Plugin-SimpleCRUD
 
+0.50    2012-02-05
+        [ ENHANCEMENTS ]
+        - New basic foreign key support, allowing you to specify that certain
+          columns are foreign keys, and describe which table they refer to, and
+          which keys in the foreign table should be used as the key and the
+          label, respectively.
+        - Use new -auto_pretty_headers option added to HTML::Table::Database so
+          that headers in display are automatically made a little nicer (for
+          example, "first_name" -> "First Name")
+        - Don't throw a warning if DB isn't MySQL.  I've tested this with SQLite
+          fairly extensively and it works fine, and it tries to use standard SQL
+          which should work anywhere.
+
 0.40    2012-01-16
         - New input_types option, to override the type of input used for some
           fields, if the default choice isn't suitable.
