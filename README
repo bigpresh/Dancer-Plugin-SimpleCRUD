@@ -9,6 +9,10 @@ DESCRIPTION
     process and validate forms, Dancer::Plugin::Database for database
     interaction and HTML::Table::FromDatabase to display lists of records.
 
+    Setting up forms and code to display and edit database records is a very
+    common requirement in web apps; this plugin tries to make something
+    basic trivially easy to set up and use.
+
 SYNOPSIS
         # In your Dancer app,
         use Dancer::Plugin::SimpleCRUD;
@@ -18,36 +22,57 @@ SYNOPSIS
             record_title => 'Widget',
             prefix => '/widgets',
             db_table => 'widgets',
+            editable => 1,
         );
 
-        # The above would create a route to handle C</widget/add> and
-        # C</widget/:id>, presenting a form to add/edit a Widget respectively.
+        # The above would create a route to handle C</widgets>, listing all widgets,
+        # with options to add/edit entries (linking to C</widgets/add> and
+        # C</widgets/edit/:id> respectively) where a form to add a new entry or edit
+        # an existing entry will be created.
         # All fields in the database table would be editable.
 
-        # A more in-depth synopsis, using all options:
+        # A more in-depth synopsis, using all options (of course, usually you'd only
+        # need to use a few of the options where you need to change the default
+        # behaviour):
+
         simple_crud(
-            record_title => 'Widget',
-            prefix => '/widgets',
-            db_table => 'widgets',
-            labels => {
-                country => 'Country of Origin',
-                type    => 'Widget Type', 
+            record_title => 'Team',
+            prefix => '/teams',
+            db_table => 'team',
+            labels => {     # More human-friendly labels for some columns
+                venue_id => 'Home Venue',
+                name     => 'Team Name', 
             },  
-            validation => {
-                weight => qr/\d+/,
+            validation => {  # validate values entered for some columns
+                division => qr/\d+/,
             },
-            key_column => 'sku',
-            editable_columns => [ qw( f_name l_name adr_1 ),
-            display_columns => [ qw( f_name l_name adr_1 ),
+            input_types => {  # overriding form input type for some columns
+                supersecret => 'password',
+                lotsoftext' => 'textarea',
+            },
+            key_column => 'id', # id is default anyway
+            editable_columns => [ qw( venue_id name division )    ],
+            display_columns  => [ qw( id venue_id name division ) ],
             deleteable => 1,
             editable => 1,
+            sortable => 1,
+            paginate => 300,
             template => 'simple_crud.tt',
+            query_auto_focus => 1,
+            downloadable => 1,
+            foreign_keys => {
+                columnname => {
+                    table => 'venues',
+                    key_column => 'id',
+                    label_column => 'name',
+                },
+            },
         );
 
 USAGE
     This plugin provides a `simple_crud' keyword, which takes a hash of
-    options as described below, and sets up the appropriate route to present
-    add/edit/delete options.
+    options as described below, and sets up the appropriate routes to
+    present add/edit/delete options.
 
 OPTIONS
     The options you can pass to simple_crud are:
@@ -80,12 +105,22 @@ OPTIONS
         what you want, so unless your app is dealing with multiple DBs, you
         probably won't need to worry about this option.
 
-    <labels> (optional)
+    `labels' (optional)
         A hashref of field_name => 'Label', if you want to provide more
         user-friendly labels for some or all fields. As we're using
         CGI::FormBuilder, it will do a reasonable job of figuring these out
         for itself usually anyway - for instance, a field named `first_name'
         will be shown as `First Name'.
+
+    `input_types' (optional)
+        A hashref of field_name => input type, if you want to override the
+        default type of input which would be selected by CGI::FormBuilder or
+        by our DWIMmery (by default, password fields will be used for field
+        names like 'password', 'passwd' etc, and text area inputs will be
+        used for columns with type 'TEXT').
+
+        Valid values include anything allowed by HTML, e.g. `text',
+        `select', `textarea', `radio', `checkbox', `password', `hidden'.
 
     `validation' (optional)
         A hashref of validation criteria which should be passed to
@@ -123,6 +158,18 @@ OPTIONS
         to a false value, it will not be possible to add or edit rows in the
         table.
 
+    `sortable'
+        Specify whether to support sorting the table. Defaults to false. If
+        set to a true value, column headers will become clickable, allowing
+        the user to sort the output by each column, and with
+        ascending/descending order.
+
+    `paginate'
+        Specify whether to show results in pages (with next/previous
+        buttons). Defaults to undef, meaning all records are shown on one
+        page (not useful for large tables). When defined as a number, only
+        this number of results will be shown.
+
     `display_columns'
         Specify an arrayref of columns that should show up in the list.
         Defaults to all.
@@ -133,6 +180,23 @@ OPTIONS
         output. This template must be located in your "views" directory. Any
         global layout will be applied automatically because this option
         causes the module to use the "template" keyword.
+
+    `query_auto_focus'
+        Specify whether to automatically set input focus to the query input
+        field. Defaults to true. If set to a false value, focus will not be
+        set. The focus is set using a simple inlined javascript.
+
+    `downloadable'
+        Specify whether to support downloading the results. Defaults to
+        false. If set to a true value, The results show on the HTML page can
+        be downloaded as CSV/TSV/JSON/XML. The download links will appear at
+        the top of the page.
+
+        item `foreign_keys'
+
+        A hashref to specify columns in the table which are foreign keys;
+        for each one, the value should be a hashref containing the keys
+        `table', `key_column' and `label_column'.
 
 DWIMmery
     This module tries to do what you'd expect it to do, so you can rock up
@@ -160,6 +224,8 @@ ACKNOWLEDGEMENTS
     WK
 
     Johnathan Barber
+
+    saberworks
 
 BUGS
     Please report any bugs or feature requests to
