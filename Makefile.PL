@@ -20,4 +20,12 @@ WriteMakefile(
     },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'Dancer-Plugin-SimpleCRUD-*' },
+
+    META_MERGE => {
+        resources => {
+            repository => 'https://github.com/bigpresh/Dancer-Plugin-SimpleCRUD',
+            bugtracker => 'https://github.com/bigpresh/Dancer-Plugin-SimpleCRUD/issues',
+            homepage   => 'https://github.com/bigpresh/Dancer-Plugin-SimpleCRUD/wiki/Quick-intro',
+        },
+    },
 );
