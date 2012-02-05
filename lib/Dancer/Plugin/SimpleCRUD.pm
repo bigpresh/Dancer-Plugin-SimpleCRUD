@@ -108,7 +108,7 @@ L<HTML::Table::FromDatabase> to display lists of records.
 =head1 USAGE
 
 This plugin provides a C<simple_crud> keyword, which takes a hash of options as
-described below, and sets up the appropriate route to present add/edit/delete
+described below, and sets up the appropriate routes to present add/edit/delete
 options.
 
 =head1 OPTIONS
