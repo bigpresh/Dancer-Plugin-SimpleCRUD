@@ -70,23 +70,23 @@ L<HTML::Table::FromDatabase> to display lists of records.
 
     # A more in-depth synopsis, using all options:
     simple_crud(
-        record_title => 'Widget',
-        prefix => '/widgets',
-        db_table => 'widgets',
+        record_title => 'Team',
+        prefix => '/teams',
+        db_table => 'team',
         labels => {
-            country => 'Country of Origin',
-            type    => 'Widget Type', 
+            venue_id => 'Home Venue',
+            name     => 'Team Name', 
         },  
         validation => {
-            weight => qr/\d+/,
+            division => qr/\d+/,
         },
         input_types => {
             supersecret => 'password',
             lotsoftext' => 'textarea',
         },
-        key_column => 'sku',
-        editable_columns => [ qw( f_name l_name adr_1 ),
-        display_columns => [ qw( f_name l_name adr_1 ),
+        key_column => 'id', # id is default anyway
+        editable_columns => [ qw( venue_id name division )    ],
+        display_columns  => [ qw( id venue_id name division ) ],
         deleteable => 1,
         editable => 1,
         sortable => 1,
@@ -96,9 +96,9 @@ L<HTML::Table::FromDatabase> to display lists of records.
         downloadable => 1,
         foreign_keys => {
             columnname => {
-                table => 'foo',
+                table => 'venues',
                 key_column => 'id',
-                label_column => 'foo',
+                label_column => 'name',
             },
         },
     );
