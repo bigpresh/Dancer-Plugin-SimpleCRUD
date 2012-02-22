@@ -1041,17 +1041,6 @@ L<http://search.cpan.org/dist/Dancer-Plugin-SimpleCRUD/>
 =back
 
 
-=head1 ACKNOWLEDGEMENTS
-
-Alberto Simões (ambs)
-
-Jonathan Barber
-
-saberworks
-
-jasonjayr
-
-
 =head1 LICENSE AND COPYRIGHT
 
 Copyright 2010-11 David Precious.
