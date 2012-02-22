@@ -177,9 +177,13 @@ OPTIONS
     `template'
         Specify a template that will be applied to all output. This template
         must have a "simple_crud" placeholder defined or you won't get any
-        output. This template must be located in your "views" directory. Any
-        global layout will be applied automatically because this option
-        causes the module to use the "template" keyword.
+        output. This template must be located in your "views" directory.
+
+        Any global layout will be applied automatically because this option
+        causes the module to use the `template' keyword. If you don't use
+        this option, the `template' keyword is not used, which implies that
+        any `before_template_render' and `after_template_render' hooks won't
+        be called.
 
     `query_auto_focus'
         Specify whether to automatically set input focus to the query input
@@ -227,6 +231,10 @@ ACKNOWLEDGEMENTS
 
     saberworks
 
+    jasonjayr
+
+    Paul Johnson (pjcj)
+
 BUGS
     Please report any bugs or feature requests to
     `bug-dancer-plugin-simplecrud at rt.cpan.org', or through the web
@@ -267,15 +275,6 @@ SUPPORT
 
     * Search CPAN
         http://search.cpan.org/dist/Dancer-Plugin-SimpleCRUD/
-
-ACKNOWLEDGEMENTS
-    Alberto Simões (ambs)
-
-    Jonathan Barber
-
-    saberworks
-
-    jasonjayr
 
 LICENSE AND COPYRIGHT
     Copyright 2010-11 David Precious.
