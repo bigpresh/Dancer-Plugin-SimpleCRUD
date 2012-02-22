@@ -237,9 +237,9 @@ a "simple_crud" placeholder defined or you won't get any output.  This template
 must be located in your "views" directory.
 
 Any global layout will be applied automatically because this option causes the
-module to use the "template" keyword.  If you don't use this option, the
-"template" keyword is not used, which implies that any
-"before_template_render" and "after_templatw_render" hooks won't be called.
+module to use the C<template> keyword.  If you don't use this option, the
+C<template> keyword is not used, which implies that any
+C<before_template_render> and C<after_template_render> hooks won't be called.
 
 =item C<query_auto_focus>
 
