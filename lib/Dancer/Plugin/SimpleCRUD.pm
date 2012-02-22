@@ -234,9 +234,12 @@ Specify an arrayref of columns that should show up in the list.  Defaults to all
 
 Specify a template that will be applied to all output.  This template must have
 a "simple_crud" placeholder defined or you won't get any output.  This template
-must be located in your "views" directory.  Any global layout will be applied
-automatically because this option causes the module to use the "template"
-keyword.
+must be located in your "views" directory.
+
+Any global layout will be applied automatically because this option causes the
+module to use the "template" keyword.  If you don't use this option, the
+"template" keyword is not used, which implies that any
+"before_template_render" and "after_templatw_render" hooks won't be called.
 
 =item C<query_auto_focus>
 
