@@ -13,15 +13,15 @@ sub param {
 
     # If called with no args, return all param names
     if (!@args) {
-	return $self->{params} if !$paramname;
+        return $self->{params} if !$paramname;
 
-	# With one arg, act as an accessor
+        # With one arg, act as an accessor
     } elsif (@args == 1) {
-	return $self->{params}{ $args[0] };
+        return $self->{params}{ $args[0] };
 
-	# With two args, act as a mutator
+        # With two args, act as a mutator
     } elsif ($args == 2) {
-	return $self->{params}{ $args[0] } = $args[1];
+        return $self->{params}{ $args[0] } = $args[1];
     }
 }
 
@@ -54,6 +54,7 @@ L<HTML::Table::FromDatabase> to display lists of records.
 Setting up forms and code to display and edit database records is a very common
 requirement in web apps; this plugin tries to make something basic trivially
 easy to set up and use.
+
 
 
 =head1 SYNOPSIS
@@ -179,6 +180,16 @@ C<textarea>, C<radio>, C<checkbox>, C<password>, C<hidden>.
 
 A hashref of validation criteria which should be passed to L<CGI::FormBuilder>.
 
+=item C<message> (optional)
+
+A hashref of messages to prompt user when validation criteria failed
+Default is "Invalid entry"
+
+=item C<jsmessage> (optional)
+
+A hashref of messages to prompt user when javascript validation fails
+Default message is "- Invalid entry for the "$fieldname" field"
+
 =item C<acceptable_values> (optional)
 
 A hashref of arrayrefs to declare that certain fields can take only a set of
@@ -234,12 +245,9 @@ Specify an arrayref of columns that should show up in the list.  Defaults to all
 
 Specify a template that will be applied to all output.  This template must have
 a "simple_crud" placeholder defined or you won't get any output.  This template
-must be located in your "views" directory.
-
-Any global layout will be applied automatically because this option causes the
-module to use the "template" keyword.  If you don't use this option, the
-"template" keyword is not used, which implies that any
-"before_template_render" and "after_templatw_render" hooks won't be called.
+must be located in your "views" directory.  Any global layout will be applied
+automatically because this option causes the module to use the "template"
+keyword.
 
 =item C<query_auto_focus>
 
@@ -268,20 +276,20 @@ sub simple_crud {
     my $dbh = database($args{db_connection_name});
 
     if (!$dbh) {
-	warn "No database handle";
-	return;
+        warn "No database handle";
+        return;
     }
 
     if (!$args{prefix}) { die "Need prefix to create routes!"; }
     if ($args{prefix} !~ m{^/}) {
-	$args{prefix} = '/' . $args{prefix};
+        $args{prefix} = '/' . $args{prefix};
     }
 
     if (!$args{db_table}) { die "Need table name!"; }
 
     # Accept deleteable as a synonym for deletable
     $args{deletable} = delete $args{deleteable}
-	if !exists $args{deletable} && exists $args{deleteable};
+        if !exists $args{deletable} && exists $args{deleteable};
 
     # Sane default values:
     $args{key_column}   ||= 'id';
@@ -294,14 +302,14 @@ sub simple_crud {
     my $table_name = $args{db_table};
     my $key_column = $args{key_column};
     for ($table_name, $key_column) {
-	die "Invalid table name/key column - SQL injection attempt?"
-	    if /--/;
-	s/[^a-zA-Z0-9_-]//g;
+        die "Invalid table name/key column - SQL injection attempt?"
+            if /--/;
+        s/[^a-zA-Z0-9_-]//g;
     }
 
     # OK, create a route handler to deal with adding/editing:
     my $handler
-	= sub { _create_add_edit_route(\%args, $table_name, $key_column); };
+        = sub { _create_add_edit_route(\%args, $table_name, $key_column); };
 
     if ($args{editable}) {
         Dancer::Logger::debug("Setting up routes for $args{prefix}/add etc");
@@ -311,19 +319,19 @@ sub simple_crud {
 
     # And a route to list records already in the table:
     my $list_handler
-	= sub { _create_list_handler(\%args, $table_name, $key_column); };
+        = sub { _create_list_handler(\%args, $table_name, $key_column); };
     get "$args{prefix}" => $list_handler;
 
     # If we should allow deletion of records, set up routes to handle that,
     # too.
     if ($args{editable} && $args{deletable}) {
 
-	# A route for GET requests, to present a "Do you want to delete this"
-	# message with a form to submit (this is only for browsers which didn't
-	# support Javascript, otherwise the list page will have POSTed the ID
-	# to us) (or they just came here directly for some reason)
-	get "$args{prefix}/delete/:id" => sub {
-	    return _apply_template(<<CONFIRMDELETE, $args{'template'});
+        # A route for GET requests, to present a "Do you want to delete this"
+        # message with a form to submit (this is only for browsers which didn't
+        # support Javascript, otherwise the list page will have POSTed the ID
+        # to us) (or they just came here directly for some reason)
+        get "$args{prefix}/delete/:id" => sub {
+            return _apply_template(<<CONFIRMDELETE, $args{'template'});
 <p>
 Do you really wish to delete this record?
 </p>
@@ -334,16 +342,16 @@ Do you really wish to delete this record?
 </form>
 CONFIRMDELETE
 
-	};
+        };
 
-	# A route for POST requests, to actually delete the record
-	post qr[$args{prefix}/delete/?(.+)?$] => sub {
-	    my ($id) = params->{record_id} || splat;
-	    database->quick_delete($table_name, { $key_column => $id })
-		or return _apply_template("<p>Failed to delete!</p>", $args{'template'});
+        # A route for POST requests, to actually delete the record
+        post qr[$args{prefix}/delete/?(.+)?$] => sub {
+            my ($id) = params->{record_id} || splat;
+            database->quick_delete($table_name, { $key_column => $id })
+                or return _apply_template("<p>Failed to delete!</p>", $args{'template'});
 
-	    redirect _construct_url($args{prefix});
-	};
+            redirect _construct_url($args{prefix});
+        };
     }
 
 }
@@ -360,8 +368,8 @@ sub _create_add_edit_route {
 
     my $default_field_values;
     if ($id) {
-	$default_field_values
-	    = database->quick_select($table_name, { $key_column => $id });
+        $default_field_values
+            = database->quick_select($table_name, { $key_column => $id });
     }
 
     # Find out about table columns:
@@ -371,14 +379,14 @@ sub _create_add_edit_route {
     # Now, find out which ones we can edit.
     if ($args->{editable_columns}) {
 
-	# We were given an explicit list of fields we can edit, so this is
-	# easy:
-	@editable_columns = @{ $args->{editable_columns} };
+        # We were given an explicit list of fields we can edit, so this is
+        # easy:
+        @editable_columns = @{ $args->{editable_columns} };
     } else {
 
-	# OK, take all the columns from the table, except the key field:
-	@editable_columns = grep { $_ ne $key_column }
-	    map { $_->{COLUMN_NAME} } @$all_table_columns;
+        # OK, take all the columns from the table, except the key field:
+        @editable_columns = grep { $_ ne $key_column }
+            map { $_->{COLUMN_NAME} } @$all_table_columns;
     }
 
     if ($args->{not_editable_columns}) {
@@ -391,10 +399,10 @@ sub _create_add_edit_route {
     # field, and it's pretty clear what it is supposed to be, just do it:
     my $validation = $args->{validation} || {};
     for my $field (grep { $_ ne $key_column } @editable_columns) {
-	next if $validation->{$field};
-	if ($field =~ /email/) {
-	    $validation->{$field} = 'EMAIL';
-	}
+        next if $validation->{$field};
+        if ($field =~ /email/) {
+            $validation->{$field} = 'EMAIL';
+        }
     }
 
     # More DWIMmery: if the user hasn't supplied a list of required fields,
@@ -402,10 +410,10 @@ sub _create_add_edit_route {
     # DB:
     my %required_fields;
     if (exists $args->{required}) {
-	$required_fields{$_}++ for @{ $args->{required} };
+        $required_fields{$_}++ for @{ $args->{required} };
     } else {
-	$_->{NULLABLE} || $required_fields{ $_->{COLUMN_NAME} }++
-	    for @$all_table_columns;
+        $_->{NULLABLE} || $required_fields{ $_->{COLUMN_NAME} }++
+            for @$all_table_columns;
     }
 
     # If the user didn't supply a list of acceptable values for a field, but
@@ -414,15 +422,15 @@ sub _create_add_edit_route {
     my %constrain_values;
     my %field_type;
     for my $field (@$all_table_columns) {
-	my $name = $field->{COLUMN_NAME};
-	$field_type{$name} = $field->{TYPE_NAME};
-	if (my $values_specified = $args->{acceptable_values}->{$name}) {
+        my $name = $field->{COLUMN_NAME};
+        $field_type{$name} = $field->{TYPE_NAME};
+        if (my $values_specified = $args->{acceptable_values}->{$name}) {
             # It may have been given to us as a coderef; if so, execute it to
             # get the results
             if (ref $values_specified eq 'CODE') {
                 $values_specified = $values_specified->();
             }
-	    $constrain_values{$name} = $values_specified;
+            $constrain_values{$name} = $values_specified;
 
         } elsif (my $foreign_key = $args->{foreign_keys}{$name}) {
             # Find out the possible values for this column from the other table:
@@ -435,62 +443,71 @@ sub _create_add_edit_route {
             }
             $constrain_values{$name} = \%possible_values;
 
-	} elsif (my $values_from_db = $field->{mysql_values}) {
-	    $constrain_values{$name} = $values_from_db;
-	}
+        } elsif (my $values_from_db = $field->{mysql_values}) {
+            $constrain_values{$name} = $values_from_db;
+        }
     }
 
     # Only give CGI::FormBuilder our fake CGI object if the form has been
     # POSTed to us already; otherwise, it will ignore default values from
     # the DB, it seems.
     my $paramsobj
-	= request->{method} eq 'POST'
-	? Dancer::Plugin::SimpleCRUD::ParamsObject->new({ params() })
-	: undef;
+        = request->{method} eq 'POST'
+        ? Dancer::Plugin::SimpleCRUD::ParamsObject->new({ params() })
+        : undef;
 
     my $form = CGI::FormBuilder->new(
-	fields   => \@editable_columns,
-	params   => $paramsobj,
-	values   => $default_field_values,
-	validate => $validation,
-	method   => 'post',
-	action   => _construct_url(
-	    $args->{prefix},
-	    (
-		params->{id}
-		? '/edit/' . params->{id}
-		: '/add'
-	    )
-	),
+        fields   => \@editable_columns,
+        params   => $paramsobj,
+        values   => $default_field_values,
+        validate => $validation,
+        method   => 'post',
+        action   => _construct_url(
+            $args->{prefix},
+            (
+                params->{id}
+                ? '/edit/' . params->{id}
+                : '/add'
+            )
+        ),
     );
     for my $field (@editable_columns) {
-	my %field_params = (
-	    name  => $field,
-	    value => $default_field_values->{$field} || '',
-	);
-	if (my $label = $args->{labels}->{$field}) {
-	    $field_params{label} = $label;
-	}
-	if (my $validation = $args->{validation}->{$field}) {
-	    $field_params{validate} = $validation;
-	}
+        my %field_params = (
+            name  => $field,
+            value => $default_field_values->{$field} || '',
+        );
+        if (my $label = $args->{labels}->{$field}) {
+            $field_params{label} = $label;
+        }
+        if (my $validation = $args->{validation}->{$field}) {
+            $field_params{validate} = $validation;
+        }
 
-	$field_params{required} = $required_fields{$field};
+        if (my $message = $args->{message}->{$field}) {
+            $field_params{message} = $message;
+        }
 
-	if ($constrain_values{$field}) {
-	    $field_params{options} = $constrain_values{$field};
-	}
+        if (my $jsmessage = $args->{jsmessage}->{$field}) {
+            $field_params{jsmessage} = $jsmessage;
+        }
 
-	# Normally, CGI::FormBuilder can guess the type of field perfectly,
-	# but give it some extra DWIMmy help:
-	if ($field =~ /pass(?:wd|word)?$/i) {
-	    $field_params{type} = 'password';
-	}
 
-	# use a <textarea> for large text fields.
-	if ($field_type{$field} eq 'TEXT') {
-	    $field_params{type} = 'textarea';
-	}
+        $field_params{required} = $required_fields{$field};
+
+        if ($constrain_values{$field}) {
+            $field_params{options} = $constrain_values{$field};
+        }
+
+        # Normally, CGI::FormBuilder can guess the type of field perfectly,
+        # but give it some extra DWIMmy help:
+        if ($field =~ /pass(?:wd|word)?$/i) {
+            $field_params{type} = 'password';
+        }
+
+        # use a <textarea> for large text fields.
+        if ($field_type{$field} eq 'TEXT') {
+            $field_params{type} = 'textarea';
+        }
 
         # ... unless the user specified a type for this field, in which case,
         # use what they said
@@ -498,48 +515,48 @@ sub _create_add_edit_route {
             $field_params{type} = $override_type;
         }
 
-	# OK, add the field to the form:
-	$form->field(%field_params);
+        # OK, add the field to the form:
+        $form->field(%field_params);
     }
 
     # Now, if all is OK, go ahead and process:
     if (request->{method} eq 'POST' && $form->submitted && $form->validate) {
 
-	# Assemble a hash of only fields from the DB (if other fields were
-	# submitted with the form which don't belong in the DB, ignore them)
-	my %params;
-	$params{$_} = params->{$_} for @editable_columns;
-	my $verb;
-	my $success;
-	if (exists params->{$key_column}) {
+        # Assemble a hash of only fields from the DB (if other fields were
+        # submitted with the form which don't belong in the DB, ignore them)
+        my %params;
+        $params{$_} = params->{$_} for @editable_columns;
+        my $verb;
+        my $success;
+        if (exists params->{$key_column}) {
 
-	    # We're editing an existing record
-	    $success = database->quick_update($table_name,
-		{ $key_column => params->{$key_column} }, \%params);
-	    $verb = 'update';
-	} else {
-	    $success = database->quick_insert($table_name, \%params);
-	    $verb = 'create new';
-	}
+            # We're editing an existing record
+            $success = database->quick_update($table_name,
+                { $key_column => params->{$key_column} }, \%params);
+            $verb = 'update';
+        } else {
+            $success = database->quick_insert($table_name, \%params);
+            $verb = 'create new';
+        }
 
-	if ($success) {
+        if ($success) {
 
-	    # Redirect to the list page
-	    # TODO: pass a param to cause it to show a message?
-	    redirect _construct_url($args->{prefix});
-	    return;
-	} else {
+            # Redirect to the list page
+            # TODO: pass a param to cause it to show a message?
+            redirect _construct_url($args->{prefix});
+            return;
+        } else {
 
-	    # TODO: better error handling - options to provide error templates
-	    # etc
-	    return _apply_template(
+            # TODO: better error handling - options to provide error templates
+            # etc
+            return _apply_template(
                 "<p>Unable to $verb $args->{record_title}</p>", 
                 $args->{'template'}
             );
-	}
+        }
 
     } else {
-	    return _apply_template($form->render, $args->{'template'});
+            return _apply_template($form->render, $args->{'template'});
     }
 }
 
@@ -568,15 +585,15 @@ sub _create_list_handler {
     }
 
     my $options = join(
-	"\n",
-	map {
-	    my $sel =
-		(defined params->{searchfield}
-		    && params->{searchfield} eq $_->{COLUMN_NAME})
-		? "selected"
-		: "";
-	    "<option $sel value='$_->{COLUMN_NAME}'>$_->{COLUMN_NAME}</option>"
-	    } @$columns
+        "\n",
+        map {
+            my $sel =
+                (defined params->{searchfield}
+                    && params->{searchfield} eq $_->{COLUMN_NAME})
+                ? "selected"
+                : "";
+            "<option $sel value='$_->{COLUMN_NAME}'>$_->{COLUMN_NAME}</option>"
+            } @$columns
     );
 
     my $order_by_param=params->{'o'} || "";
@@ -592,14 +609,14 @@ sub _create_list_handler {
 SEARCHFORM
 
     if ($args->{query_auto_focus}) {
-	$html .= "<script>document.getElementById(\"searchquery\").focus();</script>";
+        $html .= "<script>document.getElementById(\"searchquery\").focus();</script>";
     }
 
     # TODO: handle pagination
     # TODO: Fix me with more data types. Make this global?
     my %known_type = (
-	INT     => q{%s = %s},
-	VARCHAR => q{%s LIKE %s},
+        INT     => q{%s = %s},
+        VARCHAR => q{%s LIKE %s},
     );
 
     # Explicitly select the columns we are displaying.  (May have been filtered
@@ -635,26 +652,26 @@ SEARCHFORM
     my $query = "SELECT $col_list $add_actions FROM $table_name";
 
     if (params->{'q'}) {
-	my ($column_data)
-	    = grep { lc $_->{COLUMN_NAME} eq lc params->{searchfield} }
-	    @{$columns};
-	debug(    "Searching on $column_data->{COLUMN_NAME} which is a "
-		. "$column_data->{TYPE_NAME}");
+        my ($column_data)
+            = grep { lc $_->{COLUMN_NAME} eq lc params->{searchfield} }
+            @{$columns};
+        debug(    "Searching on $column_data->{COLUMN_NAME} which is a "
+                . "$column_data->{TYPE_NAME}");
 
-	if ($column_data
-	    and my $add_clause = $known_type{ uc $column_data->{TYPE_NAME} })
-	{
-	    $query .= ' WHERE ' . sprintf $add_clause,
-		$dbh->quote_identifier(params->{searchfield}),
-		$dbh->quote('%' . params->{'q'} . '%');
+        if ($column_data
+            and my $add_clause = $known_type{ uc $column_data->{TYPE_NAME} })
+        {
+            $query .= ' WHERE ' . sprintf $add_clause,
+                $dbh->quote_identifier(params->{searchfield}),
+                $dbh->quote('%' . params->{'q'} . '%');
 
-	    $html
-		.= sprintf(
-		"<p>Showing results from searching for '%s' in '%s'",
-		params->{'q'}, params->{searchfield});
-	    $html .= sprintf '&mdash;<a href="%s">Reset search</a></p>',
-		_construct_url($args->{prefix});
-	}
+            $html
+                .= sprintf(
+                "<p>Showing results from searching for '%s' in '%s'",
+                params->{'q'}, params->{searchfield});
+            $html .= sprintf '&mdash;<a href="%s">Reset search</a></p>',
+                _construct_url($args->{prefix});
+        }
     }
     
     # If we have foreign key relationship info, we need to join on those tables:
@@ -757,23 +774,23 @@ SEARCHFORM
     debug("Running query: $query");
     my $sth = $dbh->prepare($query);
     $sth->execute()
-	or die "Failed to query for records in $table_name - "
-	. database->errstr;
+        or die "Failed to query for records in $table_name - "
+        . database->errstr;
 
     if ($args->{downloadable} && params->{format} ) {
-	    ##Return results as a downloaded file, instead of generating the HTML table.
-	    return _return_downloadable_query($args, $sth, params->{format});
+            ##Return results as a downloaded file, instead of generating the HTML table.
+            return _return_downloadable_query($args, $sth, params->{format});
     }
 
     my $table = HTML::Table::FromDatabase->new(
-	-sth       => $sth,
-	-border    => 1,
-	-callbacks => [
-	    {
-		column    => 'actions',
-		transform => sub {
-		    my $id = shift;
-		    my $action_links;
+        -sth       => $sth,
+        -border    => 1,
+        -callbacks => [
+            {
+                column    => 'actions',
+                transform => sub {
+                    my $id = shift;
+                    my $action_links;
                     if ($args->{editable}) {
                         my $edit_url
                             = _construct_url($args->{prefix}, "/edit/$id");
@@ -788,11 +805,11 @@ SEARCHFORM
                                 . qq[Delete</a>];
                         }
                     }
-		    return $action_links;
-		},
-	    },
-	],
-	-rename_headers => \%columns_sort_options,
+                    return $action_links;
+                },
+            },
+        ],
+        -rename_headers => \%columns_sort_options,
         -auto_pretty_headers => 1,
         -html => 'escape',
     );
@@ -838,69 +855,69 @@ sub _apply_template {
 };
 
 sub _return_downloadable_query {
-	my ($args, $sth, $format) = @_;
+        my ($args, $sth, $format) = @_;
 
-	my $output;
+        my $output;
 
-	## Generate an informative filename
-	my $filename = $args->{db_table};
-	if (params->{'o'}) {
-		my $order = params->{'o'};
-		$order =~ s/[^\w\.\-]+/_/g;
-		$filename .= "__sorted_by_" . $order;
-	}
-	if (params->{'q'}) {
-		my $query = params->{'q'};
-		$query =~ s/[^\w\.\-]+/_/g;
-		$filename .= "__query_" . $query ;
-	}
-	if (params->{'p'}) {
-		my $page = params->{'p'};
-		$page =~ s/[^0-9]+/_/g;
-		$filename .= "__page_" . $page ;
-	}
+        ## Generate an informative filename
+        my $filename = $args->{db_table};
+        if (params->{'o'}) {
+                my $order = params->{'o'};
+                $order =~ s/[^\w\.\-]+/_/g;
+                $filename .= "__sorted_by_" . $order;
+        }
+        if (params->{'q'}) {
+                my $query = params->{'q'};
+                $query =~ s/[^\w\.\-]+/_/g;
+                $filename .= "__query_" . $query ;
+        }
+        if (params->{'p'}) {
+                my $page = params->{'p'};
+                $page =~ s/[^0-9]+/_/g;
+                $filename .= "__page_" . $page ;
+        }
 
-	## Generate data in the requested format
-	if ($format eq "tabular") {
-		header('Content-Type' => 'text/tab-separated-values');
-		header('Content-Disposition' => "attachment; filename=\"$filename.txt\"");
-		my $aref = $sth->{NAME};
-		$output = join("\t", @$aref) . "\r\n";
-		while( $aref = $sth->fetchrow_arrayref ) {
-			$output .= join("\t", @{ $aref } ) . "\r\n";
-		}
-	}
-	elsif ($format eq "csv") {
-		eval { require Text::CSV };
-		return "Error: required module Text::CSV not installed. Can't generate CSV file." if $@;
+        ## Generate data in the requested format
+        if ($format eq "tabular") {
+                header('Content-Type' => 'text/tab-separated-values');
+                header('Content-Disposition' => "attachment; filename=\"$filename.txt\"");
+                my $aref = $sth->{NAME};
+                $output = join("\t", @$aref) . "\r\n";
+                while( $aref = $sth->fetchrow_arrayref ) {
+                        $output .= join("\t", @{ $aref } ) . "\r\n";
+                }
+        }
+        elsif ($format eq "csv") {
+                eval { require Text::CSV };
+                return "Error: required module Text::CSV not installed. Can't generate CSV file." if $@;
 
-		header('Content-Type' => 'text/comma-separated-values');
-		header('Content-Disposition' => "attachment; filename=\"$filename.csv\"");
+                header('Content-Type' => 'text/comma-separated-values');
+                header('Content-Disposition' => "attachment; filename=\"$filename.csv\"");
 
-		my $csv = Text::CSV->new();
-		my $aref = $sth->{NAME};
-		$csv->combine( @{ $aref } );
-		$output = $csv->string() . "\r\n";
-		while( $aref = $sth->fetchrow_arrayref ) {
-			$csv->combine( @{ $aref } );
-			$output .= $csv->string() . "\r\n";
-		}
-	}
-	elsif ($format eq "json") {
-		header('Content-Type' => 'text/json');
-		header('Content-Disposition' => "attachment; filename=\"$filename.json\"");
-		$output = to_json ( $sth->fetchall_arrayref ( {} ) );
-	}
-	elsif ($format eq "xml") {
-		header('Content-Type' => 'text/xml');
-		header('Content-Disposition' => "attachment; filename=\"$filename.xml\"");
-		$output = to_xml ( $sth->fetchall_arrayref ( {} ) );
-	}
-	else  {
-		$output = "Error: unknown format $format";
-	}
+                my $csv = Text::CSV->new();
+                my $aref = $sth->{NAME};
+                $csv->combine( @{ $aref } );
+                $output = $csv->string() . "\r\n";
+                while( $aref = $sth->fetchrow_arrayref ) {
+                        $csv->combine( @{ $aref } );
+                        $output .= $csv->string() . "\r\n";
+                }
+        }
+        elsif ($format eq "json") {
+                header('Content-Type' => 'text/json');
+                header('Content-Disposition' => "attachment; filename=\"$filename.json\"");
+                $output = to_json ( $sth->fetchall_arrayref ( {} ) );
+        }
+        elsif ($format eq "xml") {
+                header('Content-Type' => 'text/xml');
+                header('Content-Disposition' => "attachment; filename=\"$filename.xml\"");
+                $output = to_xml ( $sth->fetchall_arrayref ( {} ) );
+        }
+        else  {
+                $output = "Error: unknown format $format";
+        }
 
-	return $output;
+        return $output;
 }
 
 # Given a table name, return an arrayref of hashrefs describing each column in
@@ -918,17 +935,17 @@ sub _return_downloadable_query {
 sub _find_columns {
     my ($dbh, $table_name) = @_;
     my $sth = $dbh->column_info(undef, undef, $table_name, undef)
-	or die "Failed to get column info for $table_name - " . $dbh->errstr;
+        or die "Failed to get column info for $table_name - " . $dbh->errstr;
     my @columns;
     while (my $col = $sth->fetchrow_hashref) {
 
-	# Push a copy of the hashref, as I think DBI re-uses them
-	push @columns, {%$col};
+        # Push a copy of the hashref, as I think DBI re-uses them
+        push @columns, {%$col};
     }
 
     # Return the columns, sorted by their position in the table:
     return [sort { $a->{ORDINAL_POSITION} <=> $b->{ORDINAL_POSITION} }
-	    @columns];
+            @columns];
 }
 
 # Given parts of an URL, assemble them together, prepending the current prefix
@@ -1039,6 +1056,17 @@ L<http://cpanratings.perl.org/d/Dancer-Plugin-SimpleCRUD>
 L<http://search.cpan.org/dist/Dancer-Plugin-SimpleCRUD/>
 
 =back
+
+
+=head1 ACKNOWLEDGEMENTS
+
+Alberto Simões (ambs)
+
+Jonathan Barber
+
+saberworks
+
+jasonjayr
 
 
 =head1 LICENSE AND COPYRIGHT
