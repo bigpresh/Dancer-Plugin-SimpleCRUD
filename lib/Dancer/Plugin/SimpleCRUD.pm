@@ -175,16 +175,58 @@ etc, and text area inputs will be used for columns with type 'TEXT').
 Valid values include anything allowed by HTML, e.g. C<text>, C<select>,
 C<textarea>, C<radio>, C<checkbox>, C<password>, C<hidden>.
 
+Example:
+
+    input_types => {
+        first_name => 'text',
+        secret     => 'password',
+        gender     => 'radio',
+    }
+
 =item C<validation> (optional)
 
-A hashref of validation criteria which should be passed to L<CGI::FormBuilder>.
+A hashref of field_name => validation criteria which should be passed to 
+L<CGI::FormBuilder>.
+
+Example:
+
+    validation => {
+        email_address => 'EMAIL',
+        age => '/^\d+$/',
+    }
+
+
+=item C<message> (optional)
+
+A hashref of field_name => messages to show if validation failed.
+
+Default is "Invalid entry".
+
+Example:
+
+    message => {
+        age   => 'Please enter your age in years',
+        email => 'That is not a valid email address',
+    },
+
+=item C<jsmessage> (optional)
+
+A hashref of field_name => message to show when Javascript validation fails.
+
+Default message is "- Invalid entry for the "$fieldname" field".  See above for
+example.
 
 =item C<acceptable_values> (optional)
 
 A hashref of arrayrefs to declare that certain fields can take only a set of
-acceptable values, for instance:
+acceptable values.
 
-  { foo => [ qw(Foo Bar Baz) ] }
+Example:
+
+    acceptable_values => {
+        gender => ['Male', 'Female'],
+        status => [qw(Alive Dead Zombie Unknown)],
+    }
 
 
 =item C<editable_columns> (optional)
