@@ -468,18 +468,26 @@ sub _create_add_edit_route {
 	    name  => $field,
 	    value => $default_field_values->{$field} || '',
 	);
-	if (my $label = $args->{labels}->{$field}) {
-	    $field_params{label} = $label;
-	}
-	if (my $validation = $args->{validation}->{$field}) {
-	    $field_params{validate} = $validation;
-	}
 
 	$field_params{required} = $required_fields{$field};
 
 	if ($constrain_values{$field}) {
 	    $field_params{options} = $constrain_values{$field};
 	}
+        
+        # Certain options in $args simply cause that value to be added to the
+        # params for this field we'll pass to $form->field:
+        my %option_map = (
+            labels     => 'label',
+            validation => 'validate',
+            message    => 'message',
+            jsmessage  => 'jsmessage',
+        );
+        while (my($arg_name, $field_opt_name) = each(%option_map)) {
+            if (my $val = $args->{$arg_name}{$field}) {
+                $field_params{$field_param_name} = $val;
+            }
+        }
 
 	# Normally, CGI::FormBuilder can guess the type of field perfectly,
 	# but give it some extra DWIMmy help:
