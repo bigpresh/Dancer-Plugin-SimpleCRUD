@@ -15,6 +15,13 @@ simple_crud(
     sortable => 'yes',
     paginate => 5,
     downloadable => 1,
+    foreign_keys => {
+        employer_id => {
+            table        => 'employer',
+            key_column   => 'id',
+            label_column => 'name',
+        },
+    },
 );
 
 get '/' => sub {
