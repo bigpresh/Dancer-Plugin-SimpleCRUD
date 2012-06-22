@@ -634,7 +634,10 @@ sub _create_list_handler {
     my $html = <<"SEARCHFORM";
  <p><form name="searchform" method="get">
      Field:  <select name="searchfield">$options</select> &nbsp;&nbsp;
-     Query: <input name="q" id="searchquery" type="text" size="30"/> &nbsp;&nbsp;
+     <select name="searchtype">
+     <option value="c">Contains</option><option value="e">Equals</option>
+     </select>&nbsp;&nbsp;
+     <input name="q" id="searchquery" type="text" size="30"/> &nbsp;&nbsp;
      <input name="o" type="hidden" value="$order_by_param"/>
      <input name="d" type="hidden" value="$order_by_direction"/>
      <input name="searchsubmit" type="submit" value="Search"/>
@@ -644,13 +647,6 @@ SEARCHFORM
     if ($args->{query_auto_focus}) {
 	$html .= "<script>document.getElementById(\"searchquery\").focus();</script>";
     }
-
-    # TODO: handle pagination
-    # TODO: Fix me with more data types. Make this global?
-    my %known_type = (
-	INT     => q{%s = %s},
-	VARCHAR => q{%s LIKE %s},
-    );
 
     # Explicitly select the columns we are displaying.  (May have been filtered
     # by display_columns above.)
@@ -684,29 +680,6 @@ SEARCHFORM
         : '';
     my $query = "SELECT $col_list $add_actions FROM $table_name";
 
-    if (params->{'q'}) {
-	my ($column_data)
-	    = grep { lc $_->{COLUMN_NAME} eq lc params->{searchfield} }
-	    @{$columns};
-	debug(    "Searching on $column_data->{COLUMN_NAME} which is a "
-		. "$column_data->{TYPE_NAME}");
-
-	if ($column_data
-	    and my $add_clause = $known_type{ uc $column_data->{TYPE_NAME} })
-	{
-	    $query .= ' WHERE ' . sprintf $add_clause,
-		$dbh->quote_identifier(params->{searchfield}),
-		$dbh->quote('%' . params->{'q'} . '%');
-
-	    $html
-		.= sprintf(
-		"<p>Showing results from searching for '%s' in '%s'",
-		params->{'q'}, params->{searchfield});
-	    $html .= sprintf '&mdash;<a href="%s">Reset search</a></p>',
-		_construct_url($args->{prefix});
-	}
-    }
-    
     # If we have foreign key relationship info, we need to join on those tables:
     if ($args->{foreign_keys}) {
         while (my($col, $foreign_key) = each %{ $args->{foreign_keys} }) {
@@ -719,6 +692,34 @@ SEARCHFORM
         }
     }
 
+    # If we have a query, we need to assemble a WHERE clause...
+    if (params->{'q'}) {
+	my ($column_data)
+	    = grep { lc $_->{COLUMN_NAME} eq lc params->{searchfield} }
+	    @{$columns};
+	debug(    "Searching on $column_data->{COLUMN_NAME} which is a "
+		. "$column_data->{TYPE_NAME}");
+
+	if ($column_data) {
+            my $search_value = params->{'q'};
+            if (params->{searchtype} eq 'c') {
+                $search_value = '%' . $search_value . '%';
+            }
+     
+	    $query .= " WHERE $table_name." .
+		$dbh->quote_identifier(params->{searchfield})
+                . ( params->{searchtype} eq 'c' ? 'LIKE' : '=' )
+                . $dbh->quote($search_value);
+
+	    $html
+		.= sprintf(
+		"<p>Showing results from searching for '%s' in '%s'",
+		params->{'q'}, params->{searchfield});
+	    $html .= sprintf '&mdash;<a href="%s">Reset search</a></p>',
+		_construct_url($args->{prefix});
+	}
+    }
+    
     if ($args->{downloadable}) {
             my $q = params->{'q'} || "";
             my $sf = params->{searchfield} || "";
