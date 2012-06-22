@@ -766,7 +766,8 @@ SEARCHFORM
             $col_name => "<a href=\"$url\">$col_name&nbsp;$direction_char</a>";
         } @$columns;
 
-        $query .= " ORDER BY " . database->quote_identifier($order_by_column)
+        $query .= " ORDER BY $table_name." 
+                .database->quote_identifier($order_by_column)
                 . " " . $order_by_direction . " ";
     }
 
