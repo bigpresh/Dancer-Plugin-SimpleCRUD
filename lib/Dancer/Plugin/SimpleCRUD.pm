@@ -36,7 +36,7 @@ use Dancer::Plugin::Database;
 use HTML::Table::FromDatabase;
 use CGI::FormBuilder;
 
-our $VERSION = '0.50';
+our $VERSION = '0.60';
 
 =head1 NAME
 
@@ -1119,7 +1119,7 @@ L<http://search.cpan.org/dist/Dancer-Plugin-SimpleCRUD/>
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2010-11 David Precious.
+Copyright 2010-12 David Precious.
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of either: the GNU General Public License as published
