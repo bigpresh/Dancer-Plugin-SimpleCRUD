@@ -525,7 +525,7 @@ sub _create_add_edit_route {
             message    => 'message',
             jsmessage  => 'jsmessage',
         );
-        while (my($arg_name, $field_opt_name) = each(%option_map)) {
+        while (my($arg_name, $field_param_name) = each(%option_map)) {
             if (my $val = $args->{$arg_name}{$field}) {
                 $field_params{$field_param_name} = $val;
             }
