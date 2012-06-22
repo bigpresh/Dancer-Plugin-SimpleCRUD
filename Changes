@@ -1,5 +1,14 @@
 Revision history for Dancer-Plugin-SimpleCRUD
 
+0.60    2012-06-22
+        [ ENHANCEMENTS ]
+        - Update example app to demonstrate the new basic foreign key support
+          added in the last evrsion
+
+        [ BUG FIXES ]
+        - Bug fixes to prevent fiery explosions in certain circumstances when
+          the JOIN for foreign key values results in ambiguous column names
+
 0.50    2012-02-05
         [ ENHANCEMENTS ]
         - New basic foreign key support, allowing you to specify that certain
