@@ -17,7 +17,11 @@ As it's a Dancer app you can run it on a specific port with e.g.
 
   ./simplecrud-example.pl --port 5000
 
+Then, point your browser at L<http://localhost:3000/> (or the port you chose -
+changing the hostname if it's on a different box to the one your browser is on),
+and see it in action, swoon, and send me lovely compliments.  Well, at least see
+it in action, anyway, assuming it works for you.
 
 =head1 AUTHOR
 
-David Precious <davidp@preshewb.co.uk>
+David Precious <davidp@preshweb.co.uk>
