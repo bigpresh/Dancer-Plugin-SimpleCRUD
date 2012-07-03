@@ -38,6 +38,8 @@ use CGI::FormBuilder;
 
 our $VERSION = '0.60';
 
+=encoding utf8
+
 =head1 NAME
 
 Dancer::Plugin::SimpleCRUD - very simple CRUD (create/read/update/delete)
