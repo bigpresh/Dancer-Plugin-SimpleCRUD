@@ -306,6 +306,8 @@ C<label_column>.
 =cut
 
 sub simple_crud {
+
+    my $dsl = shift if dancer_version() >= 2;
     my (%args) = @_;
 
     # Get a database connection to verify that the table name is OK, etc.
@@ -394,7 +396,7 @@ CONFIRMDELETE
 }
 
 register simple_crud => \&simple_crud;
-register_plugin;
+register_plugin for_versions => [ 1, 2 ];;
 
 sub _create_add_edit_route {
     my ($args, $table_name, $key_column) = @_;
