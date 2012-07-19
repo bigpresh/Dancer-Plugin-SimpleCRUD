@@ -1,5 +1,9 @@
 Revision history for Dancer-Plugin-SimpleCRUD
 
+0.61    2012-07-19
+        [ BUG FIXES ]
+        - Fix issue with UTF-8 in the POD
+
 0.60    2012-06-22
         [ ENHANCEMENTS ]
         - Update example app to demonstrate the new basic foreign key support
