@@ -675,11 +675,18 @@ SEARCHFORM
         }
     }
 
+    my @custom_cols;
+    foreach my $column_alias ( keys %{ $args->{custom_columns} || {} } ) {
+        my $raw_column = $args->{custom_columns}{$column_alias}{raw_column};
+        push @custom_cols, "$table_name.$raw_column AS $column_alias";
+    }
+
     my $col_list = join(
         ',',
         map({ $table_name . "." . database->quote_identifier($_) }
             @select_cols),
         @foreign_cols,    # already assembled from quoted identifiers
+        @custom_cols,
     );
     my $add_actions
         = $args->{editable}
@@ -838,6 +845,13 @@ SEARCHFORM
         return _return_downloadable_query($args, $sth, params->{format});
     }
 
+    my @custom_callbacks = ();
+    foreach my $column_alias ( keys %{ $args->{custom_columns} || {} } ) {
+        push @custom_callbacks, { 
+            column=>$column_alias, 
+            transform=>$args->{custom_columns}->{$column_alias}->{transform} 
+        };
+    }
     my $table = HTML::Table::FromDatabase->new(
         -sth       => $sth,
         -border    => 1,
@@ -864,6 +878,7 @@ SEARCHFORM
                     return $action_links;
                 },
             },
+            @custom_callbacks,
         ],
         -rename_headers      => \%columns_sort_options,
         -auto_pretty_headers => 1,
