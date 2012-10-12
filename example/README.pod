@@ -1,10 +1,10 @@
 =head1 NAME
 
-Dancer::SimpleCRUD example application
+Dancer::Plugin::SimpleCRUD example application
 
 =head1 DESCRIPTION
 
-A simple L<Dancer> application to demonstrate L<Dancer::SimpleCRUD> in action.
+A simple L<Dancer> application to demonstrate L<Dancer::Plugin::SimpleCRUD> in action.
 
 
 =head1 USAGE
