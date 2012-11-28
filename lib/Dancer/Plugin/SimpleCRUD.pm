@@ -1053,6 +1053,15 @@ this field to the choices defined by the ENUM list.  (Unless you've provided a
 set of acceptable values for this field using the C<acceptable_values> option to
 C<simple_crud>, in which case what you say goes.)
 
+=head1 Hooks
+
+=head2 add_edit_row
+
+Fires right before a row is added/edited; receives a hashref of column => value
+which can be modified if you want to massage the data first.
+
+For instance, if you were dealing with a users table, you might want to take the
+password entered and hash it, perhaps.
 
 
 =head1 AUTHOR
