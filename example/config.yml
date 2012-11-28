@@ -1,3 +1,4 @@
+charset: UTF-8
 logger: console
 log: core
 layout: main
