@@ -1,5 +1,11 @@
 Revision history for Dancer-Plugin-SimpleCRUD
 
+0.70    2012-11-28
+        [ ENHANCEMENTS ]
+        - Add new add_edit_row hook which fires just before a row is
+          added/edited, so the data can be modified if desired.  Thanks to Rene
+          on IRC for the idea.  (More hooks planned in future versions.)
+
 0.61    2012-07-19
         [ BUG FIXES ]
         - Fix issue with UTF-8 in the POD
