@@ -258,6 +258,14 @@ DWIMmery
     the `acceptable_values' option to `simple_crud', in which case what you
     say goes.)
 
+Hooks
+  add_edit_row
+    Fires right before a row is added/edited; receives a hashref of column
+    => value which can be modified if you want to massage the data first.
+
+    For instance, if you were dealing with a users table, you might want to
+    take the password entered and hash it, perhaps.
+
 AUTHOR
     David Precious, `<davidp@preshweb.co.uk>'
 
