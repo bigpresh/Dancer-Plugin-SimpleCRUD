@@ -28,5 +28,11 @@ get '/' => sub {
     redirect '/people';
 };
 
+# manipulate the name entered via a hook
+hook add_edit_row => sub {
+    my $row = shift;
+    $_ = ucfirst lc $_ for (@$row{qw(first_name last_name)});
+};
+
 
 dance;
