@@ -394,6 +394,9 @@ CONFIRMDELETE
 }
 
 register simple_crud => \&simple_crud;
+register_hook(qw(
+    add_edit_row
+));
 register_plugin;
 
 sub _create_add_edit_route {
@@ -564,6 +567,11 @@ sub _create_add_edit_route {
         # submitted with the form which don't belong in the DB, ignore them)
         my %params;
         $params{$_} = params->{$_} for @editable_columns;
+
+        # Fire a hook so the user can manipulate the data in a whole range of
+        # cunning ways, if they wish
+        execute_hook('add_edit_row', \%params);
+
         my $verb;
         my $success;
         if (exists params->{$key_column}) {
