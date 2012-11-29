@@ -8,5 +8,4 @@ perl:
 
 script:
     - perl Makefile.PL
-    - make installdeps
     - make test
