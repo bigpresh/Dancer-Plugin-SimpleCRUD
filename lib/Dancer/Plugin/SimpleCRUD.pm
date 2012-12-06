@@ -383,7 +383,8 @@ CONFIRMDELETE
         # A route for POST requests, to actually delete the record
         post qr[$args{prefix}/delete/?(.+)?$] => sub {
             my ($id) = params->{record_id} || splat;
-            database->quick_delete($table_name, { $key_column => $id })
+            my $dbh = database($args{db_connection_name});
+            $dbh->quick_delete($table_name, { $key_column => $id })
                 or return _apply_template("<p>Failed to delete!</p>",
                 $args{'template'});
 
@@ -478,7 +479,7 @@ sub _create_add_edit_route {
             # Find out the possible values for this column from the other table:
             my %possible_values;
             debug "Looking for rows for foreign relation: " => $foreign_key;
-            for my $row (database->quick_select($foreign_key->{table}, {})) {
+            for my $row ($dbh->quick_select($foreign_key->{table}, {})) {
                 debug "Row from foreign relation: " => $row;
                 $possible_values{ $row->{ $foreign_key->{key_column} } }
                     = $row->{ $foreign_key->{label_column} };
@@ -674,18 +675,18 @@ SEARCHFORM
     if ($args->{foreign_keys}) {
         while (my ($col, $foreign_key) = each(%{ $args->{foreign_keys} })) {
             @select_cols = grep { $_ ne $col } @select_cols;
-            my $ftable = database->quote_identifier($foreign_key->{table});
+            my $ftable = $dbh->quote_identifier($foreign_key->{table});
             my $fcol
-                = database->quote_identifier($foreign_key->{label_column});
+                = $dbh->quote_identifier($foreign_key->{label_column});
             my $lcol
-                = database->quote_identifier($args->{labels}{$col} || $col);
+                = $dbh->quote_identifier($args->{labels}{$col} || $col);
             push @foreign_cols, "$ftable.$fcol AS $lcol";
         }
     }
 
     my $col_list = join(
         ',',
-        map({ $table_name . "." . database->quote_identifier($_) }
+        map({ $table_name . "." . $dbh->quote_identifier($_) }
             @select_cols),
         @foreign_cols,    # already assembled from quoted identifiers
     );
@@ -698,9 +699,9 @@ SEARCHFORM
     # If we have foreign key relationship info, we need to join on those tables:
     if ($args->{foreign_keys}) {
         while (my ($col, $foreign_key) = each %{ $args->{foreign_keys} }) {
-            my $ftable = database->quote_identifier($foreign_key->{table});
-            my $lkey   = database->quote_identifier($col);
-            my $rkey = database->quote_identifier($foreign_key->{key_column});
+            my $ftable = $dbh->quote_identifier($foreign_key->{table});
+            my $lkey   = $dbh->quote_identifier($col);
+            my $rkey   = $dbh->quote_identifier($foreign_key->{key_column});
 
             # Identifiers quoted above, and $table_name quoted further up, so
             # all safe to interpolate
@@ -713,8 +714,10 @@ SEARCHFORM
         my ($column_data)
             = grep { lc $_->{COLUMN_NAME} eq lc params->{searchfield} }
             @{$columns};
-        debug(    "Searching on $column_data->{COLUMN_NAME} which is a "
-                . "$column_data->{TYPE_NAME}");
+        debug(
+            "Searching on $column_data->{COLUMN_NAME} which is a "
+            . "$column_data->{TYPE_NAME}"
+        );
 
         if ($column_data) {
             my $search_value = params->{'q'};
@@ -790,7 +793,7 @@ SEARCHFORM
 
         $query
             .= " ORDER BY $table_name."
-            . database->quote_identifier($order_by_column) . " "
+            . $dbh->quote_identifier($order_by_column) . " "
             . $order_by_direction . " ";
     }
 
@@ -838,7 +841,7 @@ SEARCHFORM
     my $sth = $dbh->prepare($query);
     $sth->execute()
         or die "Failed to query for records in $table_name - "
-        . database->errstr;
+        . $dbh->errstr;
 
     if ($args->{downloadable} && params->{format}) {
 
