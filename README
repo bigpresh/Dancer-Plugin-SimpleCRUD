@@ -88,6 +88,19 @@ OPTIONS
         Widget, and `/widgets/42' to edit the widget with the ID (see
         keu_column) 42.
 
+        Don't confuse this with Dancer's `prefix' setting, which would be
+        prepended before the prefix you pass to this plugin. For example, if
+        you used:
+
+            prefix '/foo';
+            simple_crud(
+                prefix => 'bar',
+                ...
+            );
+
+        ... then you'd end up with e.g. `/foo/bar' as the record listing
+        page.
+
     `db_table' (required)
         The name of the database table.
 
