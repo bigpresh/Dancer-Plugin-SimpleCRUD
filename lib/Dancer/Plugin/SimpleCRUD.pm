@@ -409,7 +409,7 @@ sub _create_add_edit_route {
     my $default_field_values;
     if ($id) {
         $default_field_values
-            = database->quick_select($table_name, { $key_column => $id });
+            = $dbh->quick_select($table_name, { $key_column => $id });
     }
 
     # Find out about table columns:
@@ -577,11 +577,11 @@ sub _create_add_edit_route {
         if (exists params->{$key_column}) {
 
             # We're editing an existing record
-            $success = database->quick_update($table_name,
+            $success = $dbh->quick_update($table_name,
                 { $key_column => params->{$key_column} }, \%params);
             $verb = 'update';
         } else {
-            $success = database->quick_insert($table_name, \%params);
+            $success = $dbh->quick_insert($table_name, \%params);
             $verb = 'create new';
         }
 
