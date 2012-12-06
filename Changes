@@ -1,5 +1,16 @@
 Revision history for Dancer-Plugin-SimpleCRUD
 
+0.71   2012-12-06 - the Rahul Kotamaraju release
+        [ BUG FIXES ]
+        - Handle Dancer prefix setting changing after simple_crud() is called
+          (reported by Rahul Kotamaraju in RT #73620)
+        - Work properly with named database handle - previously, if you supplied
+          a named DB connection to use, it would be used in some places but not
+          everywhere - there were some naked database->... calls without the
+          connection name passed.  This was also reported by Rahul in RT #73620
+          - thanks to Rahul for the reports, and sorry the RT ticket sat unseen
+            for so long!
+
 0.70    2012-11-28
         [ ENHANCEMENTS ]
         - Add new add_edit_row hook which fires just before a row is
