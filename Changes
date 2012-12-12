@@ -1,5 +1,11 @@
 Revision history for Dancer-Plugin-SimpleCRUD
 
+0.80    2012-12-12 - the Michael J South release
+        [ ENHANCEMENTS ]
+        - New custom_columns feature, allowing you to transform columns on the
+          fly using HTML::Table::Database transformations - thanks to Michael
+          (msouth) for contributing this, and sorry it took so long to merge!
+
 0.71   2012-12-06 - the Rahul Kotamaraju release
         [ BUG FIXES ]
         - Handle Dancer prefix setting changing after simple_crud() is called
