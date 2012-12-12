@@ -7,6 +7,7 @@ use Dancer::Plugin::SimpleCRUD;
 simple_crud(
     record_title => 'Person',
     db_table => 'people',
+    db_connection_name => 'foo',
     prefix => '/people',
     acceptable_values => {
         gender => [ qw( Male Female ) ],
