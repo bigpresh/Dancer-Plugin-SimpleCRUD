@@ -4,5 +4,7 @@ log: core
 layout: main
 plugins:
     Database:
-        driver: SQLite
-        database: test.sqlite
+        connections:
+            foo:
+                driver: SQLite
+                database: test.sqlite
