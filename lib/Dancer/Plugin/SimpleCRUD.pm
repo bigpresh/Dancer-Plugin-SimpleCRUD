@@ -731,9 +731,13 @@ SEARCHFORM
 
     my @custom_cols;
     foreach my $column_alias ( keys %{ $args->{custom_columns} || {} } ) {
-        my $raw_column = $args->{custom_columns}{$column_alias}{raw_column} or die "you must specify a raw_column that $column_alias will be built using";
+        my $raw_column = $args->{custom_columns}{$column_alias}{raw_column}
+            or die "you must specify a raw_column that "
+                 . "$column_alias will be built using";
         if ($raw_column =~ /^[\w_]+$/) {
-            push @custom_cols, "$table_name." . $dbh->quote_identifier($raw_column) . " AS ". database->quote_identifier($column_alias);
+            push @custom_cols, "$table_name." 
+                . $dbh->quote_identifier($raw_column) 
+                . " AS ". $dbh->quote_identifier($column_alias);
         } else {
             push @custom_cols, "$raw_column AS $column_alias";
         }
