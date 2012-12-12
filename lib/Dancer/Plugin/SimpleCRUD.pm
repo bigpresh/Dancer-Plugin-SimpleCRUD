@@ -113,6 +113,18 @@ easy to set up and use.
                 label_column => 'name',
             },
         },
+        custom_columns => {
+            division_news => {
+                raw_column => "division",
+                transform  => sub {
+                    my $division_name = shift;
+                    my $label = "News about $division_name";
+                    $division_name =~ s/([^-_.~A-Za-z0-9])/sprintf("%%%02X", ord($1))/seg;
+                    my $search = qq{http://news.google.com/news?q="$division_name"};
+                    return "<a href='$search'>$label</a>";
+                },
+            },
+        },
     );
 
 
@@ -308,11 +320,24 @@ Specify whether to support downloading the results.  Defaults to false. If set
 to a true value, The results show on the HTML page can be downloaded as
 CSV/TSV/JSON/XML.  The download links will appear at the top of the page.
 
-item C<foreign_keys>
+=item C<foreign_keys>
 
 A hashref to specify columns in the table which are foreign keys; for each one,
 the value should be a hashref containing the keys C<table>, C<key_column> and
 C<label_column>.
+
+=item C<custom_columns>
+
+A hashref to specify custom columns to appear in the list view of an entity.
+The keys of the hash are custom column names, the values hashrefs specifying
+a C<raw_column> indicating a column from the table that should be selected to
+build the custom column from,  and C<transform>, a subref to be used as a
+HTML::Table::FromDatabase callback on the resulting column.  If no
+C<transform> is provided, sub { return shift; } will be used.
+
+If C<raw_column> consists of anything other than letters, numbers, and underscores,
+it is passed in raw, so you could put something like "NOW()"  or "datetime('now')"
+in there and it should work as expected.
 
 =cut
 
@@ -704,11 +729,22 @@ SEARCHFORM
         }
     }
 
+    my @custom_cols;
+    foreach my $column_alias ( keys %{ $args->{custom_columns} || {} } ) {
+        my $raw_column = $args->{custom_columns}{$column_alias}{raw_column} or die "you must specify a raw_column that $column_alias will be built using";
+        if ($raw_column =~ /^[\w_]+$/) {
+            push @custom_cols, "$table_name." . database->quote_identifier($raw_column) . " AS ". database->quote_identifier($column_alias);
+        } else {
+            push @custom_cols, "$raw_column AS $column_alias";
+        }
+    }
+
     my $col_list = join(
         ',',
         map({ $table_name . "." . $dbh->quote_identifier($_) }
             @select_cols),
         @foreign_cols,    # already assembled from quoted identifiers
+        @custom_cols,
     );
     my $add_actions
         = $args->{editable}
@@ -869,6 +905,13 @@ SEARCHFORM
         return _return_downloadable_query($args, $sth, params->{format});
     }
 
+    my @custom_callbacks = ();
+    foreach my $column_alias ( keys %{ $args->{custom_columns} || {} } ) {
+        push @custom_callbacks, { 
+            column=>$column_alias, 
+            transform=> ($args->{custom_columns}->{$column_alias}->{transform} or sub { return shift;}),
+        };
+    }
     my $table = HTML::Table::FromDatabase->new(
         -sth       => $sth,
         -border    => 1,
@@ -900,6 +943,7 @@ SEARCHFORM
                     return $action_links;
                 },
             },
+            @custom_callbacks,
         ],
         -rename_headers      => \%columns_sort_options,
         -auto_pretty_headers => 1,
