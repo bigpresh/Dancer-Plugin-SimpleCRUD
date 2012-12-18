@@ -7,8 +7,10 @@ CREATE TABLE people (
     email       varchar,
     gender      varchar,
     age         int,
-    is_admin    boolean
-, notes TEXT, employer_id int);
+    notes       text,
+    employer_id int,
+    is_admin    boolean default 0
+);
 INSERT INTO "people"
 VALUES(1,'David','Precious','davidp@preshweb.co.uk','Male',29,'The author of Dancer::Plugin::SimpleCRUD.  He would greatly appreciate any feedback!',1,1);
 INSERT INTO "people" VALUES(2,'John','Smith','john@example.com','Male',39,'A fictional person.',3, 0);
