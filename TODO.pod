@@ -1,7 +1,5 @@
 =head1 TODO for Dancer::Plugin::SimpleCRUD
 
-=head2 Before declaring stable
-
 =over 
 
 =item Tidy up and refactor where possible.
@@ -10,9 +8,6 @@ It's a bit of a mess at the moment.
 
 =back
 
-=head2 Later
-
-=over
 
 =item Option to make the list page handler return template-ready params
 
