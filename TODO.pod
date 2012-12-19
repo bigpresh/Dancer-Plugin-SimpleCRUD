@@ -6,8 +6,53 @@
 
 It's a bit of a mess at the moment.
 
-=back
+=item Authentication with L<Dancer::Plugin::Auth::Extensible>
 
+Make it easy to require authentication via DPAE.  There should probably be the
+option to set two sets of requirements - viewing and editing - for instance,
+"must be logged in to view, but must have Admin role to edit" sounds like a
+fairly common requirement.
+
+=over
+
+=item Configuration
+
+Probably something like:
+
+    auth => {
+        view => {
+            require_login => 1,
+        },
+        edit => {
+            require_role => 'Admin',
+        },
+    },
+
+Or, to just require login for anything (same requirements for both viewing and
+editing), shorthand:
+
+    auth => {
+        require_login => 1,
+    },
+
+So, key is the DPAE keyword to call to wrap the routes defined.
+
+Where it gets trickier is deciding if the user should see add/edit/delete links,
+rather than just enforcing whether they can do it.
+
+If C<< auth => edit >> is set, we'd need to do the appropriate thing (check
+they're logged in if C<require_login> is used, check they are logged in as a
+user with the right role if C<require_role> etc is used), and then override
+editable/deleteable as appropriate.
+
+=item Implementation
+
+Implementation should be reasonably easy - take the route handler being set up,
+and pass it to C<require_login> etc.  DPAE will need to be imported if (and only
+if) the auth options have been set, in order to have its keywords available to
+us.
+
+=back
 
 =item Option to make the list page handler return template-ready params
 
