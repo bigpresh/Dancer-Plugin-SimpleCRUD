@@ -412,7 +412,9 @@ sub simple_crud {
         # message with a form to submit (this is only for browsers which didn't
         # support Javascript, otherwise the list page will have POSTed the ID
         # to us) (or they just came here directly for some reason)
-        get "$args{prefix}/delete/:id" => sub {
+        get _construct_url(
+            $args{dancer_prefix}, $args{prefix}, "/delete/:id"
+            ) => sub {
             return _apply_template(<<CONFIRMDELETE, $args{'template'});
 <p>
 Do you really wish to delete this record?
