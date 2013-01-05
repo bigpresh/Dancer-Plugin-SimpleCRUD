@@ -2,9 +2,20 @@ charset: UTF-8
 logger: console
 log: core
 layout: main
+session: simple
 plugins:
     Database:
         connections:
             foo:
                 driver: SQLite
                 database: test.sqlite
+    Auth::Extensible:
+        realms:
+            foo:
+                provider: Config
+                users:
+                    - user: testuser
+                      pass: testpass
+                      roles:
+                        - Admin
+

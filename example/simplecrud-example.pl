@@ -2,6 +2,7 @@
 
 use lib '../lib';
 use Dancer;
+use Dancer::Plugin::Auth::Extensible;
 use Dancer::Plugin::SimpleCRUD;
 
 simple_crud(
@@ -32,6 +33,9 @@ simple_crud(
             raw_column => "(first_name || ' ' || last_name)",
             transform => sub { return shift }, # (unnecessary, btw, as this is the default)
         },
+    },
+    auth => {
+        require_login => 1
     },
 );
 
