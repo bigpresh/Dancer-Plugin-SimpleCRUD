@@ -402,7 +402,8 @@ sub simple_crud {
     # And a route to list records already in the table:
     my $list_handler
         = sub { _create_list_handler(\%args, $table_name, $key_column); };
-    get "$args{prefix}" => $list_handler;
+    get _construct_url($args{dancer_prefix}, $args{prefix}, '/')
+        => $list_handler;
 
     # If we should allow deletion of records, set up routes to handle that,
     # too.
