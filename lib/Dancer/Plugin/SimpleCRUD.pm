@@ -430,14 +430,17 @@ CONFIRMDELETE
         };
 
         # A route for POST requests, to actually delete the record
-        post qr[$args{prefix}/delete/?(.+)?$] => sub {
+        my $del_url_stub = _construct_url(
+            $args{dancer_prefix}, $args{prefix}, '/delete'
+        );
+        post qr[$del_url_stub/?(.+)?$] => sub {
             my ($id) = params->{record_id} || splat;
             my $dbh = database($args{db_connection_name});
             $dbh->quick_delete($table_name, { $key_column => $id })
                 or return _apply_template("<p>Failed to delete!</p>",
                 $args{'template'});
 
-            redirect _construct_url($args{prefix});
+            redirect _construct_url($args{dancer_prefix}, $args{prefix});
         };
     }
 
