@@ -1,5 +1,11 @@
 Revision history for Dancer-Plugin-SimpleCRUD
 
+{$NEXT}
+        [ BUG FIXES ]
+        - A few places missed using the Dancer prefix that may have been in
+          force at time of route creation, thanks to chenlin rao for reporting
+          (chenryn)
+
 0.80    2012-12-12 - the Michael J South release
         [ ENHANCEMENTS ]
         - New custom_columns feature, allowing you to transform columns on the
