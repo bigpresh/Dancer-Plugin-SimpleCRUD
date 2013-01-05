@@ -392,9 +392,11 @@ sub simple_crud {
         = sub { _create_add_edit_route(\%args, $table_name, $key_column); };
 
     if ($args{editable}) {
-        Dancer::Logger::debug("Setting up routes for $args{prefix}/add etc");
-        any ['get', 'post'] => "$args{prefix}/add"      => $handler;
-        any ['get', 'post'] => "$args{prefix}/edit/:id" => $handler;
+        for ('/add', '/edit:id') {
+            my $url = _construct_url($args{dancer_prefix}, $args{prefix}, $_);
+            Dancer::Logger::debug("Setting up route for $url");
+            any ['get', 'post'] => $url => $handler;
+        }
     }
 
     # And a route to list records already in the table:
