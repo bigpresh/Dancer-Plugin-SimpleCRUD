@@ -125,6 +125,14 @@ easy to set up and use.
                 },
             },
         },
+        auth => {
+            view => {
+                require_login => 1,
+            },
+            edit => {
+                require_role => 1,
+            },
+        },
     );
 
 
@@ -392,6 +400,7 @@ sub simple_crud {
         = sub { _create_add_edit_route(\%args, $table_name, $key_column); };
 
     if ($args{editable}) {
+        _ensure_auth('edit', $handler, \%args);
         for ('/add', '/edit:id') {
             my $url = _construct_url($args{dancer_prefix}, $args{prefix}, $_);
             Dancer::Logger::debug("Setting up route for $url");
@@ -433,7 +442,7 @@ CONFIRMDELETE
         my $del_url_stub = _construct_url(
             $args{dancer_prefix}, $args{prefix}, '/delete'
         );
-        post qr[$del_url_stub/?(.+)?$] => sub {
+        my $delete_handler = sub {
             my ($id) = params->{record_id} || splat;
             my $dbh = database($args{db_connection_name});
             $dbh->quick_delete($table_name, { $key_column => $id })
@@ -442,6 +451,8 @@ CONFIRMDELETE
 
             redirect _construct_url($args{dancer_prefix}, $args{prefix});
         };
+        _ensure_auth('edit', $delete_handler, \%args);
+        post qr[$del_url_stub/?(.+)?$] => $delete_handler;
     }
 
 }
@@ -933,7 +944,7 @@ SEARCHFORM
                 transform => sub {
                     my $id = shift;
                     my $action_links;
-                    if ($args->{editable}) {
+                    if ($args->{editable} && _has_permission('edit', $args)) {
                         my $edit_url
                             = _construct_url(
                                 $args->{dancer_prefix}, $args->{prefix}, 
@@ -941,7 +952,7 @@ SEARCHFORM
                             );
                         $action_links
                             .= qq[<a href="$edit_url" class="edit_link">Edit</a>];
-                        if ($args->{deletable}) {
+                        if ($args->{deletable} && _has_permission('edit', $args)) {
                             my $del_url = _construct_url(
                                 $args->{dancer_prefix}, $args->{prefix},
                                 "/delete/$id"
@@ -964,7 +975,7 @@ SEARCHFORM
 
     $html .= $table->getTable || '';
 
-    if ($args->{editable}) {
+    if ($args->{editable} && _has_permission('edit', $args)) {
         $html .= sprintf '<a href="%s">Add a new %s</a></p>',
             _construct_url($args->{dancer_prefix}, $args->{prefix}, '/add'), 
             $args->{record_title};
@@ -1118,13 +1129,72 @@ sub _construct_url {
     return uri_for($url);
 }
 
+
+
+# Given a mode ("view" or "edit", a handler coderef, and an args coderef, works
+# out if we need to wrap the handler coderef via
+# Dancer::Plugin::Auth::Extensible to ensure authorisation, and if so, does so.
+sub _ensure_auth {
+    my ($mode, $handler, $args) = @_;
+    
+    my $auth_settings = $args->{auth}{$mode} || $args->{auth} || {};
+
+    if (keys %$auth_settings) {
+        Dancer::ModuleLoader->load('Dancer::Plugin::Auth::Extensible')
+            or die "Can't use auth settings without"
+                . " Dancer::Plugin::Auth::Extensible!";
+    }
+
+    if ($auth_settings->{require_login}) {
+        return $handler =
+           Dancer::Plugin::Auth::Extensible::require_login($handler);
+    } else {
+        for my $keyword (qw(require_role require_any_role require_all_roles)) {
+            if (my $val = $auth_settings->{$keyword}) {
+                return Dancer::Plugin::Auth::Extensible->$keyword($val);
+            }
+        }
+    }
+}
+
+# Given an action (view/edit) and an args coderef, returns whether the user has
+# permission to perform that action (e.g. if require_login is set, checks the
+# user is logged in; if require_role is set, checks they have that role, etc)
+sub _has_permission {
+    my ($mode, $args) = @_;
+    
+    my $auth_settings = $args->{auth}{$mode} || $args->{auth} || {};
+    if (keys %$auth_settings) {
+        Dancer::ModuleLoader->load('Dancer::Plugin::Auth::Extensible')
+            or die "Can't use auth settings without"
+                . " Dancer::Plugin::Auth::Extensible!";
+    } else {
+        # If no auth settings provided, they can do what they like
+        return 1;
+    }
+
+    if ($auth_settings->{require_login}) {
+        return Dancer::Plugin::Auth::Extensible::logged_in_user() ? 1 : 0;
+    }
+
+    if (my $need_role = $auth_settings->{require_role}) {
+        return Dancer::Plugin::Auth::Extensible::user_has_role($need_role);
+    }
+
+    # TODO: handle require_any_role / require_all_roles here
+    warn "TODO: handle require_any_role / requires_all_roles";
+    return 0;
+}
+
+
+
 =back
 
 =head1 DWIMmery
 
 This module tries to do what you'd expect it to do, so you can rock up your web
 app with as little code and effort as possible, whilst still giving you control
-to override its decisions wherever you need to.
+to override its decisions wherever you need to.1
 
 =head2 Field types
 
