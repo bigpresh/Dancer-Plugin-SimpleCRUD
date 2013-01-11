@@ -2,7 +2,6 @@
 
 use lib '../lib';
 use Dancer;
-use Dancer::Plugin::Auth::Extensible;
 use Dancer::Plugin::SimpleCRUD;
 
 simple_crud(
