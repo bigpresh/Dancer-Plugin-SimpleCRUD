@@ -1152,12 +1152,14 @@ sub _ensure_auth {
     }
 
     if ($auth_settings->{require_login}) {
-        return $handler =
-           Dancer::Plugin::Auth::Extensible::require_login($handler);
+        return $handler = 
+            Dancer::Plugin::Auth::Extensible::require_login($handler);
     } else {
         for my $keyword (qw(require_role require_any_role require_all_roles)) {
             if (my $val = $auth_settings->{$keyword}) {
-                return Dancer::Plugin::Auth::Extensible->$keyword($val);
+                return $handler = Dancer::Plugin::Auth::Extensible->$keyword(
+                    $val, $handler
+                );
             }
         }
     }
