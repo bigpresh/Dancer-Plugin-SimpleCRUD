@@ -410,9 +410,15 @@ sub simple_crud {
 
     # And a route to list records already in the table:
     my $list_handler
-        = sub { _create_list_handler(\%args, $table_name, $key_column); };
-    get _construct_url($args{dancer_prefix}, $args{prefix}, '/')
-        => $list_handler;
+        = _ensure_auth(
+            'view',
+            sub { _create_list_handler(\%args, $table_name, $key_column); },
+            \%args,
+        );
+    get _construct_url(
+        $args{dancer_prefix},
+        $args{prefix},
+        '/') => $list_handler;
 
     # If we should allow deletion of records, set up routes to handle that,
     # too.
