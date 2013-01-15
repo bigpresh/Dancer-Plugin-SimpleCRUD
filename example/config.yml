@@ -14,8 +14,11 @@ plugins:
             foo:
                 provider: Config
                 users:
-                    - user: testuser
-                      pass: testpass
+                    - user: viewer
+                      pass: viewer
+                    - user: editor
+                      pass: editor
                       roles:
-                        - Admin
+                        - editor
+
 

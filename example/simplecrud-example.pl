@@ -34,7 +34,12 @@ simple_crud(
         },
     },
     auth => {
-        require_login => 1
+        view => {
+            require_login => 1,
+        },
+        edit => {
+            require_role => 'editor',
+        },
     },
 );
 
