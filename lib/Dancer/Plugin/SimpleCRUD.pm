@@ -347,6 +347,33 @@ If C<raw_column> consists of anything other than letters, numbers, and underscor
 it is passed in raw, so you could put something like "NOW()"  or "datetime('now')"
 in there and it should work as expected.
 
+=item C<auth>
+
+You can require that users be authenticated to view/edit records using the C<auth>
+option to enable authentication powered by L<Dancer::Plugin::Auth::Extensible>.
+
+You can set different requirements for viewing and editing, for example:
+
+    auth => {
+        view => {
+            require_login => 1,
+        },
+        edit => {
+            require_role => 'Admin',
+        },
+    },
+
+The example above means that any logged in user can view records, but only users
+with the 'Admin' role are able to create/edit/delete records.
+
+Or, to just require login for anything (same requirements for both viewing and
+editing), you can use the shorthand:
+
+    auth => {
+        require_login => 1,
+    },
+
+
 =cut
 
 sub simple_crud {
