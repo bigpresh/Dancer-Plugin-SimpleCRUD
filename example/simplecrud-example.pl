@@ -33,6 +33,14 @@ simple_crud(
             transform => sub { return shift }, # (unnecessary, btw, as this is the default)
         },
     },
+    auth => {
+        view => {
+            require_login => 1,
+        },
+        edit => {
+            require_role => 'editor',
+        },
+    },
 );
 
 get '/' => sub {
