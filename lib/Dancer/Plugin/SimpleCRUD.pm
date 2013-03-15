@@ -1159,7 +1159,7 @@ sub _construct_url {
     # slashes, but that shouldn't be an issue here.
     my $url = '/' . join '/', @url_parts;
     $url =~ s{/{2,}}{/}g;
-    return Dancer::uri_for($url);
+    return $url;
 }
 
 
