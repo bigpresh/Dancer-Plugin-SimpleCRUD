@@ -2,9 +2,23 @@ charset: UTF-8
 logger: console
 log: core
 layout: main
+session: simple
 plugins:
     Database:
         connections:
             foo:
                 driver: SQLite
                 database: test.sqlite
+    Auth::Extensible:
+        realms:
+            foo:
+                provider: Config
+                users:
+                    - user: viewer
+                      pass: viewer
+                    - user: editor
+                      pass: editor
+                      roles:
+                        - editor
+
+

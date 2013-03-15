@@ -29,6 +29,10 @@ H1 {
 
 <br />
 <pre>Demonstrating Dancer::Plugin::SimpleCRUD by David Precious</pre>
+
+<p>(<a href="/logout">logout</a>)</p>
+
+
 </body>
 </html>
 
