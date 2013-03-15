@@ -445,7 +445,7 @@ sub simple_crud {
     get _construct_url(
         $args{dancer_prefix},
         $args{prefix},
-        '/') => $list_handler;
+    ) => $list_handler;
 
     # If we should allow deletion of records, set up routes to handle that,
     # too.
