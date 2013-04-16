@@ -267,7 +267,7 @@ Example:
 Specify an arrayref of fields which the user can edit.  By default, this is all
 columns in the database table, with the exception of the key column.
 
-=item <not_editable_columns> (optional)
+=item C<not_editable_columns> (optional)
 
 Specify an arrayref of fields which should not be editable.
 
