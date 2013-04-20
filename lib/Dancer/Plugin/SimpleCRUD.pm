@@ -428,7 +428,7 @@ sub simple_crud {
 
     if ($args{editable}) {
         _ensure_auth('edit', $handler, \%args);
-        for ('/add', '/edit:id') {
+        for ('/add', '/edit/:id') {
             my $url = _construct_url($args{dancer_prefix}, $args{prefix}, $_);
             Dancer::Logger::debug("Setting up route for $url");
             any ['get', 'post'] => $url => $handler;
@@ -1176,6 +1176,11 @@ sub _ensure_auth {
         Dancer::ModuleLoader->load('Dancer::Plugin::Auth::Extensible')
             or die "Can't use auth settings without"
                 . " Dancer::Plugin::Auth::Extensible!";
+    } else {
+        # I think this can just be 'return;' given the way it is
+        # used currently, but the other branch returns a $handler,
+        # so this is more consistent
+        return $handler;
     }
 
     if ($auth_settings->{require_login}) {
