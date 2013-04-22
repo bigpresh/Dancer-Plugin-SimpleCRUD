@@ -493,6 +493,8 @@ CONFIRMDELETE
 register simple_crud => \&simple_crud;
 register_hook(qw(
     add_edit_row
+    add_edit_row_pre_save
+    add_edit_row_post_save
 ));
 register_plugin;
 
@@ -666,9 +668,16 @@ sub _create_add_edit_route {
         my %params;
         $params{$_} = params->{$_} for @editable_columns;
 
+        my $meta_for_hook = {
+            args => $args,
+            params => \%params,
+            table_name => $table_name,
+            key_column => $key_column,
+        };
         # Fire a hook so the user can manipulate the data in a whole range of
         # cunning ways, if they wish
         execute_hook('add_edit_row', \%params);
+        execute_hook('add_edit_row_pre_save', $meta_for_hook);
 
         my $verb;
         my $success;
@@ -680,19 +689,35 @@ sub _create_add_edit_route {
             $verb = 'update';
         } else {
             $success = $dbh->quick_insert($table_name, \%params);
+            # pass them *this* dbh instance so that they can call last_insert_id() 
+            # against it if they need to.  last_insert_id in some instances requires
+            # catalog, schema, etc args, so we can't just call it and save the result.
+            # important that we don't do any more database operations that would change
+            # last_insert_id between here and the hook, or this won'w work.
+            $meta_for_hook->{dbh} = $dbh;
             $verb = 'create new';
         }
 
+        $meta_for_hook->{success} = $success;
+        $meta_for_hook->{verb} = $verb;
         if ($success) {
 
             # Redirect to the list page
             # TODO: pass a param to cause it to show a message?
+            execute_hook('add_edit_row_post_save', $meta_for_hook);
             redirect _construct_url($args->{dancer_prefix}, $args->{prefix});
             return;
         } else {
-
+            execute_hook('add_edit_row_post_save', $meta_for_hook);
             # TODO: better error handling - options to provide error templates
             # etc
+            # (below is one approach to that TODO--this, or perhaps the hook could return a hash
+            # that would specify these overrides?  Probably best to come up with a complete mechanism
+            # consistent across hooks before we implement.)
+            # return _apply_template(
+            #    $meta_for_hook->{return}{error_message}  || "<p>Unable to $verb $args->{record_title}</p>",
+            #    $meta_for_hook->{return}{error_template} || $args->{error_template} || $args->{'template'}
+            #);
             return _apply_template(
                 "<p>Unable to $verb $args->{record_title}</p>",
                 $args->{'template'});
@@ -1250,14 +1275,29 @@ C<simple_crud>, in which case what you say goes.)
 
 =head1 Hooks
 
-=head2 add_edit_row
+=head2 add_edit_row (deprecated, use add_edit_row_pre_save)
 
-Fires right before a row is added/edited; receives a hashref of column => value
-which can be modified if you want to massage the data first.
+You can use the same code from your add_edit_row hook in an add_edit_row_pre_save
+hook.  The only modification is that the new hook passes the editable params
+as a key of the first argument (called C<params>), rather than as the first
+argument itself.  So, if your hook had C<my $args = shift;>, it could just
+use C<< my $args = shift->{params}; >> and it should work the same way.
 
-For instance, if you were dealing with a users table, you might want to take the
-password entered and hash it, perhaps.
+=head2 add_edit_row_pre_save, add_edit_row_post_save
 
+These fire right before and after a row is added/edited; a hashref is
+passed with metadata such as the name of the table (in C<table_name>), the
+args from the original route setup (C<args>), the table's key column
+(C<key_column>), and the values of the editable params (C<params>). 
+
+In the post-save hook, you are also sent C<success> (the return value of
+quick_insert or quick_update) telling you if the save was successful,
+C<dbh> giving you the instance of the handle used to save the entity
+(so you can access last_insert_id()), and C<verb> (currently either
+'create new' or 'update').
+
+For instance, if you were dealing with a users table, you could use the
+pre_save hook to hash the password before storing it.
 
 =head1 AUTHOR
 
