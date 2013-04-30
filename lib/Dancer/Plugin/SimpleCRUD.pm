@@ -262,6 +262,18 @@ Example:
     }
 
 
+=item C<default_value> (optional)
+
+A hashref of default values to have pre-selected on the add form.
+
+Example:
+
+    default_value => {
+        gender => 'Female',
+        status => 'Unknown',
+    }
+
+
 =item C<editable_columns> (optional)
 
 Specify an arrayref of fields which the user can edit.  By default, this is all
@@ -505,6 +517,7 @@ sub _create_add_edit_route {
 
     my $dbh = database($args->{db_connection_name});
 
+    # a hash containing the current values in the database
     my $default_field_values;
     if ($id) {
         $default_field_values
@@ -614,9 +627,17 @@ sub _create_add_edit_route {
         ),
     );
     for my $field (@editable_columns) {
+        # default_field_values contains what was in the database for this object, if
+        # it already existed in the database.  $args->{default_value} is the default,
+        # if any, requested by the user for this field in the 'default_value' hash  
+        # when the route was created.
+        my $default = 
+              exists $default_field_values->{$field}  ? $default_field_values->{$field}
+            : exists $args->{default_value}->{$field} ? $args->{default_value}->{$field}
+            : '';
         my %field_params = (
             name  => $field,
-            value => $default_field_values->{$field} || '',
+            value => $default,
         );
 
         $field_params{required} = $required_fields{$field};
