@@ -630,9 +630,11 @@ sub _create_add_edit_route {
         # is the default, if any, requested by the user for this field in the 
         # 'default_value' hash when the route was created.
         my $default = 
-              exists $values_from_database->{$field}  ? $values_from_database->{$field}
-            : exists $args->{default_value}->{$field} ? $args->{default_value}->{$field}
-            : '';
+                exists $values_from_database->{$field}  
+              ? $values_from_database->{$field}
+              : exists $args->{default_value}->{$field} 
+              ? $args->{default_value}->{$field}
+              : '';
         my %field_params = (
             name  => $field,
             value => $default,
