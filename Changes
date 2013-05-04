@@ -1,6 +1,6 @@
 Revision history for Dancer-Plugin-SimpleCRUD
 
-{$NEXT}
+0.90    2013-05-04
         [ BUG FIXES ]
         - A few places missed using the Dancer prefix that may have been in
           force at time of route creation, thanks to chenlin rao for reporting
