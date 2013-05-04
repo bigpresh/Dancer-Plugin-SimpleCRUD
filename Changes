@@ -5,6 +5,9 @@ Revision history for Dancer-Plugin-SimpleCRUD
         - A few places missed using the Dancer prefix that may have been in
           force at time of route creation, thanks to chenlin rao for reporting
           (chenryn)
+        - Let the user supply default values for fields (msouth)
+        - Fix bugs causing dependence on D::P::A::E even when not configured to
+          use auth (msouth)
 
 0.80    2012-12-12 - the Michael J South release
         [ ENHANCEMENTS ]
