@@ -494,7 +494,7 @@ CONFIRMDELETE
                 or return _apply_template("<p>Failed to delete!</p>",
                 $args{'template'});
 
-            redirect _construct_url($args{dancer_prefix}, $args{prefix});
+            redirect uri_for(_construct_url($args{dancer_prefix}, $args{prefix}));
         };
         _ensure_auth('edit', $delete_handler, \%args);
         post qr[$del_url_stub/?(.+)?$] => $delete_handler;
@@ -614,7 +614,7 @@ sub _create_add_edit_route {
         values   => $values_from_database,
         validate => $validation,
         method   => 'post',
-        action   => _construct_url(
+        action   => uri_for(_construct_url(
             $args->{dancer_prefix},
             $args->{prefix},
             (
@@ -622,7 +622,7 @@ sub _create_add_edit_route {
                 ? '/edit/' . params->{id}
                 : '/add'
             )
-        ),
+        )),
     );
     for my $field (@editable_columns) {
         # values_from_database contains what was in the database for this 
@@ -710,7 +710,7 @@ sub _create_add_edit_route {
 
             # Redirect to the list page
             # TODO: pass a param to cause it to show a message?
-            redirect _construct_url($args->{dancer_prefix}, $args->{prefix});
+            redirect uri_for(_construct_url($args->{dancer_prefix}, $args->{prefix}));
             return;
         } else {
 
@@ -871,7 +871,7 @@ SEARCHFORM
                 "<p>Showing results from searching for '%s' in '%s'",
                 params->{'q'}, params->{searchfield});
             $html .= sprintf '&mdash;<a href="%s">Reset search</a></p>',
-                _construct_url($args->{dancer_prefix}, $args->{prefix});
+                uri_for(_construct_url($args->{dancer_prefix}, $args->{prefix}));
         }
     }
 
@@ -884,7 +884,7 @@ SEARCHFORM
 
         my @formats = qw/csv tabular json xml/;
 
-        my $url = _construct_url($args->{dancer_prefix}, $args->{prefix})
+        my $url = uri_for(_construct_url($args->{dancer_prefix}, $args->{prefix}))
             . "?o=$o&d=$d&q=$q&searchfield=$sf&p=$page";
 
         $html
@@ -920,7 +920,7 @@ SEARCHFORM
                 $direction = $opposite_order_by_direction;
                 $direction_char = ($direction eq "asc") ? "&uarr;" : "&darr;";
             }
-            my $url = _construct_url($args->{dancer_prefix}, $args->{prefix})
+            my $url = uri_for(_construct_url($args->{dancer_prefix}, $args->{prefix}))
                 . "?o=$col_name&d=$direction&q=$q&searchfield=$sf";
             $col_name =>
                 "<a href=\"$url\">$col_name&nbsp;$direction_char</a>";
@@ -945,7 +945,7 @@ SEARCHFORM
         my $offset = $page_size * $page;
         my $limit  = $page_size;
 
-        my $url = _construct_url($args->{dancer_prefix}, $args->{prefix})
+        my $url = uri_for(_construct_url($args->{dancer_prefix}, $args->{prefix}))
             . "?o=$o&d=$d&q=$q&searchfield=$sf";
         $html .= "<p>";
         if ($page > 0) {
@@ -1002,17 +1002,17 @@ SEARCHFORM
                     my $action_links;
                     if ($args->{editable} && _has_permission('edit', $args)) {
                         my $edit_url
-                            = _construct_url(
+                            = uri_for(_construct_url(
                                 $args->{dancer_prefix}, $args->{prefix}, 
                                 "/edit/$id"
-                            );
+                            ));
                         $action_links
                             .= qq[<a href="$edit_url" class="edit_link">Edit</a>];
                         if ($args->{deletable} && _has_permission('edit', $args)) {
-                            my $del_url = _construct_url(
+                            my $del_url = uri_for(_construct_url(
                                 $args->{dancer_prefix}, $args->{prefix},
                                 "/delete/$id"
-                            );
+                            ));
                             $action_links
                                 .= qq[ / <a href="$del_url" class="delete_link"]
                                 . qq[ onclick="delrec('$id'); return false;">]
@@ -1033,15 +1033,15 @@ SEARCHFORM
 
     if ($args->{editable} && _has_permission('edit', $args)) {
         $html .= sprintf '<a href="%s">Add a new %s</a></p>',
-            _construct_url($args->{dancer_prefix}, $args->{prefix}, '/add'), 
+            uri_for(_construct_url($args->{dancer_prefix}, $args->{prefix}, '/add')),
             $args->{record_title};
 
         # Append a little Javascript which asks for confirmation that they'd
         # like to delete the record, then makes a POST request via a hidden
         # form.  This could be made AJAXy in future.
-        my $del_action = _construct_url(
+        my $del_action = uri_for(_construct_url(
             $args->{dancer_prefix}, $args->{prefix}, '/delete'
-        );
+        ));
         $html .= <<DELETEJS;
 <form name="deleteform" method="post" action="$del_action">
 <input name="record_id" type="hidden">
