@@ -790,11 +790,14 @@ SEARCHFORM
     # If we have some columns declared as foreign keys, though, we don't want to
     # see the raw values in the result; we'll add JOIN clauses to fetch the info
     # from the related table, so for now just select the defined label column
-    # from the related table instead of the raw ID value.  At some point we
+    # from the related table instead of the raw ID value.
+
+    # This _as_simplecrud_fk_ mechanism is clearly a bit of a hack.  At some point we
     # might want to pull in an existing solution for this--this is simple and
     # may have pitfalls that have already been solved in Catalyst/DBIC code.
     # For now, we're going with simple. git show 14cec4ea647 to see the
-    # change, if you want to know exactly what to pull out when replacing this
+    # basic change (that's previous to the add of LEFT to the JOIN, though), if you want
+    # to know exactly what to pull out when replacing this
 
     my @foreign_cols;
     my %fk_alias; # foreign key aliases for cases where we might have collisions
@@ -860,7 +863,9 @@ SEARCHFORM
                 $what_to_join = " $ftable AS $alias ";
                 $join_reference = $alias;
             }
-            $query .= " JOIN $what_to_join ON $table_name.$lkey = $join_reference.$rkey ";
+            # If this join is not a left join, the list view only shows rows where the
+            # foreign key is defined and matching a row
+            $query .= " LEFT JOIN $what_to_join ON $table_name.$lkey = $join_reference.$rkey ";
         }
     }
 
