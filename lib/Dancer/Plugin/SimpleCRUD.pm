@@ -261,6 +261,21 @@ Example:
         status => [qw(Alive Dead Zombie Unknown)],
     }
 
+You can automatically create option groups by specifying acceptable 
+values in CGI::FormBuilder's [value, label, category] format, like this:
+
+    acceptable_values => {
+        gender => ['Male', 'Female'],
+        status => [qw(Alive Dead Zombie Unknown)],
+        threat_level => [
+            [ 'child_puke',   'Regurgitation',       'Child'],
+            [ 'child_knee',   'Knee Biter',          'Child'],
+            [ 'teen_eye',     'Eye Roll',            'Adolescent'],
+            [ 'teen_lip',     'Withering Sarcasm',   'Adolescent'],
+            [ 'adult_silent', 'Pointedly Ignore',    'Adult'],
+            [ 'adult_freak',  'Become Very Put Out', 'Adult'],
+        ],
+    }
 
 =item C<default_value> (optional)
 
@@ -676,6 +691,22 @@ sub _create_add_edit_route {
         if (my $override_type = $args->{input_types}{$field}) {
             $field_params{type} = $override_type;
         }
+
+        # if the constraint on this is an array of arrays,
+        # and there are three elements in the first array in that list,
+        # (which will be intepreted as: value, label, category)
+        # we are going to assume you want
+        # optgroups, with the third element in each being the category.
+        #
+        # (See the optgroups option in CGI::FormBuilder)
+        if (ref($field_params{options}) eq 'ARRAY') {
+            if (ref( $field_params{options}->[0] )  eq 'ARRAY') {
+                if (@{ $field_params{options}->[0] } == 3) {
+                    $field_params{optgroups} = 1;
+                }
+            }
+        }
+
 
         # OK, add the field to the form:
         $form->field(%field_params);
