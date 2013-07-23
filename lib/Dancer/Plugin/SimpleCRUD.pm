@@ -261,8 +261,8 @@ Example:
         status => [qw(Alive Dead Zombie Unknown)],
     }
 
-You can automatically create option groups by specifying acceptable 
-values in CGI::FormBuilder's [value, label, category] format, like this:
+You can automatically create option groups (on a field of type C<select>) by specifying 
+the acceptable values in CGI::FormBuilder's C<[value, label, category]> format, like this:
 
     acceptable_values => {
         gender => ['Male', 'Female'],
@@ -276,6 +276,11 @@ values in CGI::FormBuilder's [value, label, category] format, like this:
             [ 'adult_freak',  'Become Very Put Out', 'Adult'],
         ],
     }
+
+If you are letting FormBuilder choose the field type, you won't see these categories
+unless you have enough options that it makes the field into a select.  If you want to
+see the categories all the time, you can use the L</input_types> option to force your 
+field to be rendered as a select.
 
 =item C<default_value> (optional)
 
@@ -695,8 +700,8 @@ sub _create_add_edit_route {
         # if the constraint on this is an array of arrays,
         # and there are three elements in the first array in that list,
         # (which will be intepreted as: value, label, category)
-        # we are going to assume you want
-        # optgroups, with the third element in each being the category.
+        # we are going to assume you want optgroups, with the 
+        # third element in each being the category.
         #
         # (See the optgroups option in CGI::FormBuilder)
         if (ref($field_params{options}) eq 'ARRAY') {
