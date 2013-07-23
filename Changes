@@ -1,4 +1,15 @@
 Revision history for Dancer-Plugin-SimpleCRUD
+0.91    2013-07-24
+        [ ENHANCEMENTS ]
+        - New hooks: add_edit_row_pre_save, add_edit_row_post_save (msouth)
+
+        - Foreign keys can now point to a field in the same table (msouth) 
+        - Selects can now derive optgroups from acceptable_values  (msouth)
+        
+        [ BUG FIXES ]
+        - Added uri_for() around _construct_url() calls that go to browsers
+          (helps with Plack::Builder-mounting of apps at prefix) (msouth)
+        - Foreign key join is now left join (for nullable foreign keys) (msouth)
 
 0.90    2013-05-04
         [ BUG FIXES ]

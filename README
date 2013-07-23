@@ -67,6 +67,26 @@ SYNOPSIS
                     label_column => 'name',
                 },
             },
+            custom_columns => {
+                division_news => {
+                    raw_column => "division",
+                    transform  => sub {
+                        my $division_name = shift;
+                        my $label = "News about $division_name";
+                        $division_name =~ s/([^-_.~A-Za-z0-9])/sprintf("%%%02X", ord($1))/seg;
+                        my $search = qq{http://news.google.com/news?q="$division_name"};
+                        return "<a href='$search'>$label</a>";
+                    },
+                },
+            },
+            auth => {
+                view => {
+                    require_login => 1,
+                },
+                edit => {
+                    require_role => 1,
+                },
+            },
         );
 
 USAGE
@@ -184,12 +204,45 @@ OPTIONS
                 status => [qw(Alive Dead Zombie Unknown)],
             }
 
+        You can automatically create option groups (on a field of type
+        `select') by specifying the acceptable values in CGI::FormBuilder's
+        `[value, label, category]' format, like this:
+
+            acceptable_values => {
+                gender => ['Male', 'Female'],
+                status => [qw(Alive Dead Zombie Unknown)],
+                threat_level => [
+                    [ 'child_puke',   'Regurgitation',       'Child'],
+                    [ 'child_knee',   'Knee Biter',          'Child'],
+                    [ 'teen_eye',     'Eye Roll',            'Adolescent'],
+                    [ 'teen_lip',     'Withering Sarcasm',   'Adolescent'],
+                    [ 'adult_silent', 'Pointedly Ignore',    'Adult'],
+                    [ 'adult_freak',  'Become Very Put Out', 'Adult'],
+                ],
+            }
+
+        If you are letting FormBuilder choose the field type, you won't see
+        these categories unless you have enough options that it makes the
+        field into a select. If you want to see the categories all the time,
+        you can use the input_types option to force your field to be
+        rendered as a select.
+
+    `default_value' (optional)
+        A hashref of default values to have pre-selected on the add form.
+
+        Example:
+
+            default_value => {
+                gender => 'Female',
+                status => 'Unknown',
+            }
+
     `editable_columns' (optional)
         Specify an arrayref of fields which the user can edit. By default,
         this is all columns in the database table, with the exception of the
         key column.
 
-    <not_editable_columns> (optional)
+    `not_editable_columns' (optional)
         Specify an arrayref of fields which should not be editable.
 
     `required' (optional)
@@ -248,11 +301,52 @@ OPTIONS
         be downloaded as CSV/TSV/JSON/XML. The download links will appear at
         the top of the page.
 
-        item `foreign_keys'
-
+    `foreign_keys'
         A hashref to specify columns in the table which are foreign keys;
         for each one, the value should be a hashref containing the keys
         `table', `key_column' and `label_column'.
+
+    `custom_columns'
+        A hashref to specify custom columns to appear in the list view of an
+        entity. The keys of the hash are custom column names, the values
+        hashrefs specifying a `raw_column' indicating a column from the
+        table that should be selected to build the custom column from, and
+        `transform', a subref to be used as a HTML::Table::FromDatabase
+        callback on the resulting column. If no `transform' is provided, sub
+        { return shift; } will be used.
+
+        If `raw_column' consists of anything other than letters, numbers,
+        and underscores, it is passed in raw, so you could put something
+        like "NOW()" or "datetime('now')" in there and it should work as
+        expected.
+
+    `auth'
+        You can require that users be authenticated to view/edit records
+        using the `auth' option to enable authentication powered by
+        Dancer::Plugin::Auth::Extensible.
+
+        You can set different requirements for viewing and editing, for
+        example:
+
+            auth => {
+                view => {
+                    require_login => 1,
+                },
+                edit => {
+                    require_role => 'Admin',
+                },
+            },
+
+        The example above means that any logged in user can view records,
+        but only users with the 'Admin' role are able to create/edit/delete
+        records.
+
+        Or, to just require login for anything (same requirements for both
+        viewing and editing), you can use the shorthand:
+
+            auth => {
+                require_login => 1,
+            },
 
 DWIMmery
     This module tries to do what you'd expect it to do, so you can rock up
@@ -272,12 +366,28 @@ DWIMmery
     say goes.)
 
 Hooks
-  add_edit_row
-    Fires right before a row is added/edited; receives a hashref of column
-    => value which can be modified if you want to massage the data first.
+  add_edit_row (deprecated, use add_edit_row_pre_save)
+    You can use the same code from your add_edit_row hook in an
+    add_edit_row_pre_save hook. The only modification is that the new hook
+    passes the editable params as a key of the first argument (called
+    `params'), rather than as the first argument itself. So, if your hook
+    had `my $args = shift;', it could just use `my $args = shift->{params};'
+    and it should work the same way.
 
-    For instance, if you were dealing with a users table, you might want to
-    take the password entered and hash it, perhaps.
+  add_edit_row_pre_save, add_edit_row_post_save
+    These fire right before and after a row is added/edited; a hashref is
+    passed with metadata such as the name of the table (in `table_name'),
+    the args from the original route setup (`args'), the table's key column
+    (`key_column'), and the values of the editable params (`params').
+
+    In the post-save hook, you are also sent `success' (the return value of
+    quick_insert or quick_update) telling you if the save was successful,
+    `dbh' giving you the instance of the handle used to save the entity (so
+    you can access last_insert_id()), and `verb' (currently either 'create
+    new' or 'update').
+
+    For instance, if you were dealing with a users table, you could use the
+    pre_save hook to hash the password before storing it.
 
 AUTHOR
     David Precious, `<davidp@preshweb.co.uk>'
@@ -294,6 +404,10 @@ ACKNOWLEDGEMENTS
     jasonjayr
 
     Paul Johnson (pjcj)
+
+    Rahul Kotamaraju
+
+    Michael J South (msouth)
 
 BUGS
     Please report any bugs or feature requests to

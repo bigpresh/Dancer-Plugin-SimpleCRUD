@@ -36,7 +36,7 @@ use Dancer::Plugin::Database;
 use HTML::Table::FromDatabase;
 use CGI::FormBuilder;
 
-our $VERSION = '0.90';
+our $VERSION = '0.91';
 
 =encoding utf8
 
@@ -1343,7 +1343,7 @@ sub _has_permission {
 
 This module tries to do what you'd expect it to do, so you can rock up your web
 app with as little code and effort as possible, whilst still giving you control
-to override its decisions wherever you need to.1
+to override its decisions wherever you need to.
 
 =head2 Field types
 
