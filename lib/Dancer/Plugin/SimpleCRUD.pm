@@ -815,17 +815,34 @@ SEARCHFORM
     # If we have some columns declared as foreign keys, though, we don't want to
     # see the raw values in the result; we'll add JOIN clauses to fetch the info
     # from the related table, so for now just select the defined label column
-    # from the related table instead of the raw ID value
+    # from the related table instead of the raw ID value.
+
+    # This _as_simplecrud_fk_ mechanism is clearly a bit of a hack.  At some point we
+    # might want to pull in an existing solution for this--this is simple and
+    # may have pitfalls that have already been solved in Catalyst/DBIC code.
+    # For now, we're going with simple. git show 14cec4ea647 to see the
+    # basic change (that's previous to the add of LEFT to the JOIN, though), if you want
+    # to know exactly what to pull out when replacing this
+
     my @foreign_cols;
+    my %fk_alias; # foreign key aliases for cases where we might have collisions
     if ($args->{foreign_keys}) {
+        my $seen_table = {$table_name=>1};
         while (my ($col, $foreign_key) = each(%{ $args->{foreign_keys} })) {
             @select_cols = grep { $_ ne $col } @select_cols;
-            my $ftable = $dbh->quote_identifier($foreign_key->{table});
+            my $raw_ftable = $foreign_key->{table};
+            my $ftable_alias;
+            if ($seen_table->{$raw_ftable}++) {
+                $ftable_alias = $fk_alias{ $col } = $dbh->quote_identifier($raw_ftable. "_as_simplecrud_fk_$seen_table->{$raw_ftable}");
+            }
+            my $ftable = $dbh->quote_identifier($raw_ftable);
             my $fcol
                 = $dbh->quote_identifier($foreign_key->{label_column});
             my $lcol
                 = $dbh->quote_identifier($args->{labels}{$col} || $col);
-            push @foreign_cols, "$ftable.$fcol AS $lcol";
+
+            my $table_or_alias = $fk_alias{ $col } || $ftable;
+            push @foreign_cols, "$table_or_alias.$fcol AS $lcol";
         }
     }
 
@@ -865,7 +882,15 @@ SEARCHFORM
 
             # Identifiers quoted above, and $table_name quoted further up, so
             # all safe to interpolate
-            $query .= " JOIN $ftable ON $table_name.$lkey = $ftable.$rkey ";
+            my $what_to_join = $ftable;
+            my $join_reference = $ftable;
+            if (my $alias = $fk_alias{$col}) {
+                $what_to_join = " $ftable AS $alias ";
+                $join_reference = $alias;
+            }
+            # If this join is not a left join, the list view only shows rows where the
+            # foreign key is defined and matching a row
+            $query .= " LEFT JOIN $what_to_join ON $table_name.$lkey = $join_reference.$rkey ";
         }
     }
 
