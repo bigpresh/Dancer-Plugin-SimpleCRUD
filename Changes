@@ -1,5 +1,5 @@
 Revision history for Dancer-Plugin-SimpleCRUD
-0.91    2013-07-24
+0.91    2013-07-25
         [ ENHANCEMENTS ]
         - New hooks: add_edit_row_pre_save, add_edit_row_post_save (msouth)
 
@@ -8,8 +8,10 @@ Revision history for Dancer-Plugin-SimpleCRUD
         
         [ BUG FIXES ]
         - Added uri_for() around _construct_url() calls that go to browsers
-          (helps with Plack::Builder-mounting of apps at prefix) (msouth)
-        - Foreign key join is now left join (for nullable foreign keys) (msouth)
+          (helps with Plack::Builder-mounting of apps at prefix).  Use
+          use_old_url_scheme: 1 in plugin config if you want the old 
+          behavior (msouth)
+        - Foreign key join is now left join (helps with nullable foreign keys) (msouth)
 
 0.90    2013-05-04
         [ BUG FIXES ]
