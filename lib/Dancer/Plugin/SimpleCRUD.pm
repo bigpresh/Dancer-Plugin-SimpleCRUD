@@ -113,6 +113,8 @@ easy to set up and use.
                 label_column => 'name',
             },
         },
+	table_class => 'table table-bordered',
+	paginate_table_class => 'table table-borderless',
         custom_columns => {
             division_news => {
                 raw_column => "division",
@@ -385,6 +387,14 @@ editing), you can use the shorthand:
         require_login => 1,
     },
 
+
+=item C<table_class>
+
+This provides a CSS class for the tables.
+
+=Item C<paginate_table_class>
+
+This provides a CSS class for the tables paginate buttons.
 
 =cut
 
