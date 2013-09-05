@@ -470,7 +470,7 @@ sub simple_crud {
         get _construct_url(
             $args{dancer_prefix}, $args{prefix}, "/delete/:id"
             ) => sub {
-            return _apply_template(<<CONFIRMDELETE, $args{'template'});
+            return _apply_template(<<CONFIRMDELETE, $args{'template'}, $args{'record_title'});
 <p>
 Do you really wish to delete this record?
 </p>
@@ -718,11 +718,11 @@ sub _create_add_edit_route {
             # etc
             return _apply_template(
                 "<p>Unable to $verb $args->{record_title}</p>",
-                $args->{'template'});
+                $args->{'template'}, $args->{'record_title'});
         }
 
     } else {
-        return _apply_template($form->render, $args->{'template'});
+        return _apply_template($form->render, $args->{'template'}, $args->{'record_title'});
     }
 }
 
@@ -733,6 +733,21 @@ sub _create_list_handler {
     my $columns = _find_columns($dbh, $table_name);
 
     my $display_columns = $args->{'display_columns'};
+
+    my $table_class;
+
+    if (!$args->{'table_class'}) {
+        $table_class = "";
+    } else {
+        $table_class = $args->{'table_class'};
+    }
+
+    my $paginate_table_class;
+    if (!$args->{'paginate_table_class'}) {
+        $paginate_table_class = "";
+    } else {
+        $paginate_table_class = $args->{'paginate_table_class'};
+    }
 
     # If display_columns argument was passed, filter the column list to only
     # have the ones we asked for.
@@ -753,12 +768,16 @@ sub _create_list_handler {
     my $options = join(
         "\n",
         map {
+            my $friendly_name = $_->{COLUMN_NAME};
+            if ($args->{labels}{$_->{COLUMN_NAME}}) {
+                $friendly_name = $args->{labels}{$_->{COLUMN_NAME}};
+            }
             my $sel
                 = (defined params->{searchfield}
                     && params->{searchfield} eq $_->{COLUMN_NAME})
                 ? "selected"
                 : "";
-            "<option $sel value='$_->{COLUMN_NAME}'>$_->{COLUMN_NAME}</option>"
+            "<option $sel value='$_->{COLUMN_NAME}'>$friendly_name</option>"
             } @$columns
     );
 
@@ -895,7 +914,15 @@ SEARCHFORM
 
     ## Build a hash to add sorting CGI parameters + URL to each column header.
     ## (will be used with HTML::Table::FromDatabase's "-rename_columns" parameter.
-    my %columns_sort_options;
+    my %columns_sort_options = map {
+        my $col_name = $_->{COLUMN_NAME};
+        my $friendly_name = $col_name;
+        if ($args->{labels}{$col_name}) {
+            $friendly_name = $args->{labels}{$col_name};
+        }
+        $col_name => "$friendly_name";
+    } @$columns;
+
     if ($args->{sortable}) {
         my $q               = params->{'q'}         || "";
         my $sf              = params->{searchfield} || "";
@@ -916,6 +943,10 @@ SEARCHFORM
             my $col_name       = $_->{COLUMN_NAME};
             my $direction      = $order_by_direction;
             my $direction_char = "";
+            my $friendly_name  = $col_name;
+            if ($args->{labels}{$col_name}) {
+                $friendly_name = $args->{labels}{$col_name};
+            } 
             if ($col_name eq $order_by_column) {
                 $direction = $opposite_order_by_direction;
                 $direction_char = ($direction eq "asc") ? "&uarr;" : "&darr;";
@@ -923,14 +954,14 @@ SEARCHFORM
             my $url = uri_for(_construct_url($args->{dancer_prefix}, $args->{prefix}))
                 . "?o=$col_name&d=$direction&q=$q&searchfield=$sf";
             $col_name =>
-                "<a href=\"$url\">$col_name&nbsp;$direction_char</a>";
+                "<a href=\"$url\">$friendly_name&nbsp;$direction_char</a>";
         } @$columns;
 
         $query
             .= " ORDER BY $table_name."
             . $dbh->quote_identifier($order_by_column) . " "
             . $order_by_direction . " ";
-    }
+    } 
 
     if ($args->{paginate} && $args->{paginate} =~ /^\d+$/) {
         my $page_size = $args->{paginate};
@@ -945,29 +976,37 @@ SEARCHFORM
         my $offset = $page_size * $page;
         my $limit  = $page_size;
 
+<<<<<<< Dancer-Plugin-SimpleCRUD/lib/Dancer/Plugin/SimpleCRUD.pm
         my $url = uri_for(_construct_url($args->{dancer_prefix}, $args->{prefix}))
+=======
+<<<<<<< SimpleCRUD.pm
+	$html .= "<table class=\"$paginate_table_class\"><tr>";
+
+        my $url = _construct_url($args->{dancer_prefix}, $args->{prefix})
+=======
+        my $url = uri_for(_construct_url($args->{dancer_prefix}, $args->{prefix}))
+>>>>>>> Dancer-Plugin-SimpleCRUD/lib/Dancer/Plugin/SimpleCRUD.pm
+>>>>>>> SimpleCRUD.pm
             . "?o=$o&d=$d&q=$q&searchfield=$sf";
-        $html .= "<p>";
         if ($page > 0) {
             $html
                 .= sprintf(
-                "<a href=\"$url&p=%d\">&larr;&nbsp;prev.&nbsp;page</a>",
+                "<td><a href=\"$url&p=%d\">&larr;&nbsp;prev.&nbsp;page</a></td>",
                 $page - 1)
         } else {
-            $html .= "&larr;&nbsp;prev.&nbsp;page&nbsp";
+            $html .= "<td>&larr;&nbsp;prev.&nbsp;page&nbsp</td>";
         }
-        $html .= "&nbsp;" x 5;
         $html .= sprintf(
-            "Showing page %d (records %d to %d)",
+            "<td>Showing page %d (records %d to %d)",
             $page + 1,
             $offset + 1,
             $offset + 1 + $limit
         );
-        $html .= "&nbsp;" x 5;
+        $html .= "</td>";
         $html
-            .= sprintf("<a href=\"$url&p=%d\">next&nbsp;page&nbsp;&rarr;</a>",
+            .= sprintf("<td><a href=\"$url&p=%d\">next&nbsp;page&nbsp;&rarr;</a>",
             $page + 1);
-        $html .= "<p>";
+        $html .= "</td></tr></table>";
 
         $query .= " LIMIT $limit OFFSET $offset ";
     }
@@ -1027,6 +1066,7 @@ SEARCHFORM
         -rename_headers      => \%columns_sort_options,
         -auto_pretty_headers => 1,
         -html                => 'escape',
+        -class               => "$table_class",
     );
 
     $html .= $table->getTable || '';
@@ -1058,14 +1098,14 @@ function delrec(record_id) {
 DELETEJS
     }
 
-    return _apply_template($html, $args->{'template'});
+    return _apply_template($html, $args->{'template'}, $args->{'record_title'});
 }
 
 sub _apply_template {
-    my ($html, $template) = @_;
+    my ($html, $template, $title) = @_;
 
     if ($template) {
-        return template $template, { simple_crud => $html };
+        return template $template, { simple_crud => $html, record_title => $title };
     } else {
         return engine('template')->apply_layout($html);
     }
