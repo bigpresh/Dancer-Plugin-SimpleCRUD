@@ -460,7 +460,7 @@ editing), you can use the shorthand:
 
 This provides a CSS class for the tables.
 
-=Item C<paginate_table_class>
+=item C<paginate_table_class>
 
 This provides a CSS class for the tables paginate buttons.
 
