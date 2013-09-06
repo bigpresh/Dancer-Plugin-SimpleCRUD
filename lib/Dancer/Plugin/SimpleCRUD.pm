@@ -744,20 +744,8 @@ sub _create_list_handler {
 
     my $display_columns = $args->{'display_columns'};
 
-    my $table_class;
-
-    if (!$args->{'table_class'}) {
-        $table_class = "";
-    } else {
-        $table_class = $args->{'table_class'};
-    }
-
-    my $paginate_table_class;
-    if (!$args->{'paginate_table_class'}) {
-        $paginate_table_class = "";
-    } else {
-        $paginate_table_class = $args->{'paginate_table_class'};
-    }
+    my $table_class = $args->{'table_class'} || '';
+    my $paginate_table_class = $args->{'paginate_table_class'} || '';
 
     # If display_columns argument was passed, filter the column list to only
     # have the ones we asked for.
