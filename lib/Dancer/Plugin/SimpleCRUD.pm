@@ -249,6 +249,20 @@ A hashref of field_name => message to show when Javascript validation fails.
 Default message is "- Invalid entry for the "$fieldname" field".  See above for
 example.
 
+=item C<sort_options> (optional)
+
+A hashref of field_name => optionspec indicating how select options should be sorted
+
+This is currently a passthrough to L<CGI::FormBuilder>'s L<sortopts|CGI::FormBuilder/sortopts>.  There are several
+built-in values:
+
+    NAME            Sort option values by name
+    NUM             Sort option values numerically
+    LABELNAME       Sort option labels by name
+    LABELNUM        Sort option labels numerically
+
+See the documentation for L<CGI::FormBuilder/sortopts> for more.
+
 =item C<acceptable_values> (optional)
 
 A hashref of arrayrefs to declare that certain fields can take only a set of
@@ -671,10 +685,11 @@ sub _create_add_edit_route {
         # Certain options in $args simply cause that value to be added to the
         # params for this field we'll pass to $form->field:
         my %option_map = (
-            labels     => 'label',
-            validation => 'validate',
-            message    => 'message',
-            jsmessage  => 'jsmessage',
+            labels        => 'label',
+            validation    => 'validate',
+            message       => 'message',
+            jsmessage     => 'jsmessage',
+            sort_options  => 'sortopts',
         );
         while (my ($arg_name, $field_param_name) = each(%option_map)) {
             if (my $val = $args->{$arg_name}{$field}) {
