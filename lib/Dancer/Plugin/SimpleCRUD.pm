@@ -725,7 +725,7 @@ sub _create_add_edit_route {
         # Assemble a hash of only fields from the DB (if other fields were
         # submitted with the form which don't belong in the DB, ignore them)
         my %params;
-        $params{$_} = params->{$_} for @editable_columns;
+        $params{$_} = params('body')->{$_} for @editable_columns;
 
         my $meta_for_hook = {
             args => $args,
