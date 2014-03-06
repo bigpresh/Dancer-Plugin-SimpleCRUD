@@ -1,4 +1,13 @@
 Revision history for Dancer-Plugin-SimpleCRUD
+
+0.92    2014-03-06
+        [ BUG FIXES ]
+        - Make the key_column feature work properly.  Thanks to tobyink on IRC -
+          we referred to params->{$key_column} which worked by accident if your
+          key column was 'id' (default), but if you'd changed it, it wouldn't
+          match the 'id' param from the route.  Also, be more robust about
+          looking for params from the desired source.
+
 0.91    2013-07-25
         [ ENHANCEMENTS ]
         - New hooks: add_edit_row_pre_save, add_edit_row_post_save (msouth)
