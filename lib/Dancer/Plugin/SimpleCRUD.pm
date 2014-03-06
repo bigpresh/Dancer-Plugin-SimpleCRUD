@@ -725,7 +725,7 @@ sub _create_add_edit_route {
         # Assemble a hash of only fields from the DB (if other fields were
         # submitted with the form which don't belong in the DB, ignore them)
         my %params;
-        $params{$_} = params->{$_} for @editable_columns;
+        $params{$_} = params('body')->{$_} for @editable_columns;
 
         my $meta_for_hook = {
             args => $args,
@@ -740,11 +740,11 @@ sub _create_add_edit_route {
 
         my $verb;
         my $success;
-        if (exists params->{$key_column}) {
+        if (exists params('route')->{id}) {
 
             # We're editing an existing record
             $success = $dbh->quick_update($table_name,
-                { $key_column => params->{$key_column} }, \%params);
+                { $key_column => params('route')->{id} }, \%params);
             $verb = 'update';
         } else {
             $success = $dbh->quick_insert($table_name, \%params);
