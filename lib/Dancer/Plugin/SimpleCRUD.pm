@@ -740,11 +740,11 @@ sub _create_add_edit_route {
 
         my $verb;
         my $success;
-        if (exists params->{$key_column}) {
+        if (exists params->{id}) {
 
             # We're editing an existing record
             $success = $dbh->quick_update($table_name,
-                { $key_column => params->{$key_column} }, \%params);
+                { $key_column => params->{id} }, \%params);
             $verb = 'update';
         } else {
             $success = $dbh->quick_insert($table_name, \%params);
