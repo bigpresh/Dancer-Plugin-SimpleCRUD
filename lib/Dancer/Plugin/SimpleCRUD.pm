@@ -898,7 +898,9 @@ SEARCHFORM
 
     my $col_list = join(
         ',',
-        map({ $table_name . "." . $dbh->quote_identifier($_) }
+        map({ $table_name . "." . $dbh->quote_identifier($_) . " AS " .
+                  $dbh->quote_identifier($args->{labels}{$_} || $_)
+            }
             @select_cols),
         @foreign_cols,    # already assembled from quoted identifiers
         @custom_cols,
@@ -1000,6 +1002,7 @@ SEARCHFORM
 
         %columns_sort_options = map {
             my $col_name       = $_->{COLUMN_NAME};
+            my $col = $args->{labels}{$col_name} || $col_name;
             my $direction      = $order_by_direction;
             my $direction_char = "";
             if ($col_name eq $order_by_column) {
@@ -1008,8 +1011,8 @@ SEARCHFORM
             }
             my $url = _external_url($args->{dancer_prefix}, $args->{prefix})
                 . "?o=$col_name&d=$direction&q=$q&searchfield=$sf";
-            $col_name =>
-                "<a href=\"$url\">$col_name&nbsp;$direction_char</a>";
+            $col =>
+                "<a href=\"$url\">$col&nbsp;$direction_char</a>";
         } @$columns;
 
         $query
