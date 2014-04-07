@@ -125,6 +125,9 @@ easy to set up and use.
                 },
             },
         },
+        custom_order => {
+            human_readable_ip => 'raw_ip',
+        },
         auth => {
             view => {
                 require_login => 1,
@@ -378,6 +381,13 @@ C<transform> is provided, sub { return shift; } will be used.
 If C<raw_column> consists of anything other than letters, numbers, and underscores,
 it is passed in raw, so you could put something like "NOW()"  or "datetime('now')"
 in there and it should work as expected.
+
+=item C<custom_order>
+
+A hashref of column to column mappings. This allows another column to be used
+as the sort key for a column. Useful if you have a column with user readable
+content and another (probably hidden) column which sorts the user readable
+column correctly.
 
 =item C<auth>
 
@@ -992,6 +1002,7 @@ SEARCHFORM
         # Invalid column name ? discard it
         my $valid = grep { $_->{COLUMN_NAME} eq $order_by_column } @$columns;
         $order_by_column = $key_column unless $valid;
+        my $order_by_table = $table_name;
 
         my $order_by_direction
             = (exists params->{'d'} && params->{'d'} eq "desc")
@@ -1015,10 +1026,20 @@ SEARCHFORM
                 "<a href=\"$url\">$col&nbsp;$direction_char</a>";
         } @$columns;
 
+        if (exists $args->{foreign_keys} and exists $args->{foreign_keys}{$order_by_column}) {
+                my $fk = $args->{foreign_keys}{$order_by_column};
+                $order_by_column = $fk->{label_column};
+                $order_by_table = $fk->{table};
+        }
+
+        $order_by_column = $args->{custom_order}{$order_by_column} if exists $args->{custom_order}{$order_by_column};
+
         $query
-            .= " ORDER BY $table_name."
-            . $dbh->quote_identifier($order_by_column) . " "
-            . $order_by_direction . " ";
+            .= " ORDER BY "
+            . ($order_by_column =~ /^\w+$/
+               ? $dbh->quote_identifier($order_by_table) . "." . $dbh->quote_identifier($order_by_column)
+               : $order_by_column)
+            . " $order_by_direction ";
     }
 
     if ($args->{paginate} && $args->{paginate} =~ /^\d+$/) {
