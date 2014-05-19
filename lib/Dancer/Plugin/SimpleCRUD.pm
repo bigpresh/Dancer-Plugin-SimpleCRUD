@@ -898,7 +898,9 @@ SEARCHFORM
 
     my $col_list = join(
         ',',
-        map({ $table_name . "." . $dbh->quote_identifier($_) }
+        map({ $table_name . "." . $dbh->quote_identifier($_) . " AS " .
+                  $dbh->quote_identifier($args->{labels}{$_} || $_)
+            }
             @select_cols),
         @foreign_cols,    # already assembled from quoted identifiers
         @custom_cols,
@@ -990,6 +992,7 @@ SEARCHFORM
         # Invalid column name ? discard it
         my $valid = grep { $_->{COLUMN_NAME} eq $order_by_column } @$columns;
         $order_by_column = $key_column unless $valid;
+        my $order_by_table = $table_name;
 
         my $order_by_direction
             = (exists params->{'d'} && params->{'d'} eq "desc")
@@ -1000,6 +1003,7 @@ SEARCHFORM
 
         %columns_sort_options = map {
             my $col_name       = $_->{COLUMN_NAME};
+            my $col = $args->{labels}{$col_name} || $col_name;
             my $direction      = $order_by_direction;
             my $direction_char = "";
             if ($col_name eq $order_by_column) {
@@ -1008,14 +1012,19 @@ SEARCHFORM
             }
             my $url = _external_url($args->{dancer_prefix}, $args->{prefix})
                 . "?o=$col_name&d=$direction&q=$q&searchfield=$sf";
-            $col_name =>
-                "<a href=\"$url\">$col_name&nbsp;$direction_char</a>";
+            $col =>
+                "<a href=\"$url\">$col&nbsp;$direction_char</a>";
         } @$columns;
 
-        $query
-            .= " ORDER BY $table_name."
-            . $dbh->quote_identifier($order_by_column) . " "
-            . $order_by_direction . " ";
+        if (exists $args->{foreign_keys} and exists $args->{foreign_keys}{$order_by_column}) {
+                my $fk = $args->{foreign_keys}{$order_by_column};
+                $order_by_column = $fk->{label_column};
+                $order_by_table = $fk->{table};
+        }
+
+        $query .= " ORDER BY "
+            . $dbh->quote_identifier($order_by_table) . "." . $dbh->quote_identifier($order_by_column)
+            . " $order_by_direction ";
     }
 
     if ($args->{paginate} && $args->{paginate} =~ /^\d+$/) {
