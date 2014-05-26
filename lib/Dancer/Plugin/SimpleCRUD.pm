@@ -35,6 +35,7 @@ use Dancer qw(:syntax);
 use Dancer::Plugin::Database;
 use HTML::Table::FromDatabase;
 use CGI::FormBuilder;
+use HTML::Entities;
 
 our $VERSION = '0.92';
 
@@ -972,7 +973,7 @@ SEARCHFORM
             $html
                 .= sprintf(
                 "<p>Showing results from searching for '%s' in '%s'",
-                params->{'q'}, params->{searchfield});
+                encode_entities(params->{'q'}), encode_entities(params->{searchfield}));
             $html .= sprintf '&mdash;<a href="%s">Reset search</a></p>',
                 _external_url($args->{dancer_prefix}, $args->{prefix});
         }
