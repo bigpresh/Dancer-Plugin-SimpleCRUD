@@ -1437,6 +1437,8 @@ Rahul Kotamaraju
 
 Michael J South (msouth)
 
+Martijn Lievaart
+
 =head1 BUGS
 
 Please report any bugs or feature requests to C<bug-dancer-plugin-simplecrud at rt.cpan.org>, or through
