@@ -1,5 +1,10 @@
 Revision history for Dancer-Plugin-SimpleCRUD
 
+0.93    2014-10-29
+        [ SECURITY ]
+        - Don't repeat search queries back to the browser without escaping, for
+          that way lies XSS.
+
 0.92    2014-03-06
         [ BUG FIXES ]
         - Make the key_column feature work properly.  Thanks to tobyink on IRC -
