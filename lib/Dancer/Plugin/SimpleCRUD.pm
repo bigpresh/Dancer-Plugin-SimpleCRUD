@@ -1330,7 +1330,7 @@ sub _ensure_auth {
     } else {
         for my $keyword (qw(require_role require_any_role require_all_roles)) {
             if (my $val = $auth_settings->{$keyword}) {
-                return $handler = Dancer::Plugin::Auth::Extensible->$keyword(
+                return $handler = Dancer::Plugin::Auth::Extensible->can($keyword)->(
                     $val, $handler
                 );
             }
