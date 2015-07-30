@@ -1,5 +1,11 @@
 Revision history for Dancer-Plugin-SimpleCRUD
 
+0.94    2015-07-30
+        [ ENHANCEMENTS ]
+        - Note that you should provide your DB config to D::P::D - as a result
+          of confusion of a newbie on IRC - thanks for letting me see that the
+          instructions just assumed that point was obvious, when it wasn't
+
 0.93    2014-10-29
         [ SECURITY ]
         - Don't repeat search queries back to the browser without escaping, for
