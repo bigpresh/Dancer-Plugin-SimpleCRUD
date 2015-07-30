@@ -37,7 +37,7 @@ use HTML::Table::FromDatabase;
 use CGI::FormBuilder;
 use HTML::Entities;
 
-our $VERSION = '0.93';
+our $VERSION = '0.94';
 
 =encoding utf8
 
