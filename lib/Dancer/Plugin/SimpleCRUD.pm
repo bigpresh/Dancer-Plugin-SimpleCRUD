@@ -61,6 +61,11 @@ easy to set up and use.
 
 =head1 SYNOPSIS
 
+The following assumes that you already have a working L<Dancer> app and have
+put your database connection details in your C<config.yml> to be read by
+L<Dancer::Plugin::Database>, which this plugin uses in order to obtain a database
+connection.
+
     # In your Dancer app,
     use Dancer::Plugin::SimpleCRUD;
 
