@@ -1,4 +1,7 @@
-Revision history for Dancer-Plugin-SimpleCRUD
+Revision history for Dancer-Plugin-SimpleCRUD 
+0.96    2016-07-21
+        [ BUG FIXES ]
+        - Fix uninitialized value errors when re-sorting and downloading searches
 
 0.95    2016-07-21
         [ BUG FIXES ]
