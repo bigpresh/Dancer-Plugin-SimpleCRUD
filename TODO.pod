@@ -81,3 +81,5 @@ done via an AJAX call too)
 
 If we recognise a field as a password field, present a "Type your password
 again" box, and add code to validate that the passwords match.
+
+=back
