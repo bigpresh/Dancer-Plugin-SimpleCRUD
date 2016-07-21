@@ -1,5 +1,11 @@
 Revision history for Dancer-Plugin-SimpleCRUD
 
+0.95    2016-07-21
+        [ BUG FIXES ]
+        - Fix uninitialized value errors when paginating searches
+        - Fix issue with markup in POD
+        - Disallows expansion of sprintf format strings in urls.
+
 0.94    2015-07-30
         [ ENHANCEMENTS ]
         - Note that you should provide your DB config to D::P::D - as a result

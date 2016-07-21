@@ -37,7 +37,7 @@ use HTML::Table::FromDatabase;
 use CGI::FormBuilder;
 use HTML::Entities;
 
-our $VERSION = '0.94';
+our $VERSION = '0.95';
 
 =encoding utf8
 
@@ -1053,6 +1053,7 @@ SEARCHFORM
 
         my $q    = params->{'q'}         || "";
         my $sf   = params->{searchfield} || "";
+        my $st   = params->{searchtype} || "";
         my $o    = params->{'o'}         || "";
         my $d    = params->{'d'}         || "";
         my $page = params->{'p'}         || 0;
@@ -1062,13 +1063,13 @@ SEARCHFORM
         my $limit  = $page_size;
 
         my $url = _external_url($args->{dancer_prefix}, $args->{prefix})
-            . "?o=$o&d=$d&q=$q&searchfield=$sf";
+            . "?o=$o&d=$d&q=$q&searchfield=$sf&searchtype=$st";
         $html .= "<p>";
         if ($page > 0) {
             $html
                 .= sprintf(
-                "<a href=\"$url&p=%d\">&larr;&nbsp;prev.&nbsp;page</a>",
-                $page - 1)
+                "<a href=\"%s&p=%d\">&larr;&nbsp;prev.&nbsp;page</a>",
+                $url, $page - 1)
         } else {
             $html .= "&larr;&nbsp;prev.&nbsp;page&nbsp";
         }
@@ -1081,8 +1082,8 @@ SEARCHFORM
         );
         $html .= "&nbsp;" x 5;
         $html
-            .= sprintf("<a href=\"$url&p=%d\">next&nbsp;page&nbsp;&rarr;</a>",
-            $page + 1);
+            .= sprintf("<a href=\"%s&p=%d\">next&nbsp;page&nbsp;&rarr;</a>",
+            $url, $page + 1);
         $html .= "<p>";
 
         $query .= " LIMIT $limit OFFSET $offset ";
