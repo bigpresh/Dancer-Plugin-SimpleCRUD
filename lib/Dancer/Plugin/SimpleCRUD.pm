@@ -1023,6 +1023,7 @@ SEARCHFORM
     if ($args->{downloadable}) {
         my $q    = params->{'q'}         || "";
         my $sf   = params->{searchfield} || "";
+        my $st   = params->{searchtype} || "";
         my $o    = params->{'o'}         || "";
         my $d    = params->{'d'}         || "";
         my $page = params->{'p'}         || 0;
@@ -1030,7 +1031,7 @@ SEARCHFORM
         my @formats = qw/csv tabular json xml/;
 
         my $url = _external_url($args->{dancer_prefix}, $args->{prefix})
-            . "?o=$o&d=$d&q=$q&searchfield=$sf&p=$page";
+            . "?o=$o&d=$d&q=$q&searchfield=$sf&searchtype=$st&p=$page";
 
         $html
             .= "<p>Download as: "
@@ -1044,6 +1045,7 @@ SEARCHFORM
     if ($args->{sortable}) {
         my $q               = params->{'q'}         || "";
         my $sf              = params->{searchfield} || "";
+        my $st              = params->{searchtype} || "";
         my $order_by_column = params->{'o'}         || $key_column;
 
         # Invalid column name ? discard it
@@ -1068,7 +1070,7 @@ SEARCHFORM
                 $direction_char = ($direction eq "asc") ? "&uarr;" : "&darr;";
             }
             my $url = _external_url($args->{dancer_prefix}, $args->{prefix})
-                . "?o=$col_name&d=$direction&q=$q&searchfield=$sf";
+                . "?o=$col_name&d=$direction&q=$q&searchfield=$sf&searchtype=$st";
             $col =>
                 "<a href=\"$url\">$col&nbsp;$direction_char</a>";
         } @$columns;
