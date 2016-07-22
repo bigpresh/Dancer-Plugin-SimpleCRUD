@@ -1,5 +1,11 @@
 Revision history for Dancer-Plugin-SimpleCRUD
 
+0.96    2016-07-21
+        [BUG FIXES]
+        - less cryptic error message when you specify a non-existent table
+        [ ENHANCEMENTS ]
+        - view route (/prefix/view/:id)
+
 0.95    2016-07-21
         [ BUG FIXES ]
         - Fix uninitialized value errors when paginating searches
