@@ -1279,6 +1279,8 @@ sub _find_columns {
         push @columns, {%$col};
     }
 
+    die "no columns for table [$table_name]--are you sure this table exists in the database [$dbh->{Driver}->{Name}:$dbh->{Name}]?" unless @columns;
+
     # Return the columns, sorted by their position in the table:
     return [sort { $a->{ORDINAL_POSITION} <=> $b->{ORDINAL_POSITION} }
             @columns];
