@@ -1,19 +1,21 @@
 Revision history for Dancer-Plugin-SimpleCRUD 
-0.96    2016-07-21
-        [ BUG FIXES ]
-        - Fix uninitialized value errors when re-sorting and downloading searches
 
-0.96    2016-07-21
-        [BUG FIXES]
+0.96    2016-07-22
+        [ BUG FIXES ]
+        - Fix uninitialized value errors when re-sorting and downloading
+          searches (joshrabinowitz)
         - less cryptic error message when you specify a non-existent table
+          (msouth)
         [ ENHANCEMENTS ]
-        - view route (/prefix/view/:id)
+        - view route (/prefix/view/:id) (msouth)
 
 0.95    2016-07-21
         [ BUG FIXES ]
         - Fix uninitialized value errors when paginating searches
-        - Fix issue with markup in POD
+          (joshrabinowitz)
+        - Fix issue with markup in POD (joshrabinowitz)
         - Disallows expansion of sprintf format strings in urls.
+          (joshrabinowitz)
 
 0.94    2015-07-30
         [ ENHANCEMENTS ]
