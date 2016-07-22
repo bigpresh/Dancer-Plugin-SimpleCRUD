@@ -37,7 +37,7 @@ use HTML::Table::FromDatabase;
 use CGI::FormBuilder;
 use HTML::Entities;
 
-our $VERSION = '0.95';
+our $VERSION = '0.96';
 
 =encoding utf8
 
@@ -82,6 +82,9 @@ connection.
     # C</widgets/edit/:id> respectively) where a form to add a new entry or edit
     # an existing entry will be created.
     # All fields in the database table would be editable.
+    #
+    # There is also a view route, C</widgets/view/:id>, which shows all the values
+    # for the fields of a single database entry.
 
     # A more in-depth synopsis, using all options (of course, usually you'd only
     # need to use a few of the options where you need to change the default
@@ -539,7 +542,40 @@ CONFIRMDELETE
         _ensure_auth('edit', $delete_handler, \%args);
         post qr[$del_url_stub/?(.+)?$] => $delete_handler;
     }
+    my $view_url_stub = _construct_url(
+        $args{dancer_prefix}, $args{prefix}, '/view'
+    );
+    my $view_handler = _ensure_auth(
+        'view',
+        sub { _create_view_handler(\%args, $table_name, $key_column); },
+        \%args,
+    );
 
+    get $view_url_stub.'/:id' => $view_handler;
+}
+
+sub _create_view_handler {
+    my ($args, $table_name, $key_column) = @_;
+    my $params = params;
+    my $id     = $params->{id} or return _apply_template("<p>Need id to view!</p>", $args->{'template'});
+
+    my $dbh = database($args->{db_connection_name});
+
+    # a hash containing the current values in the database
+    my $values_from_database = $dbh->quick_select($table_name, { $key_column => $id });
+
+    # Find out about table columns:
+    my $all_table_columns = _find_columns($dbh, $args->{db_table});
+    my @rows = (['Column Name', 'Value']);
+    my $table = HTML::Table->new( -border=>1 );
+    $table->addSectionRow('thead', 0, 'Column Name', 'Value');
+    $table->setSectionCellHead('thead', 0, 1, 1, 1);
+    $table->setSectionCellHead('thead', 0, 1, 2, 1);
+    foreach my $col (@$all_table_columns) {
+        $table->addSectionRow('tbody', 0, $col->{COLUMN_NAME}, $values_from_database->{$col->{COLUMN_NAME}});
+    }
+    my $html = $table->getTable || '';
+    return _apply_template($html, $args->{'template'});
 }
 
 register simple_crud => \&simple_crud;
@@ -1278,6 +1314,8 @@ sub _find_columns {
         # Push a copy of the hashref, as I think DBI re-uses them
         push @columns, {%$col};
     }
+
+    die "no columns for table [$table_name]--are you sure this table exists in the database [$dbh->{Driver}->{Name}:$dbh->{Name}]?" unless @columns;
 
     # Return the columns, sorted by their position in the table:
     return [sort { $a->{ORDINAL_POSITION} <=> $b->{ORDINAL_POSITION} }
