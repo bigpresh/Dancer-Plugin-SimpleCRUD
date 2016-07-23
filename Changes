@@ -1,5 +1,11 @@
 Revision history for Dancer-Plugin-SimpleCRUD 
 
+0.98    2016-07-23
+        [ENHANCEMENTS]
+        - allow searching for 0 (joshrabinowitz)
+        - improve search descriptions (joshrabinowitz)
+        - make searchtype option menu stick (joshrabinowitz)
+
 0.97    2016-07-23
         [ENHANCEMENTS]
         - Allow for searching on non-alphanumerics (joshrabinowitz)
