@@ -888,9 +888,9 @@ sub _create_list_handler {
     );
     my $searchtype_options = join( "\n",
         map { 
-            my ($code, $string) = @$_;
-            my $sel = _defined_or_empty(params->{searchtype}) eq $code;
-            sprintf("<option value='%s'%s>%s</option>", $code, $sel ? " selected" : "", $string);
+            my ($search_code, $string) = @$_;
+            my $sel = _defined_or_empty(params->{searchtype}) eq $search_code;
+            sprintf("<option value='%s'%s>%s</option>", $search_code, $sel ? " selected" : "", $string);
         } @searchtypes 
     );
 
@@ -1004,7 +1004,7 @@ SEARCHFORM
     }
 
     # If we have a query, we need to assemble a WHERE clause...
-    if (defined(params->{'q'})) {
+    if (length $q) {
         my ($column_data)
             = grep { lc $_->{COLUMN_NAME} eq lc params->{searchfield} }
             @{$columns};
@@ -1015,7 +1015,7 @@ SEARCHFORM
         my $st = params->{searchtype};
 
         if ($column_data) {
-            my $search_value = params->{'q'};
+            my $search_value = $q;
             if ($st eq 'c' || $st eq 'nc') {
                 $search_value = '%' . $search_value . '%';
             }
@@ -1034,7 +1034,7 @@ SEARCHFORM
             $html
                 .= sprintf(
                 "<p>Showing results from searching for '%s' %s '%s'",
-                encode_entities(params->{searchfield}), $matchtype, encode_entities(params->{'q'}), 
+                encode_entities(params->{searchfield}), $matchtype, encode_entities($q)
             );
             $html .= sprintf '&mdash;<a href="%s">Reset search</a></p>',
                 _external_url($args->{dancer_prefix}, $args->{prefix});
@@ -1042,7 +1042,7 @@ SEARCHFORM
     }
 
     if ($args->{downloadable}) {
-        my $q    = uri_escape(_defined_or_empty(params->{'q'}));
+        my $qt   = uri_escape($q);
         my $sf   = uri_escape(params->{searchfield} || "");
         my $st   = uri_escape(params->{searchtype} || "");
         my $o    = uri_escape(params->{'o'}         || "");
@@ -1052,7 +1052,7 @@ SEARCHFORM
         my @formats = qw/csv tabular json xml/;
 
         my $url = _external_url($args->{dancer_prefix}, $args->{prefix})
-            . "?o=$o&d=$d&q=$q&searchfield=$sf&searchtype=$st&p=$page";
+            . "?o=$o&d=$d&q=$qt&searchfield=$sf&searchtype=$st&p=$page";
 
         $html
             .= "<p>Download as: "
@@ -1064,7 +1064,7 @@ SEARCHFORM
     ## (will be used with HTML::Table::FromDatabase's "-rename_columns" parameter.
     my %columns_sort_options;
     if ($args->{sortable}) {
-        my $q               = uri_escape(_defined_or_empty(params->{'q'}));
+        my $qt              = uri_escape($q);
         my $sf              = uri_escape(params->{searchfield} || "");
         my $st              = uri_escape(params->{searchtype} || "");
         my $order_by_column = uri_escape(params->{'o'})        || $key_column;
@@ -1110,7 +1110,7 @@ SEARCHFORM
     if ($args->{paginate} && $args->{paginate} =~ /^\d+$/) {
         my $page_size = $args->{paginate};
 
-        my $q    = uri_escape(_defined_or_empty(params->{'q'}));
+        my $qt   = uri_escape($q);
         my $sf   = uri_escape(params->{searchfield} || "");
         my $st   = uri_escape(params->{searchtype} || "");
         my $o    = uri_escape(params->{'o'}         || "");
@@ -1122,7 +1122,7 @@ SEARCHFORM
         my $limit  = $page_size;
 
         my $url = _external_url($args->{dancer_prefix}, $args->{prefix})
-            . "?o=$o&d=$d&q=$q&searchfield=$sf&searchtype=$st";
+            . "?o=$o&d=$d&q=$qt&searchfield=$sf&searchtype=$st";
         $html .= "<p>";
         if ($page > 0) {
             $html
@@ -1259,8 +1259,9 @@ sub _return_downloadable_query {
         $order =~ s/[^\w\.\-]+/_/g;
         $filename .= "__sorted_by_" . $order;
     }
-    if (defined params->{'q'}) {
-        my $query = params->{'q'};
+    my $q = _defined_or_empty(params->{'q'});
+    if (length($q)) {
+        my $query = $q;
         $query =~ s/[^\w\.\-]+/_/g;
         $filename .= "__query_" . $query;
     }
