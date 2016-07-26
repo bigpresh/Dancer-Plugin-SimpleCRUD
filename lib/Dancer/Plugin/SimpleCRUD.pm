@@ -38,7 +38,7 @@ use CGI::FormBuilder;
 use HTML::Entities;
 use URI::Escape;
 
-our $VERSION = '0.97';
+our $VERSION = '0.98';
 
 =encoding utf8
 
@@ -869,7 +869,7 @@ sub _create_list_handler {
         }
     }
 
-    my $options = join(
+    my $searchfield_options = join(
         "\n",
         map {
             my $sel
@@ -880,18 +880,28 @@ sub _create_list_handler {
             "<option $sel value='$_->{COLUMN_NAME}'>$_->{COLUMN_NAME}</option>"
             } @$columns
     );
+    my @searchtypes = (
+        [ c => "Contains" ],
+        [ e => "Equals" ],
+        [ nc => "Does Not Contain" ],
+        [ ne => "Does Not Equal" ],
+    );
+    my $searchtype_options = join( "\n",
+        map { 
+            my ($search_code, $string) = @$_;
+            my $sel = _defined_or_empty(params->{searchtype}) eq $search_code;
+            sprintf("<option value='%s'%s>%s</option>", $search_code, $sel ? " selected" : "", $string);
+        } @searchtypes 
+    );
 
     my $order_by_param     = params->{'o'} || "";
     my $order_by_direction = params->{'d'} || "";
-    my $q                   = params->{'q'} || "";
+    my $q                   = _defined_or_empty(params->{'q'});
     my $display_q           = encode_entities( $q );
     my $html               = <<"SEARCHFORM";
  <p><form name="searchform" method="get">
-     Field:  <select name="searchfield">$options</select> &nbsp;&nbsp;
-     <select name="searchtype">
-     <option value="c">Contains</option><option value="e">Equals</option>
-     <option value="nc">Does Not Contain</option><option value="ne">Does Not Equal</option>
-     </select>&nbsp;&nbsp;
+     Field:  <select name="searchfield">$searchfield_options</select> &nbsp;&nbsp;
+     <select name="searchtype">$searchtype_options</select>&nbsp;&nbsp;
      <input name="q" id="searchquery" type="text" size="30" value="$display_q" /> &nbsp;&nbsp;
      <input name="o" type="hidden" value="$order_by_param"/>
      <input name="d" type="hidden" value="$order_by_direction"/>
@@ -994,7 +1004,7 @@ SEARCHFORM
     }
 
     # If we have a query, we need to assemble a WHERE clause...
-    if (params->{'q'}) {
+    if (length $q) {
         my ($column_data)
             = grep { lc $_->{COLUMN_NAME} eq lc params->{searchfield} }
             @{$columns};
@@ -1002,33 +1012,37 @@ SEARCHFORM
             "Searching on $column_data->{COLUMN_NAME} which is a "
             . "$column_data->{TYPE_NAME}"
         );
+        my $st = params->{searchtype};
 
         if ($column_data) {
-            my $search_value = params->{'q'};
-            if (params->{searchtype} eq 'c' || params->{searchtype} eq 'nc') {
+            my $search_value = $q;
+            if ($st eq 'c' || $st eq 'nc') {
                 $search_value = '%' . $search_value . '%';
             }
 
             $query
                 .= " WHERE $table_name."
                 . $dbh->quote_identifier(params->{searchfield})
-                . (params->{searchtype} eq 'c' ? 'LIKE' :
-                   params->{searchtype} eq 'nc' ? 'NOT LIKE' :
-                   params->{searchtype} eq 'ne' ? '!=' : '=')
+                . ($st eq 'c' ? 'LIKE' :
+                   $st eq 'nc' ? 'NOT LIKE' :
+                   $st eq 'ne' ? '!=' : '=')
                 . $dbh->quote($search_value);
 
-            my $matchtype = params->{searchtype} =~ /e$/ ? "equals" : "in";
+            my $matchtype = $st eq "c" ? "contains": 
+                            $st eq "nc" ? "does not contain" :
+                            $st eq "ne" ? "does not equal": "equals";
             $html
                 .= sprintf(
                 "<p>Showing results from searching for '%s' %s '%s'",
-                encode_entities(params->{'q'}), (params->{searchtype} =~ /^n/) ? "not $matchtype" : $matchtype, encode_entities(params->{searchfield}));
+                encode_entities(params->{searchfield}), $matchtype, encode_entities($q)
+            );
             $html .= sprintf '&mdash;<a href="%s">Reset search</a></p>',
                 _external_url($args->{dancer_prefix}, $args->{prefix});
         }
     }
 
     if ($args->{downloadable}) {
-        my $q    = uri_escape(params->{'q'}         || "");
+        my $qt   = uri_escape($q);
         my $sf   = uri_escape(params->{searchfield} || "");
         my $st   = uri_escape(params->{searchtype} || "");
         my $o    = uri_escape(params->{'o'}         || "");
@@ -1038,7 +1052,7 @@ SEARCHFORM
         my @formats = qw/csv tabular json xml/;
 
         my $url = _external_url($args->{dancer_prefix}, $args->{prefix})
-            . "?o=$o&d=$d&q=$q&searchfield=$sf&searchtype=$st&p=$page";
+            . "?o=$o&d=$d&q=$qt&searchfield=$sf&searchtype=$st&p=$page";
 
         $html
             .= "<p>Download as: "
@@ -1050,7 +1064,7 @@ SEARCHFORM
     ## (will be used with HTML::Table::FromDatabase's "-rename_columns" parameter.
     my %columns_sort_options;
     if ($args->{sortable}) {
-        my $q               = uri_escape(params->{'q'}         || "");
+        my $qt              = uri_escape($q);
         my $sf              = uri_escape(params->{searchfield} || "");
         my $st              = uri_escape(params->{searchtype} || "");
         my $order_by_column = uri_escape(params->{'o'})        || $key_column;
@@ -1096,7 +1110,7 @@ SEARCHFORM
     if ($args->{paginate} && $args->{paginate} =~ /^\d+$/) {
         my $page_size = $args->{paginate};
 
-        my $q    = uri_escape(params->{'q'}         || "");
+        my $qt   = uri_escape($q);
         my $sf   = uri_escape(params->{searchfield} || "");
         my $st   = uri_escape(params->{searchtype} || "");
         my $o    = uri_escape(params->{'o'}         || "");
@@ -1108,7 +1122,7 @@ SEARCHFORM
         my $limit  = $page_size;
 
         my $url = _external_url($args->{dancer_prefix}, $args->{prefix})
-            . "?o=$o&d=$d&q=$q&searchfield=$sf&searchtype=$st";
+            . "?o=$o&d=$d&q=$qt&searchfield=$sf&searchtype=$st";
         $html .= "<p>";
         if ($page > 0) {
             $html
@@ -1245,8 +1259,9 @@ sub _return_downloadable_query {
         $order =~ s/[^\w\.\-]+/_/g;
         $filename .= "__sorted_by_" . $order;
     }
-    if (params->{'q'}) {
-        my $query = params->{'q'};
+    my $q = _defined_or_empty(params->{'q'});
+    if (length($q)) {
+        my $query = $q;
         $query =~ s/[^\w\.\-]+/_/g;
         $filename .= "__query_" . $query;
     }
@@ -1420,6 +1435,10 @@ sub _has_permission {
     return 0;
 }
 
+sub _defined_or_empty {
+    my $v = shift;
+    return defined($v) ? $v : "";
+}
 
 
 =back
