@@ -38,7 +38,7 @@ use CGI::FormBuilder;
 use HTML::Entities;
 use URI::Escape;
 
-our $VERSION = '0.98';
+our $VERSION = '0.99';
 
 =encoding utf8
 
@@ -190,6 +190,18 @@ The name of the database table.
 
 Specify which column in the table is the primary key.  If not given, defaults to
 id.
+
+=item C<where_filter> (optional, default: '')
+
+Specify a where clause to use to filter the table. For example, 
+    
+    simple_crud(
+        prefix => 'bar',
+        where_filter => 'id > 1000',
+        ...
+    );
+
+This would cause only rows with an id of over 1000 to be displayed.
 
 =item C<db_connection_name> (optional)
 
@@ -1003,42 +1015,47 @@ SEARCHFORM
         }
     }
 
-    # If we have a query, we need to assemble a WHERE clause...
-    if (length $q) {
-        my ($column_data)
-            = grep { lc $_->{COLUMN_NAME} eq lc params->{searchfield} }
-            @{$columns};
-        debug(
-            "Searching on $column_data->{COLUMN_NAME} which is a "
-            . "$column_data->{TYPE_NAME}"
-        );
-        my $st = params->{searchtype};
-
-        if ($column_data) {
-            my $search_value = $q;
-            if ($st eq 'c' || $st eq 'nc') {
-                $search_value = '%' . $search_value . '%';
-            }
-
-            $query
-                .= " WHERE $table_name."
-                . $dbh->quote_identifier(params->{searchfield})
-                . ($st eq 'c' ? 'LIKE' :
-                   $st eq 'nc' ? 'NOT LIKE' :
-                   $st eq 'ne' ? '!=' : '=')
-                . $dbh->quote($search_value);
-
-            my $matchtype = $st eq "c" ? "contains": 
-                            $st eq "nc" ? "does not contain" :
-                            $st eq "ne" ? "does not equal": "equals";
-            $html
-                .= sprintf(
-                "<p>Showing results from searching for '%s' %s '%s'",
-                encode_entities(params->{searchfield}), $matchtype, encode_entities($q)
+    # If we have a query or a where_filter, we need to assemble a WHERE clause...
+    my $where_filter = $args->{where_filter};
+    if (length $q || $where_filter) {
+        my @wheres = $where_filter ? ($where_filter) : ();
+        if (length $q) {
+            my ($column_data)
+                = grep { lc $_->{COLUMN_NAME} eq lc params->{searchfield} }
+                @{$columns};
+            debug(
+                "Searching on $column_data->{COLUMN_NAME} which is a "
+                . "$column_data->{TYPE_NAME}"
             );
-            $html .= sprintf '&mdash;<a href="%s">Reset search</a></p>',
-                _external_url($args->{dancer_prefix}, $args->{prefix});
+            my $st = params->{searchtype};
+
+            if ($column_data) {
+                my $search_value = $q;
+                if ($st eq 'c' || $st eq 'nc') {
+                    $search_value = '%' . $search_value . '%';
+                }
+
+                push(@wheres,
+                    "$table_name."
+                    . $dbh->quote_identifier(params->{searchfield})
+                    . ($st eq 'c' ? 'LIKE' :
+                       $st eq 'nc' ? 'NOT LIKE' :
+                       $st eq 'ne' ? '!=' : '=')
+                    . $dbh->quote($search_value));
+
+                my $matchtype = $st eq "c" ? "contains": 
+                                $st eq "nc" ? "does not contain" :
+                                $st eq "ne" ? "does not equal": "equals";
+                $html
+                    .= sprintf(
+                    "<p>Showing results from searching for '%s' %s '%s'",
+                    encode_entities(params->{searchfield}), $matchtype, encode_entities($q)
+                );
+                $html .= sprintf '&mdash;<a href="%s">Reset search</a></p>',
+                    _external_url($args->{dancer_prefix}, $args->{prefix});
+            }
         }
+        $query .= " where " . join( " AND ", @wheres);
     }
 
     if ($args->{downloadable}) {
