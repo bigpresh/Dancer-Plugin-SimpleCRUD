@@ -203,6 +203,12 @@ Specify one or more 'where' clauses to use to filter the table. For example:
 
 This would cause only rows with an user_id of 1000 to be displayed.
 
+The C<where_filter> parameter takes a hashref describing the WHERE clause, as 
+used by L<Dancer::Plugin::Database>'s C<quick_select> convenience method for
+example - see the 
+L<where clause documentation in Dancer::Plugin::Database::Core::Handle|Dancer::Plugin::Database::Core::Handle/WHERE-clauses-as-hashrefs>.
+
+
 =item C<db_connection_name> (optional)
 
 We use L<Dancer::Plugin::Database> to obtain database connections.  This option
