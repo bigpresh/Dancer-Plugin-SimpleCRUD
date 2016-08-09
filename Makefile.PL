@@ -15,6 +15,7 @@ WriteMakefile(
         'Test::More' => 0,
         'Dancer'     => 1.3,
         'Dancer::Plugin::Database' => 1.00,
+        'Dancer::Plugin::Database::Core' => 0.15,
         'HTML::Table::FromDatabase' => 1.10,
         'CGI::FormBuilder' => 0,
         'DBD::CSV'   => 0,
