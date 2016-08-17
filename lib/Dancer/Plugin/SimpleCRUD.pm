@@ -1033,9 +1033,9 @@ SEARCHFORM
         # If $where_filter is a coderef, we want to call it and use its result
         # as a runtime-generated where clause
         if (ref $where_filter eq 'CODE') {
-            my $result = $where_filter-();
+            my $result = &$where_filter;
             if (ref $result ne 'HASH') {
-                die "where_filter coderef didn't return a hashref!";
+                die "where_filter coderef didn't return a hashref - got " . $result;
             } else {
                 $where_filter = $result;
             }
