@@ -208,6 +208,11 @@ used by L<Dancer::Plugin::Database>'s C<quick_select> convenience method for
 example - see the 
 L<where clause documentation in Dancer::Plugin::Database::Core::Handle|Dancer::Plugin::Database::Core::Handle/WHERE-clauses-as-hashrefs>.
 
+Alternatively, if the filter condition needs to be calculated at runtime (for
+example, based on the logged in user calling it), then you can provide a coderef
+which returns the WHERE clause hashref - for instance:
+
+  where_filter => sub { { customer_id => logged_in_user()->{customer_id} } },
 
 =item C<db_connection_name> (optional)
 
@@ -1025,7 +1030,22 @@ SEARCHFORM
     # If we have a query or a where_filter, we need to assemble a WHERE clause...
     my $where_filter = $args->{where_filter};
     if (length $q || $where_filter) {
-        my ($where_filter_sql, @where_filter_binds) = $dbh->generate_where_clauses($where_filter);
+        # If $where_filter is a coderef, we want to call it and use its result
+        # as a runtime-generated where clause
+        if (ref $where_filter eq 'CODE') {
+            my $result = $where_filter-();
+            if (ref $result ne 'HASH') {
+                die "where_filter coderef didn't return a hashref!";
+            } else {
+                $where_filter = $result;
+            }
+        }
+        
+        # Turn the $where_filter hashref into some SQL clauses and bind params,
+        # which we'll add to with the user's search params shortly
+        my ($where_filter_sql, @where_filter_binds)
+            = $dbh->generate_where_clauses($where_filter);
+
         my (@search_wheres, @search_binds);
         if (length $q) {    # this nested code is all for queries in $q
             my ($column_data)
