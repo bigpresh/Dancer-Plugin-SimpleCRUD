@@ -1,5 +1,11 @@
 Revision history for Dancer-Plugin-SimpleCRUD 
 
+{$NEXT}
+        [ ENHANCEMENTS]
+        - Allow where_filter to be a coderef, for runtime determination
+          of criteria
+        - Better document hook support.
+
 0.99    2016-08-11
         [ENHANCEMENTS]
         - Add where_filter option, for easy display and 
