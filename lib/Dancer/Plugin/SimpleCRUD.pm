@@ -1496,13 +1496,13 @@ sub _defined_or_empty {
 # places.  Returns a hashref, ready for us to add other stuff to in most cases
 # (e.g. usually we'd call this, then add $key_column => ... to it)
 sub _get_where_filter_from_args {
-    my %args = @_;
-    return unless $args{where_filter};
+    my $args = shift;
+    return unless $args->{where_filter};
 
-    if (ref $args{where_filter} eq 'HASH') {
-        return $args{where_filter};
-    } elsif (ref $args{where_filter} eq 'CODE') {
-        my $result = $args{where_filter}->();
+    if (ref $args->{where_filter} eq 'HASH') {
+        return $args->{where_filter};
+    } elsif (ref $args->{where_filter} eq 'CODE') {
+        my $result = $args->{where_filter}->();
         if (ref $result eq 'HASH') {
             return $result;
         } else {
