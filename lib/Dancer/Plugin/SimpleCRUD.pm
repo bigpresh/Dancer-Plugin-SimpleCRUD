@@ -1511,6 +1511,9 @@ C<simple_crud>, in which case what you say goes.)
 
 =head1 Hooks
 
+Hooks are provided, which can be used in the normal Dancer way, using the 
+C<hook> keyword.
+
 =head2 add_edit_row (deprecated, use add_edit_row_pre_save)
 
 You can use the same code from your add_edit_row hook in an add_edit_row_pre_save
@@ -1533,7 +1536,15 @@ C<dbh> giving you the instance of the handle used to save the entity
 'create new' or 'update').
 
 For instance, if you were dealing with a users table, you could use the
-pre_save hook to hash the password before storing it.
+pre_save hook to hash the password before storing it - assuming for the sake
+of example that you have a C<hash_pw()> function to return a hashed password:
+
+  hook add_edit_row_pre_save => sub {
+      my $args = shift;
+      if ($args->{table_name} eq 'user') {
+          $args->{params}{password} = hash_pw($args->{params}{password});
+      }
+  };
 
 =head1 AUTHOR
 
