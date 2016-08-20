@@ -201,7 +201,8 @@ Specify one or more 'where' clauses to use to filter the table. For example:
         ...
     );
 
-This would cause only rows with an user_id of 1000 to be displayed.
+This would cause only rows with an user_id of 1000 to be displayed in listings
+and search results, viewed, edited etc.
 
 The C<where_filter> parameter takes a hashref describing the WHERE clause, as 
 used by L<Dancer::Plugin::Database>'s C<quick_select> convenience method for
@@ -557,7 +558,9 @@ CONFIRMDELETE
         my $delete_handler = sub {
             my ($id) = params->{record_id} || splat;
             my $dbh = database($args{db_connection_name});
-            $dbh->quick_delete($table_name, { $key_column => $id })
+            my $where = _get_where_filter_from_args(\%args);
+            $where->{$key_column} = $id;
+            $dbh->quick_delete($table_name, $where)
                 or return _apply_template("<p>Failed to delete!</p>",
                 $args{'template'});
 
@@ -585,8 +588,13 @@ sub _create_view_handler {
 
     my $dbh = database($args->{db_connection_name});
 
-    # a hash containing the current values in the database
-    my $values_from_database = $dbh->quick_select($table_name, { $key_column => $id });
+    # a hash containing the current values in the database.  Take where_filter
+    # into account, so we can't fetch a row if it doesn't match the filter
+    # (otherwise people could load any record they wished just by changing the
+    # ID in the URL, which would be considered a Bad Thing)
+    my $where = _get_where_filter_from_args($args);
+    $where->{$key_column} = $id;
+    my $values_from_database = $dbh->quick_select($table_name, $where);
 
     # Find out about table columns:
     my $all_table_columns = _find_columns($dbh, $args->{db_table});
@@ -620,8 +628,10 @@ sub _create_add_edit_route {
     # a hash containing the current values in the database
     my $values_from_database;
     if ($id) {
+        my $where = _get_where_filter_from_args($args);
+        $where->{$key_column} = $id;
         $values_from_database
-            = $dbh->quick_select($table_name, { $key_column => $id });
+            = $dbh->quick_select($table_name, $where);
     }
 
     # Find out about table columns:
@@ -823,9 +833,12 @@ sub _create_add_edit_route {
         my $success;
         if (exists params('route')->{id}) {
 
-            # We're editing an existing record
-            $success = $dbh->quick_update($table_name,
-                { $key_column => params('route')->{id} }, \%params);
+            # We're editing an existing record - make sure the WHERE clause
+            # hashref incorporates where_filter, if in use, so that users can't
+            # edit stuff they shouldn't be able to
+            my $where = _get_where_filter_from_args($args);
+            $where->{$key_column} = params('route')->{id};
+            $success = $dbh->quick_update($table_name, $where, \%params);
             $verb = 'update';
         } else {
             $success = $dbh->quick_insert($table_name, \%params);
@@ -1028,18 +1041,8 @@ SEARCHFORM
     }
 
     # If we have a query or a where_filter, we need to assemble a WHERE clause...
-    my $where_filter = $args->{where_filter};
+    my $where_filter = _get_where_filter_from_args($args);
     if (length $q || $where_filter) {
-        # If $where_filter is a coderef, we want to call it and use its result
-        # as a runtime-generated where clause
-        if (ref $where_filter eq 'CODE') {
-            my $result = &$where_filter;
-            if (ref $result ne 'HASH') {
-                die "where_filter coderef didn't return a hashref - got " . $result;
-            } else {
-                $where_filter = $result;
-            }
-        }
         
         # Turn the $where_filter hashref into some SQL clauses and bind params,
         # which we'll add to with the user's search params shortly
@@ -1488,6 +1491,29 @@ sub _defined_or_empty {
     return defined($v) ? $v : "";
 }
 
+# where_filter  "if it's a coderef, call it and check it gave us a hashref to
+# use, otherwise expect it to be a hashref" logic as we need this in several
+# places.  Returns a hashref, ready for us to add other stuff to in most cases
+# (e.g. usually we'd call this, then add $key_column => ... to it)
+sub _get_where_filter_from_args {
+    my $args = shift;
+    return unless $args->{where_filter};
+
+    if (ref $args->{where_filter} eq 'HASH') {
+        return $args->{where_filter};
+    } elsif (ref $args->{where_filter} eq 'CODE') {
+        my $result = $args->{where_filter}->();
+        if (ref $result eq 'HASH') {
+            return $result;
+        } else {
+            # TODO: better error reporting, so we know which one caused
+            # the problem
+            die "where_filter coderef didn't return a hashref!";
+        }
+    } else {
+        die "Invalid where_filter";
+    }
+}
 
 =back
 
