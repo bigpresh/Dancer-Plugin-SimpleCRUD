@@ -1248,6 +1248,8 @@ SEARCHFORM
             transform=> ($args->{custom_columns}->{$column_alias}->{transform} or sub { return shift;}),
         };
     }
+
+
     my $table = HTML::Table::FromDatabase->new(
         -sth       => $sth,
         -border    => 1,
@@ -1281,7 +1283,7 @@ SEARCHFORM
             },
             @custom_callbacks,
         ],
-        -rename_headers      => \%columns_sort_options,
+        -rename_headers      => $args->{labels},
         -auto_pretty_headers => 1,
         -html                => 'escape',
         -class               => "$table_class",
