@@ -140,7 +140,7 @@ connection.
                 require_login => 1,
             },
             edit => {
-                require_role => 1,
+                require_role => 'Admin',
             },
         },
     );
