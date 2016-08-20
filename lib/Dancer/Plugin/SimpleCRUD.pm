@@ -1165,7 +1165,10 @@ SEARCHFORM
             my $friendly_name  = $col_name;
             if ($args->{labels}{$col_name}) {
                 $friendly_name = $args->{labels}{$col_name};
-            } 
+            } else {
+                $friendly_name =lc($friendly_name);
+                $friendly_name =~ s{_}{ }g; s{\b(\w)}{\u$1}g;
+            }
             if ($col_name eq $order_by_column) {
                 $direction = $opposite_order_by_direction;
                 $direction_char = ($direction eq "asc") ? "&uarr;" : "&darr;";
@@ -1283,7 +1286,7 @@ SEARCHFORM
             },
             @custom_callbacks,
         ],
-        -rename_headers      => $args->{labels},
+        -rename_headers      => \%columns_sort_options,
         -auto_pretty_headers => 1,
         -html                => 'escape',
         -class               => "$table_class",
