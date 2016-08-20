@@ -1135,6 +1135,9 @@ SEARCHFORM
         my $friendly_name = $col_name;
         if ($args->{labels}{$col_name}) {
             $friendly_name = $args->{labels}{$col_name};
+        } else {
+            $friendly_name =lc($friendly_name);
+            $friendly_name =~ s{_}{ }g; s{\b(\w)}{\u$1}g;
         }
         $col_name => "$friendly_name";
     } @$columns;
