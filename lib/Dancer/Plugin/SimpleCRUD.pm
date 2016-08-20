@@ -1022,10 +1022,10 @@ SEARCHFORM
 
     my $col_list = join(
         ',',
-        map({ $table_name . "." . $dbh->quote_identifier($_) . " AS " .
-                  $dbh->quote_identifier($args->{labels}{$_} || $_)
-            }
-            @select_cols),
+        map(
+            { $table_name . "." . $dbh->quote_identifier($_) }
+            @select_cols
+        ),
         @foreign_cols,    # already assembled from quoted identifiers
         @custom_cols,
     );
@@ -1128,20 +1128,7 @@ SEARCHFORM
             . "<p>";
     }
 
-    ## Build a hash to add sorting CGI parameters + URL to each column header.
-    ## (will be used with HTML::Table::FromDatabase's "-rename_columns" parameter.
-    my %columns_sort_options = map {
-        my $col_name = $_->{COLUMN_NAME};
-        my $friendly_name = $col_name;
-        if ($args->{labels}{$col_name}) {
-            $friendly_name = $args->{labels}{$col_name};
-        } else {
-            $friendly_name =lc($friendly_name);
-            $friendly_name =~ s{_}{ }g; s{\b(\w)}{\u$1}g;
-        }
-        $col_name => "$friendly_name";
-    } @$columns;
-
+    my %columns_sort_options;
     if ($args->{sortable}) {
         my $qt              = uri_escape($q);
         my $sf              = uri_escape(params->{searchfield} || "");
@@ -1160,17 +1147,24 @@ SEARCHFORM
         my $opposite_order_by_direction
             = ($order_by_direction eq "asc") ? "desc" : "asc";
 
+        # Get a list of all columns (normal, and custom_columns), then assemble
+        # the names and labels to pass to HTML::Table::FromDatabase
+        my @all_cols = map { $_->{COLUMN_NAME} } @$columns;
+        push @all_cols, keys %{ $args->{custom_columns} }
+            if exists $args->{custom_columns};
         %columns_sort_options = map {
-            my $col_name       = $_->{COLUMN_NAME};
-            my $col = $args->{labels}{$col_name} || $col_name;
+            my $col_name       = $_;
             my $direction      = $order_by_direction;
             my $direction_char = "";
             my $friendly_name  = $col_name;
             if ($args->{labels}{$col_name}) {
                 $friendly_name = $args->{labels}{$col_name};
             } else {
-                $friendly_name =lc($friendly_name);
-                $friendly_name =~ s{_}{ }g; s{\b(\w)}{\u$1}g;
+                for ($friendly_name) {
+                    lc($friendly_name);
+                    s{_}{ }g;
+                    s{\b(\w)}{\u$1}g;
+                }
             }
             if ($col_name eq $order_by_column) {
                 $direction = $opposite_order_by_direction;
@@ -1180,7 +1174,7 @@ SEARCHFORM
                 . "?o=$col_name&d=$direction&q=$q&searchfield=$sf&searchtype=$st";
             $col_name =>
                 "<a href=\"$url\">$friendly_name&nbsp;$direction_char</a>";
-        } @$columns;
+        } @all_cols;
 
         if (exists $args->{foreign_keys} and exists $args->{foreign_keys}{$order_by_column}) {
                 my $fk = $args->{foreign_keys}{$order_by_column};
