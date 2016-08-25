@@ -1243,10 +1243,10 @@ SEARCHFORM
     }
 
     my @custom_callbacks = ();
-    foreach my $column_alias ( keys %{ $args->{custom_columns} || {} } ) {
-        push @custom_callbacks, { 
-            column=>$column_alias, 
-            transform=> ($args->{custom_columns}->{$column_alias}->{transform} or sub { return shift;}),
+    for my $custom_col_spec (@{ $args->{custom_columns} || [] } ) {
+        push @custom_callbacks, {
+            column=>$custom_col_spec->{name}, 
+            transform=> ($custom_col_spec->{transform} or sub { return shift;}),
         };
     }
     my $table = HTML::Table::FromDatabase->new(
