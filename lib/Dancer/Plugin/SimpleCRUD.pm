@@ -1205,7 +1205,7 @@ SEARCHFORM
         # Get a list of all columns (normal, and custom_columns), then assemble
         # the names and labels to pass to HTML::Table::FromDatabase
         my @all_cols = map { $_->{COLUMN_NAME} } @$columns;
-        push @all_cols, keys %{ $args->{custom_columns} }
+        push @all_cols, map { $_->{name} } @{ $args->{custom_columns} }
             if exists $args->{custom_columns};
         %columns_sort_options = map {
             my $col_name       = $_;
