@@ -1213,7 +1213,7 @@ SEARCHFORM
             if ($args->{labels}{$col_name}) {
                 $friendly_name = $args->{labels}{$col_name};
             } else {
-                $friendly_name = prettify_column_name($friendly_name);
+                $friendly_name = _prettify_column_name($friendly_name);
             }
             if ($col_name eq $order_by_column) {
                 $direction = $opposite_order_by_direction;
@@ -1236,7 +1236,7 @@ SEARCHFORM
                 map { $_->{name} } @{ $args->{custom_columns} }
             ) {
                 $columns_sort_options{$custom_column_name}
-                    = prettify_column_name($custom_column_name);
+                    = _prettify_column_name($custom_column_name);
             }
         }
 
@@ -1611,7 +1611,7 @@ sub _get_where_filter_from_args {
     }
 }
 
-sub prettify_column_name {
+sub _prettify_column_name {
     my $name = shift;
     for ($name) {
         $_ = lc;
