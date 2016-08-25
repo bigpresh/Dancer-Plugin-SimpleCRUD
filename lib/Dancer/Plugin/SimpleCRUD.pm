@@ -127,7 +127,7 @@ connection.
             division_news => {
                 raw_column => "division",
                 transform  => sub {
-                    my $division_name = shift;
+                    my ($division_name, $row_hashref) = @_;
                     my $label = "News about $division_name";
                     $division_name =~ s/([^-_.~A-Za-z0-9])/sprintf("%%%02X", ord($1))/seg;
                     my $search = qq{http://news.google.com/news?q="$division_name"};
@@ -422,6 +422,10 @@ a C<raw_column> indicating a column from the table that should be selected to
 build the custom column from,  and C<transform>, a subref to be used as a
 HTML::Table::FromDatabase callback on the resulting column.  If no
 C<transform> is provided, sub { return shift; } will be used.
+
+The C<transform> subref is called with two parameters: the value of the
+C<raw_column> field for the row, and a hashref of the column name and values
+as they were fetched from the database.
 
 If C<raw_column> consists of anything other than letters, numbers, and underscores,
 it is passed in raw, so you could put something like "NOW()"  or "datetime('now')"
