@@ -33,6 +33,9 @@ simple_crud(
             transform => sub { return shift }, # (unnecessary, btw, as this is the default)
         },
     },
+    labels => {
+        age => 'Age (years)',
+    },
     auth => {
         view => {
             require_login => 1,
