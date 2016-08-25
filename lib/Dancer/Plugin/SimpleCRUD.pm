@@ -443,6 +443,30 @@ For a somewhat spurious example:
     ],
     ...
 
+
+The C<transform> code ref is passed to L<HTML::Table::FromDatabase> as a
+callback for that column, so it can do anything a
+L<HTML::Table::FromDatabase callback|HTML::Table::FromDatabase/callbacks>
+can do.  In particular, the coderef will receive the value of the
+column as the first parameter, but also a reference to the whole row hashref
+as the second parameter, so you can do a variety of cunning things.
+
+An example of a custom column whose C<transform> coderef uses the row
+hashref to get other values for the same row could be:
+
+    ...
+    custom_columns => [
+        {
+            name => 'salutation',
+            raw_column => 'name',
+            transform => sub {
+                my ($name_value, $row) = @_;
+                return "Hi, $row->{title} $name_value!";
+            },
+        }
+    ],
+    ...
+
 =item C<auth>
 
 You can require that users be authenticated to view/edit records using the C<auth>
