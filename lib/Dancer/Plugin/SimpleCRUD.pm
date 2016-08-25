@@ -448,7 +448,7 @@ For a somewhat spurious example:
 
 The C<transform> code ref is passed to L<HTML::Table::FromDatabase> as a
 callback for that column, so it can do anything a
-L<HTML::Table::FromDatabase callback|HTML::Table::FromDatabase/callbacks>
+L<HTML::Table::FromDatabase callback|HTML::Table::FromDatabase/CALLBACKS>
 can do.  In particular, the coderef will receive the value of the
 column as the first parameter, but also a reference to the whole row hashref
 as the second parameter, so you can do a variety of cunning things.
