@@ -123,8 +123,9 @@ connection.
                 label_column => 'name',
             },
         },
-        custom_columns => {
-            division_news => {
+        custom_columns => [
+            {
+                name => "division_news",
                 raw_column => "division",
                 transform  => sub {
                     my $division_name = shift;
@@ -134,7 +135,7 @@ connection.
                     return "<a href='$search'>$label</a>";
                 },
             },
-        },
+        ],
         auth => {
             view => {
                 require_login => 1,
@@ -416,16 +417,31 @@ C<label_column>.
 
 =item C<custom_columns>
 
-A hashref to specify custom columns to appear in the list view of an entity.
-The keys of the hash are custom column names, the values hashrefs specifying
-a C<raw_column> indicating a column from the table that should be selected to
-build the custom column from,  and C<transform>, a subref to be used as a
+An arrayref of hashrefs to specify custom columns to appear in the list view 
+of an entity.  (Previously, this was just a hashref of column names and specs,
+and this style is still supported for backwards compatibility, but is deprecated
+because it leaves the order of the columns unpredictable.)
+
+The keys of each hash are C<name>, the name to use for this custom column,
+C<raw_column> indicating a column from the table that should be selected to
+build the custom column from, and C<transform>, a subref to be used as a
 HTML::Table::FromDatabase callback on the resulting column.  If no
 C<transform> is provided, sub { return shift; } will be used.
 
-If C<raw_column> consists of anything other than letters, numbers, and underscores,
-it is passed in raw, so you could put something like "NOW()"  or "datetime('now')"
-in there and it should work as expected.
+For a somewhat spurious example:
+
+    ...
+    custom_columns => [
+        {
+            name => 'email_provider',
+            raw_column => 'email',
+            transform => sub {
+                my $value = shift;
+                return (split /@/, 1)[1];
+            },
+        },
+    ],
+    ...
 
 =item C<auth>
 
@@ -990,8 +1006,23 @@ SEARCHFORM
     }
 
     my @custom_cols;
-    foreach my $column_alias ( keys %{ $args->{custom_columns} || {} } ) {
-        my $raw_column = $args->{custom_columns}{$column_alias}{raw_column}
+
+    # For backwards compatibility, understand custom_columns being a hashref,
+    # and translate it
+    if (ref $args->{custom_columns} eq 'HASH') {
+        my @custom_cols_list;
+        for my $column_alias (keys %{ $args->{custom_columns} }) {
+            push @custom_cols_list, {
+                name => $column_alias,
+                %{ $args->{custom_columns}{$column_alias} }
+            };
+        }
+        $args->{custom_columns} = \@custom_cols_list;
+    }
+
+    for my $custom_col_spec (@{ $args->{custom_columns} || [] }) {
+        my $column_alias = $custom_col_spec->{name};
+        my $raw_column = $custom_col_spec->{raw_column}
             or die "you must specify a raw_column that "
                  . "$column_alias will be built using";
         if ($raw_column =~ /^[\w_]+$/) {
