@@ -1205,8 +1205,6 @@ SEARCHFORM
         # Get a list of all columns (normal, and custom_columns), then assemble
         # the names and labels to pass to HTML::Table::FromDatabase
         my @all_cols = map { $_->{COLUMN_NAME} } @$columns;
-        push @all_cols, map { $_->{name} } @{ $args->{custom_columns} }
-            if exists $args->{custom_columns};
         %columns_sort_options = map {
             my $col_name       = $_;
             my $direction      = $order_by_direction;
@@ -1215,11 +1213,7 @@ SEARCHFORM
             if ($args->{labels}{$col_name}) {
                 $friendly_name = $args->{labels}{$col_name};
             } else {
-                for ($friendly_name) {
-                    $_ = lc;
-                    s{_}{ }g;
-                    s{\b(\w)}{\u$1}g;
-                }
+                $friendly_name = prettify_column_name($friendly_name);
             }
             if ($col_name eq $order_by_column) {
                 $direction = $opposite_order_by_direction;
@@ -1230,6 +1224,21 @@ SEARCHFORM
             $col_name =>
                 "<a href=\"$url\">$friendly_name&nbsp;$direction_char</a>";
         } @all_cols;
+
+        # And for custom columns, do the prettification, but don't include a
+        # link for sorting - as we can't sort by them currently (the sorting is
+        # done by SQL, and the custom column values are calculated after we get
+        # the results from the SQL query, so to support sorting by them we'd
+        # have to stop getting the database to sort the data and sort it
+        # ourselves afterwards).
+        if (exists $args->{custom_columns}) {
+            for my $custom_column_name (
+                map { $_->{name} } @{ $args->{custom_columns} }
+            ) {
+                $columns_sort_options{$custom_column_name}
+                    = prettify_column_name($custom_column_name);
+            }
+        }
 
         if (exists $args->{foreign_keys} and exists $args->{foreign_keys}{$order_by_column}) {
                 my $fk = $args->{foreign_keys}{$order_by_column};
@@ -1600,6 +1609,16 @@ sub _get_where_filter_from_args {
     } else {
         die "Invalid where_filter";
     }
+}
+
+sub prettify_column_name {
+    my $name = shift;
+    for ($name) {
+        $_ = lc;
+        s{_}{ }g;
+        s{\b(\w)}{\u$1}g;
+    }
+    return $name;
 }
 
 =back
