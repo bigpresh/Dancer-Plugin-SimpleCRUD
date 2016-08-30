@@ -1161,7 +1161,7 @@ SEARCHFORM
                 $friendly_name = $args->{labels}{$col_name};
             } else {
                 for ($friendly_name) {
-                    lc($friendly_name);
+                    s{.*}{\L$1};    # lower case
                     s{_}{ }g;
                     s{\b(\w)}{\u$1}g;
                 }
