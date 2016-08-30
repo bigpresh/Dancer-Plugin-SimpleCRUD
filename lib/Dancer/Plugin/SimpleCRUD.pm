@@ -1210,8 +1210,8 @@ SEARCHFORM
         if ($page > 0) {
             $html
                 .= sprintf(
-                "<td><a href=\"$url&p=%d\">&larr;&nbsp;prev.&nbsp;page</a></td>",
-                $page - 1)
+                "<td><a href=\"%s&p=%d\">&larr;&nbsp;prev.&nbsp;page</a></td>",
+                $url, $page - 1)
         } else {
             $html .= "<td>&larr;&nbsp;prev.&nbsp;page&nbsp</td>";
         }
@@ -1222,8 +1222,8 @@ SEARCHFORM
             $offset + 1 + $limit
         );
         $html .= "</td>";
-        $html .= sprintf("<td><a href=\"$url&p=%d\">next&nbsp;page&nbsp;&rarr;</a>",
-            $page + 1);
+        $html .= sprintf("<td><a href=\"%s&p=%d\">next&nbsp;page&nbsp;&rarr;</a>",
+            $url, $page + 1);
         $html .= "</td></tr></table>";
 
         $query .= " LIMIT $limit OFFSET $offset ";
