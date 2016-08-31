@@ -18,7 +18,7 @@ WriteMakefile(
         'Dancer::Plugin::Database::Core' => 0.15,
         'HTML::Table::FromDatabase' => 1.10,
         'CGI::FormBuilder' => 0,
-        'DBD::CSV'   => 0,
+        'DBD::SQLite'   => 0,
     },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'Dancer-Plugin-SimpleCRUD-*' },
