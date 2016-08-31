@@ -125,8 +125,9 @@ connection.
         },
 	table_class => 'table table-bordered',
 	paginate_table_class => 'table table-borderless',
-        custom_columns => {
-            division_news => {
+        custom_columns => [
+            {
+                name => "division_news",
                 raw_column => "division",
                 transform  => sub {
                     my $division_name = shift;
@@ -136,7 +137,7 @@ connection.
                     return "<a href='$search'>$label</a>";
                 },
             },
-        },
+        ],
         auth => {
             view => {
                 require_login => 1,
@@ -418,16 +419,55 @@ C<label_column>.
 
 =item C<custom_columns>
 
-A hashref to specify custom columns to appear in the list view of an entity.
-The keys of the hash are custom column names, the values hashrefs specifying
-a C<raw_column> indicating a column from the table that should be selected to
-build the custom column from,  and C<transform>, a subref to be used as a
+An arrayref of hashrefs to specify custom columns to appear in the list view 
+of an entity.  (Previously, this was just a hashref of column names and specs,
+and this style is still supported for backwards compatibility, but is deprecated
+because it leaves the order of the columns unpredictable.)
+
+The keys of each hash are C<name>, the name to use for this custom column,
+C<raw_column> indicating a column from the table that should be selected to
+build the custom column from, and C<transform>, a subref to be used as a
 HTML::Table::FromDatabase callback on the resulting column.  If no
 C<transform> is provided, sub { return shift; } will be used.
 
-If C<raw_column> consists of anything other than letters, numbers, and underscores,
-it is passed in raw, so you could put something like "NOW()"  or "datetime('now')"
-in there and it should work as expected.
+For a somewhat spurious example:
+
+    ...
+    custom_columns => [
+        {
+            name => 'email_provider',
+            raw_column => 'email',
+            transform => sub {
+                my $value = shift;
+                return (split /@/, 1)[1];
+            },
+        },
+    ],
+    ...
+
+
+The C<transform> code ref is passed to L<HTML::Table::FromDatabase> as a
+callback for that column, so it can do anything a
+L<HTML::Table::FromDatabase callback|HTML::Table::FromDatabase/CALLBACKS>
+can do.  In particular, the coderef will receive the value of the
+column as the first parameter, but also a reference to the whole row hashref
+as the second parameter, so you can do a variety of cunning things.
+
+An example of a custom column whose C<transform> coderef uses the row
+hashref to get other values for the same row could be:
+
+    ...
+    custom_columns => [
+        {
+            name => 'salutation',
+            raw_column => 'name',
+            transform => sub {
+                my ($name_value, $row) = @_;
+                return "Hi, $row->{title} $name_value!";
+            },
+        }
+    ],
+    ...
 
 =item C<auth>
 
@@ -1007,8 +1047,23 @@ SEARCHFORM
     }
 
     my @custom_cols;
-    foreach my $column_alias ( keys %{ $args->{custom_columns} || {} } ) {
-        my $raw_column = $args->{custom_columns}{$column_alias}{raw_column}
+
+    # For backwards compatibility, understand custom_columns being a hashref,
+    # and translate it
+    if (ref $args->{custom_columns} eq 'HASH') {
+        my @custom_cols_list;
+        for my $column_alias (keys %{ $args->{custom_columns} }) {
+            push @custom_cols_list, {
+                name => $column_alias,
+                %{ $args->{custom_columns}{$column_alias} }
+            };
+        }
+        $args->{custom_columns} = \@custom_cols_list;
+    }
+
+    for my $custom_col_spec (@{ $args->{custom_columns} || [] }) {
+        my $column_alias = $custom_col_spec->{name};
+        my $raw_column = $custom_col_spec->{raw_column}
             or die "you must specify a raw_column that "
                  . "$column_alias will be built using";
         if ($raw_column =~ /^[\w_]+$/) {
@@ -1150,8 +1205,6 @@ SEARCHFORM
         # Get a list of all columns (normal, and custom_columns), then assemble
         # the names and labels to pass to HTML::Table::FromDatabase
         my @all_cols = map { $_->{COLUMN_NAME} } @$columns;
-        push @all_cols, keys %{ $args->{custom_columns} }
-            if exists $args->{custom_columns};
         %columns_sort_options = map {
             my $col_name       = $_;
             my $direction      = $order_by_direction;
@@ -1160,11 +1213,7 @@ SEARCHFORM
             if ($args->{labels}{$col_name}) {
                 $friendly_name = $args->{labels}{$col_name};
             } else {
-                for ($friendly_name) {
-                    lc($friendly_name);
-                    s{_}{ }g;
-                    s{\b(\w)}{\u$1}g;
-                }
+                $friendly_name = _prettify_column_name($friendly_name);
             }
             if ($col_name eq $order_by_column) {
                 $direction = $opposite_order_by_direction;
@@ -1175,6 +1224,21 @@ SEARCHFORM
             $col_name =>
                 "<a href=\"$url\">$friendly_name&nbsp;$direction_char</a>";
         } @all_cols;
+
+        # And for custom columns, do the prettification, but don't include a
+        # link for sorting - as we can't sort by them currently (the sorting is
+        # done by SQL, and the custom column values are calculated after we get
+        # the results from the SQL query, so to support sorting by them we'd
+        # have to stop getting the database to sort the data and sort it
+        # ourselves afterwards).
+        if (exists $args->{custom_columns}) {
+            for my $custom_column_name (
+                map { $_->{name} } @{ $args->{custom_columns} }
+            ) {
+                $columns_sort_options{$custom_column_name}
+                    = _prettify_column_name($custom_column_name);
+            }
+        }
 
         if (exists $args->{foreign_keys} and exists $args->{foreign_keys}{$order_by_column}) {
                 my $fk = $args->{foreign_keys}{$order_by_column};
@@ -1242,10 +1306,10 @@ SEARCHFORM
     }
 
     my @custom_callbacks = ();
-    foreach my $column_alias ( keys %{ $args->{custom_columns} || {} } ) {
-        push @custom_callbacks, { 
-            column=>$column_alias, 
-            transform=> ($args->{custom_columns}->{$column_alias}->{transform} or sub { return shift;}),
+    for my $custom_col_spec (@{ $args->{custom_columns} || [] } ) {
+        push @custom_callbacks, {
+            column=>$custom_col_spec->{name}, 
+            transform=> ($custom_col_spec->{transform} or sub { return shift;}),
         };
     }
 
@@ -1545,6 +1609,16 @@ sub _get_where_filter_from_args {
     } else {
         die "Invalid where_filter";
     }
+}
+
+sub _prettify_column_name {
+    my $name = shift;
+    for ($name) {
+        $_ = lc;
+        s{_}{ }g;
+        s{\b(\w)}{\u$1}g;
+    }
+    return $name;
 }
 
 =back
