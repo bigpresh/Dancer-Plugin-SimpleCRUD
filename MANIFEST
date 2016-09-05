@@ -16,3 +16,7 @@ example/simplecrud-example.pl
 example/test.sqlite
 example/views/contentwrapper.tt
 example/views/layouts/main.tt
+t/lib/lib/.placeholder
+t/lib/lib/TestHandleClass.pm
+t/lib/public/.placeholder
+t/lib/views/.placeholder
