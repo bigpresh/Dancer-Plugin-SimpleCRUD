@@ -21,8 +21,8 @@ my @sql = (
     q/insert into users values (3, 'badger', 'animal')/,
     q/insert into users values (4, 'bodger', 'man')/,
     q/insert into users values (5, 'mousey', 'animal')/,
-    q/insert into users values (6, 'mystery2', null)/,
-    q/insert into users values (7, 'mystery1', null)/,
+    q/insert into users values (6, 'mystery2', '')/,
+    q/insert into users values (7, 'mystery1', '')/,
 );
 
 database->do($_) for @sql;
