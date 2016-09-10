@@ -974,16 +974,22 @@ sub _create_list_handler {
             } @$columns
     );
     my @searchtypes = (
-        [ c => "Contains" ],
-        [ e => "Equals" ],
-        [ nc => "Does Not Contain" ],
-        [ ne => "Does Not Equal" ],
+        [ e => { name=>"Equals", cmp=>"="} ],
+        [ c => { name=>"Contains", cmp=>"like"} ],
+        [ ne => { name=>"Does Not Equal", cmp=>"!="} ],
+        [ nc => { name=>"Does Not Contain", cmp=>"not like"} ],
+
+        [ lt => { name=>"Less Than", cmp=>"<"} ],
+        [ lte => { name=>"Less Than or Equal To", cmp=>"<="} ],
+        [ gt => { name=>"Greater Than", cmp=>">"} ],
+        [ gte => { name=>"Greater Than or Equal To", cmp=>">="} ],
     );
     my $searchtype_options = join( "\n",
         map { 
-            my ($search_code, $string) = @$_;
+            my ($search_code, $hashref) = @$_;
+            my $name = $hashref->{name};
             my $sel = _defined_or_empty(params->{searchtype}) eq $search_code;
-            sprintf("<option value='%s'%s>%s</option>", $search_code, $sel ? " selected" : "", $string);
+            sprintf("<option value='%s'%s>%s</option>", $search_code, $sel ? " selected" : "", $name);
         } @searchtypes 
     );
 
@@ -1138,13 +1144,12 @@ SEARCHFORM
                     $search_value = '%' . $search_value . '%';
                 }
 
+                my ($searchtype_row) = grep { $_->[0] eq $st } @searchtypes;
+                my $cmp = $searchtype_row->[1]->{cmp} || '=';
                 push(@search_wheres,
                     "$table_name."
                     . $dbh->quote_identifier(params->{searchfield})
-                    . ($st eq 'c' ? ' LIKE ' :
-                       $st eq 'nc' ? ' NOT LIKE ' :
-                       $st eq 'ne' ? ' != ' : ' = ')
-                   . '?' );
+                    . " $cmp ?" );
                 push(@search_binds, $search_value);
 
                 my $matchtype = $st eq "c" ? "contains": 
