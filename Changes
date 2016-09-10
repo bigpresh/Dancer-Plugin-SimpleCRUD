@@ -1,7 +1,12 @@
 Revision history for Dancer-Plugin-SimpleCRUD 
 
+1.01    2016-09-09
+        [ ENHANCEMENTS ]
+        - Add search options for Less Than, Less Than or Equal To, 
+          Greater Than, and Greater Than or Equal To. (joshrabinowitz)
+
 1.00    2016-09-05
-        [ ENHANCEMENTS]
+        [ ENHANCEMENTS ]
         - Allow where_filter to be a coderef, for runtime determination
           of criteria
         - Better document hook support & other doc improvements
@@ -16,19 +21,19 @@ Revision history for Dancer-Plugin-SimpleCRUD
 
 
 0.99    2016-08-11
-        [ENHANCEMENTS]
+        [ ENHANCEMENTS ]
         - Add where_filter option, for easy display and 
         editing of subsets of tables.  (joshrabinowitz)
 
 0.98    2016-07-26
-        [ENHANCEMENTS]
+        [ ENHANCEMENTS ]
         - allow searching for 0 (joshrabinowitz)
         - improve search descriptions (joshrabinowitz)
         - make searchtype option menu stick (joshrabinowitz)
         - basic tests (joshrabinowitz)
 
 0.97    2016-07-23
-        [ENHANCEMENTS]
+        [ ENHANCEMENTS ]
         - Allow for searching on non-alphanumerics (joshrabinowitz)
         - Add support for Does Not Contain / Does Not Equal searches 
           (joshrabinowitz)

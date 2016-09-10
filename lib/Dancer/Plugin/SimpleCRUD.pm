@@ -38,7 +38,7 @@ use CGI::FormBuilder;
 use HTML::Entities;
 use URI::Escape;
 
-our $VERSION = '1.00';
+our $VERSION = '1.01';
 
 =encoding utf8
 
