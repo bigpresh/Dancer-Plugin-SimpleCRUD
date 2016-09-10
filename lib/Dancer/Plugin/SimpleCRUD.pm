@@ -958,6 +958,7 @@ sub _create_list_handler {
         }
     }
 
+    my $searchfield = params->{searchfield} || $key_column;
     my $searchfield_options = join(
         "\n",
         map {
@@ -966,8 +967,8 @@ sub _create_list_handler {
                 $friendly_name = $args->{labels}{$_->{COLUMN_NAME}};
             }
             my $sel
-                = (defined params->{searchfield}
-                    && params->{searchfield} eq $_->{COLUMN_NAME})
+                = (defined $searchfield
+                    && $searchfield eq $_->{COLUMN_NAME})
                 ? "selected"
                 : "";
             "<option $sel value='$_->{COLUMN_NAME}'>$friendly_name</option>"
@@ -988,7 +989,7 @@ sub _create_list_handler {
         map { 
             my ($search_code, $hashref) = @$_;
             my $name = $hashref->{name};
-            my $sel = _defined_or_empty(params->{searchtype}) eq $search_code;
+            my $sel = _defined_or_empty(params->{searchtype} || "e") eq $search_code;
             sprintf("<option value='%s'%s>%s</option>", $search_code, $sel ? " selected" : "", $name);
         } @searchtypes 
     );
@@ -1130,13 +1131,13 @@ SEARCHFORM
         my (@search_wheres, @search_binds);
         if (length $q) {    # this nested code is all for queries in $q
             my ($column_data)
-                = grep { lc $_->{COLUMN_NAME} eq lc params->{searchfield} }
+                = grep { lc $_->{COLUMN_NAME} eq lc $searchfield }
                 @{$columns};
             debug(
                 "Searching on $column_data->{COLUMN_NAME} which is a "
                 . "$column_data->{TYPE_NAME}"
             );
-            my $st = params->{searchtype};
+            my $st = params->{searchtype} || "e";   # searchtype defaults to 'equals'
 
             if ($column_data) {
                 my $search_value = $q;
@@ -1148,7 +1149,7 @@ SEARCHFORM
                 my $cmp = $searchtype_row->[1]->{cmp} || '=';
                 push(@search_wheres,
                     "$table_name."
-                    . $dbh->quote_identifier(params->{searchfield})
+                    . $dbh->quote_identifier($searchfield)
                     . " $cmp ?" );
                 push(@search_binds, $search_value);
 
@@ -1158,7 +1159,7 @@ SEARCHFORM
                 $html
                     .= sprintf(
                     "<p>Showing results from searching for '%s' %s '%s'",
-                    encode_entities(params->{searchfield}), $matchtype, encode_entities($q)
+                    encode_entities($searchfield), $matchtype, encode_entities($q)
                 );
                 $html .= sprintf '&mdash;<a href="%s">Reset search</a></p>',
                     _external_url($args->{dancer_prefix}, $args->{prefix});
@@ -1171,8 +1172,8 @@ SEARCHFORM
 
     if ($args->{downloadable}) {
         my $qt   = uri_escape($q);
-        my $sf   = uri_escape(params->{searchfield} || "");
-        my $st   = uri_escape(params->{searchtype} || "");
+        my $sf   = uri_escape(params->{searchfield} || $searchfield);
+        my $st   = uri_escape(params->{searchtype} || "e"); # defaults to 'equals'
         my $o    = uri_escape(params->{'o'}         || "");
         my $d    = uri_escape(params->{'d'}         || "");
         my $page = uri_escape(params->{'p'}         || 0);
@@ -1191,8 +1192,8 @@ SEARCHFORM
     my %columns_sort_options;
     if ($args->{sortable}) {
         my $qt              = uri_escape($q);
-        my $sf              = uri_escape(params->{searchfield} || "");
-        my $st              = uri_escape(params->{searchtype} || "");
+        my $sf              = uri_escape($searchfield);
+        my $st              = uri_escape(params->{searchtype} || "e");
         my $order_by_column = uri_escape(params->{'o'})        || $key_column;
 
         # Invalid column name ? discard it
@@ -1261,8 +1262,8 @@ SEARCHFORM
         my $page_size = $args->{paginate};
 
         my $qt   = uri_escape($q);
-        my $sf   = uri_escape(params->{searchfield} || "");
-        my $st   = uri_escape(params->{searchtype} || "");
+        my $sf   = uri_escape(params->{searchfield} || $searchfield);
+        my $st   = uri_escape(params->{searchtype} || "e");
         my $o    = uri_escape(params->{'o'}         || "");
         my $d    = uri_escape(params->{'d'}         || "");
         my $page = uri_escape(params->{'p'}         || 0);
