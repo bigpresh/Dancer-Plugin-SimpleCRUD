@@ -969,29 +969,29 @@ sub _create_list_handler {
                 $friendly_name = $args->{labels}{$_->{COLUMN_NAME}};
             }
             my $sel
-                = (defined $searchfield
-                    && $searchfield eq $_->{COLUMN_NAME})
+                = ($searchfield eq $_->{COLUMN_NAME})
                 ? "selected"
                 : "";
             "<option $sel value='$_->{COLUMN_NAME}'>$friendly_name</option>"
             } @$columns
     );
+    my $default_searchtype = "e";
     my @searchtypes = (
-        [ e => { name=>"Equals", cmp=>"="} ],
-        [ c => { name=>"Contains", cmp=>"like"} ],
-        [ ne => { name=>"Does Not Equal", cmp=>"!="} ],
-        [ nc => { name=>"Does Not Contain", cmp=>"not like"} ],
+        [ e   => { name => "Equals",           cmp => "=" } ],
+        [ c   => { name => "Contains",         cmp => "like" } ],
+        [ ne  => { name => "Does Not Equal",   cmp => "!=" } ],
+        [ nc  => { name => "Does Not Contain", cmp => "not like" } ],
 
-        [ lt => { name=>"Less Than", cmp=>"<"} ],
-        [ lte => { name=>"Less Than or Equal To", cmp=>"<="} ],
-        [ gt => { name=>"Greater Than", cmp=>">"} ],
-        [ gte => { name=>"Greater Than or Equal To", cmp=>">="} ],
+        [ lt  => { name => "Less Than",                cmp => "<" } ],
+        [ lte => { name => "Less Than or Equal To",    cmp => "<=" } ],
+        [ gt  => { name => "Greater Than",             cmp => ">" } ],
+        [ gte => { name => "Greater Than or Equal To", cmp => ">=" } ],
     );
     my $searchtype_options = join( "\n",
         map { 
             my ($search_code, $hashref) = @$_;
             my $name = $hashref->{name};
-            my $sel = _defined_or_empty(params->{searchtype} || "e") eq $search_code;
+            my $sel = (params->{searchtype} || $default_searchtype) eq $search_code;
             sprintf("<option value='%s'%s>%s</option>", $search_code, $sel ? " selected" : "", $name);
         } @searchtypes 
     );
@@ -1139,7 +1139,7 @@ SEARCHFORM
                 "Searching on $column_data->{COLUMN_NAME} which is a "
                 . "$column_data->{TYPE_NAME}"
             );
-            my $st = params->{searchtype} || "e";   # searchtype defaults to 'equals'
+            my $st = params->{searchtype} || $default_searchtype;
 
             if ($column_data) {
                 my $search_value = $q;
@@ -1174,8 +1174,8 @@ SEARCHFORM
 
     if ($args->{downloadable}) {
         my $qt   = uri_escape($q);
-        my $sf   = uri_escape(params->{searchfield} || $searchfield);
-        my $st   = uri_escape(params->{searchtype} || "e"); # defaults to 'equals'
+        my $sf   = uri_escape($searchfield);
+        my $st   = uri_escape(params->{searchtype} || $default_searchtype);
         my $o    = uri_escape(params->{'o'}         || "");
         my $d    = uri_escape(params->{'d'}         || "");
         my $page = uri_escape(params->{'p'}         || 0);
@@ -1195,7 +1195,7 @@ SEARCHFORM
     if ($args->{sortable}) {
         my $qt              = uri_escape($q);
         my $sf              = uri_escape($searchfield);
-        my $st              = uri_escape(params->{searchtype} || "e");
+        my $st              = uri_escape(params->{searchtype} || $default_searchtype);
         my $order_by_column = uri_escape(params->{'o'})        || $key_column;
 
         # Invalid column name ? discard it
@@ -1264,8 +1264,8 @@ SEARCHFORM
         my $page_size = $args->{paginate};
 
         my $qt   = uri_escape($q);
-        my $sf   = uri_escape(params->{searchfield} || $searchfield);
-        my $st   = uri_escape(params->{searchtype} || "e");
+        my $sf   = uri_escape($searchfield);
+        my $st   = uri_escape(params->{searchtype} || $default_searchtype);
         my $o    = uri_escape(params->{'o'}         || "");
         my $d    = uri_escape(params->{'d'}         || "");
         my $page = uri_escape(params->{'p'}         || 0);

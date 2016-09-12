@@ -3,8 +3,9 @@ Revision history for Dancer-Plugin-SimpleCRUD
 1.01    2016-09-10
         [ ENHANCEMENTS ]
         - Add search options for Less Than, Less Than or Equal To, 
-          Greater Than, and Greater Than or Equal To. (joshrabinowitz)
-        - Searches default to equality test of key_column. (joshrabinowitz)
+          Greater Than, and Greater Than or Equal To (joshrabinowitz)
+        - Searches default to equality test of key_column (joshrabinowitz)
+        - /widgets/add?field=value sets field value in form (joshrabinowitz)
 
 1.00    2016-09-05
         [ ENHANCEMENTS ]
