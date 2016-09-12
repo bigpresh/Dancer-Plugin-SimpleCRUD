@@ -19,6 +19,8 @@ WriteMakefile(
         'HTML::Table::FromDatabase' => 1.10,
         'CGI::FormBuilder' => 3.10,
         'DBD::SQLite'   => 0,
+        'HTML::TreeBuilder' => 5.03,
+        'HTML::TableExtract' => 2.13,
     },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'Dancer-Plugin-SimpleCRUD-*' },

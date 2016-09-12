@@ -6,8 +6,7 @@ use t::lib::TestApp;
 use Dancer ':syntax';
 
 use Dancer::Test;
-use Data::Dump qw(dump);
-use Data::Dumper qw(Dumper);
+#use Data::Dump qw(dump);
 use HTML::TreeBuilder;
 
 eval { require DBD::SQLite };
@@ -72,13 +71,13 @@ foreach my $ts ($te->tables) {
 if(0) {
     my $tree = HTML::TreeBuilder->new_from_content( $response->{content} );
     #print "tree->dump(): " . $tree->dump() . "\n";
-    #print "dump(tree): " . Dumper($tree) . "\n";
+    #print "dump(tree): " . dump($tree) . "\n";
     my $thead = $tree->find_by_tag_name('thead'); 
-    #print "dump(thead): " . Dumper( $thead ) . "\n";
+    #print "dump(thead): " . dump( $thead ) . "\n";
 
     my @contents = $thead->content_list();
-    print "dump(contents): " . Dumper( \@contents ) . "\n";
+    #print "dump(contents): " . dump( \@contents ) . "\n";
     my (@headers) = (map { $_->as_text } @contents);
-    print "dump(headers): " . Dumper( \@headers ) . "\n";
+    #print "dump(headers): " . dump( \@headers ) . "\n";
 }
 done_testing();
