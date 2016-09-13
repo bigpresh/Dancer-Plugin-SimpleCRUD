@@ -28,11 +28,10 @@ my @sql = (
 
 database->do($_) for @sql;
 
-# At the very end, add  simple_crud test
-simple_crud(
-    record_title => 'Users',
-    prefix => '/users',
-    db_table => 'users',
-    editable => 1,
-);
+my $custom_column = { name => 'extra', raw_column => 'id', transform => sub { "Hello, id: $_[0]" } };
+# now set up our simple_crud interfaci
+simple_crud( prefix => '/users'  ,              record_title=>'A', db_table => 'users', editable => 0, );
+simple_crud( prefix => '/users_editable',       record_title=>'A', db_table => 'users', editable => 1, );
+simple_crud( prefix => '/users_custom_columns', record_title=>'A', db_table => 'users', editable => 0, custom_columns => [ $custom_column ] );
+
 1;
