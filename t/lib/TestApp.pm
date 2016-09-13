@@ -13,16 +13,17 @@ config->{plugins}{Database}{database} = $db_filename;
 BEGIN {
     use_ok( 'Dancer::Plugin::SimpleCRUD' ) || die "Can't load Dancer::Plugin::SimpleCrud. Bail out!\n";
 }
+my $password = "{SSHA}LfvBweDp3ieVPRjAUeWikwpaF6NoiTSK";     # password is 'tester'
 my @sql = (
     #q/drop table if exists users/,
-    q/create table users (id INTEGER, name VARCHAR, category VARCHAR)/,
-    q/insert into users values (1, 'sukria', 'admin')/,
-    q/insert into users values (2, 'bigpresh', 'admin')/,
-    q/insert into users values (3, 'badger', 'animal')/,
-    q/insert into users values (4, 'bodger', 'man')/,
-    q/insert into users values (5, 'mousey', 'animal')/,
-    q/insert into users values (6, 'mystery2', '')/,
-    q/insert into users values (7, 'mystery1', '')/,
+    qq/create table users (id INTEGER, username VARCHAR, password VARCHAR)/,
+    qq/insert into users values (1, 'sukria', '$password')/,
+    qq/insert into users values (2, 'bigpresh', '$password')/,
+    qq/insert into users values (3, 'badger', '$password')/,
+    qq/insert into users values (4, 'bodger', '$password')/,
+    qq/insert into users values (5, 'mousey', '$password')/,
+    qq/insert into users values (6, 'mystery2', '$password')/,
+    qq/insert into users values (7, 'mystery1', '$password')/,
 );
 
 database->do($_) for @sql;
