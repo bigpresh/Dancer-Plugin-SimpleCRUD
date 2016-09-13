@@ -2,11 +2,11 @@ use strict;
 use warnings;
 
 use Test::More import => ['!pass'];
+use Test::Differences;
 use t::lib::TestApp;
 use Dancer ':syntax';
 
 use Dancer::Test;
-#use Data::Dump qw(dump);
 use HTML::TreeBuilder;
 
 eval { require DBD::SQLite };
@@ -41,43 +41,40 @@ response_status_is    [ GET => '/users/edit/1' ], 200,   "GET /users/edit/1 retu
 response_status_is    [ GET => '/users/view/1' ], 200,   "GET /users/view/1 returns 200";
 response_status_is    [ GET => '/users?searchfield=id&searchtype=e&q=1' ], 200, "GET {search on id=1} returns 200";
 
+###############################################################################
 # test suggestions from bigpresh:
 # Hmm, I'd like to parse the resulting output, and test:
-#    all columns are present as expected
-#    supplied custom columns are present
-#    values calculated in custom columns are as expected
-#    add/edit/delete routes work
-#    searching works
-#    sorting works
+#    1) all columns are present as expected
+#    2) supplied custom columns are present
+#    3) values calculated in custom columns are as expected
+#    4) add/edit/delete routes work
+#    5) searching works
+#    6) sorting works
+###############################################################################
 
 my $response = dancer_response GET => '/users';
 is $response->{status}, 200, "response for GET /users is 200";
-#print "Content: '" .  dump($response->{content}) . "\n";
-#is $response->{content}, "Widget #2 has been scheduled for creation",
-#    "response content looks good for second POST /widgets";
 
-use HTML::TableExtract;
-my $te = HTML::TableExtract->new( headers => [qw(id name category)] );
-$te->parse($response->{content});
+my $tree = HTML::TreeBuilder->new_from_content( $response->{content} );
 
-# Examine all matching tables
-foreach my $ts ($te->tables) {
-  print "Table coords: (", join(',', $ts->coords), "):\n";
-  foreach my $row ($ts->rows) {
-     print join(',', @$row), "\n";
-  }
+# high-level test definition
+
+# this test looks for the 0th thead tag, thenthe 0th tr tag, then compares the text of the tags therein
+test_html_contents( $tree, [qw( thead:0 tr:0 )], ["id", "username", "password", "actions"], "correct table headers" );
+
+
+sub test_html_contents {
+    my ($tree, $elements_spec, $row_contents_expected, $test_name) = @_;
+    my $node = $tree;
+    for my $e (@$elements_spec) {
+        my ($tag, $n) = split(/:/, $e);
+        $node = ($node->look_down( '_tag', $tag ))[$n];
+        last unless $node;
+    }
+    return ok(0, "can't find html matching elements_spec (@$elements_spec)") unless $node;
+
+    my @texts = map { $_->as_text() } $node->content_list();
+    eq_or_diff( \@texts, $row_contents_expected, $test_name );
 }
 
-if(0) {
-    my $tree = HTML::TreeBuilder->new_from_content( $response->{content} );
-    #print "tree->dump(): " . $tree->dump() . "\n";
-    #print "dump(tree): " . dump($tree) . "\n";
-    my $thead = $tree->find_by_tag_name('thead'); 
-    #print "dump(thead): " . dump( $thead ) . "\n";
-
-    my @contents = $thead->content_list();
-    #print "dump(contents): " . dump( \@contents ) . "\n";
-    my (@headers) = (map { $_->as_text } @contents);
-    #print "dump(headers): " . dump( \@headers ) . "\n";
-}
 done_testing();
