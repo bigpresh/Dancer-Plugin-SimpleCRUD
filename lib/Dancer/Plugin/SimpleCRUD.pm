@@ -1227,8 +1227,8 @@ SEARCHFORM
                 "<a href=\"$url\">$friendly_name&nbsp;$direction_char</a>";
         } @all_cols;
 
-        # If the custom column is already sortable, leave column's sort options
-        # alone. Otherwise, do the prettification, but don't include a
+        # If the column has sort options, then leave them alone.
+        # Otherwise, do the prettification, but don't include a
         # link for sorting - as we can't sort by them currently (the sorting is
         # done by SQL, and the custom column values are calculated after we get
         # the results from the SQL query, so to support sorting by them we'd
@@ -1309,11 +1309,17 @@ SEARCHFORM
     }
 
     my @custom_callbacks = ();
+    my @all_cols = map { $_->{COLUMN_NAME} } @$columns;
     for my $custom_col_spec (@{ $args->{custom_columns} || [] } ) {
-        push @custom_callbacks, {
-            column=>$custom_col_spec->{name}, 
-            transform=> ($custom_col_spec->{transform} or sub { return shift;}),
-        };
+        # don't re-show columns that are already displayed
+        if (! grep { $custom_col_spec->{name} eq $_ } @all_cols) {
+            push @custom_callbacks, {
+                column=>$custom_col_spec->{name},
+                transform=> ($custom_col_spec->{transform} or sub { return shift;}),
+            };
+        } else {
+            # allow the transform through
+        }
     }
 
 
