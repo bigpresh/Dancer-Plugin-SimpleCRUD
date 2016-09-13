@@ -4,11 +4,11 @@ Makefile.PL
 README
 lib/Dancer/Plugin/SimpleCRUD.pm
 t/00-load.t
-t/01-routes.t
-t/lib/TestCRUD.pm
+t/01-basic-dpsc.t
 t/manifest.t
 t/pod-coverage.t
 t/pod.t
+t/lib/TestApp.pm
 example/config.yml
 example/README.pod
 example/schema.sql
@@ -16,3 +16,7 @@ example/simplecrud-example.pl
 example/test.sqlite
 example/views/contentwrapper.tt
 example/views/layouts/main.tt
+t/lib/lib/.placeholder
+t/lib/lib/TestHandleClass.pm
+t/lib/public/.placeholder
+t/lib/views/.placeholder
