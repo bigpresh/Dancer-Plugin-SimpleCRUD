@@ -10,4 +10,9 @@ pm_to_blib*
 cover_db
 pod2htm*.tmp
 Dancer-Plugin-SimpleCRUD-*
-*.swp
+.*.swp
+MANIFEST.SKIP
+TODO.pod
+ignore.txt
+Makefile.old
+
