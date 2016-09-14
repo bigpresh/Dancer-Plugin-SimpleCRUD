@@ -1,0 +1,7 @@
+^\.git
+^\.travis.yml
+^\..*\.swp
+ignore.txt
+Makefile.old
+MANIFEST.SKIP
+TODO.pod
