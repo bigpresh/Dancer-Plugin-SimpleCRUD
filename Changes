@@ -1,5 +1,10 @@
 Revision history for Dancer-Plugin-SimpleCRUD 
 
+1.00_02 2016-09-15
+        [ DEVELOPER RELEASE ]
+        - EXLOCK => 0 when creating temp file for SQLite DB tests - to avoid
+          test failures on *BSD systems (Issue #80, thansk to eserte)
+
 1.00_01 2016-09-14
         [ DEVELOPER RELEASE ]
         [ ENHANCEMENTS ]
