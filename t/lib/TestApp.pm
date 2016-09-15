@@ -5,10 +5,10 @@ use Dancer::Plugin::Database;
 use Test::More import => ['!pass']; # import avoids 'prototype mismatch' with Dancer
 use File::Temp qw(tempfile);
 
-my ($db_fh, $db_filename) = tempfile( "dpsc-sqlite-XXXXX", TMPDIR => 1, UNLINK=>1 );
+my $db_fh = File::Temp->new( EXLOCK => 0 );
 
 config->{plugins}{Database}{driver} = "SQLite";
-config->{plugins}{Database}{database} = $db_filename;
+config->{plugins}{Database}{database} = $db_fh->filename;
 
 BEGIN {
     use_ok( 'Dancer::Plugin::SimpleCRUD' ) || die "Can't load Dancer::Plugin::SimpleCrud. Bail out!\n";
