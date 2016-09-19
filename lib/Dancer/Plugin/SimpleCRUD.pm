@@ -610,9 +610,26 @@ CONFIRMDELETE
             my $dbh = database($args{db_connection_name});
             my $where = _get_where_filter_from_args(\%args);
             $where->{$key_column} = $id;
-            $dbh->quick_delete($table_name, $where)
+
+            my %params = params;
+            my $meta_for_hook = {
+                args => \%args,
+                params => \%params,
+                table_name => $table_name,
+                key_column => $key_column,
+            };
+            # fire the pre-delete hook, in case user wants to perform trickery before the delete
+            execute_hook('delete_row_pre_delete', $meta_for_hook );
+
+            my $rows_deleted = $dbh->quick_delete($table_name, $where)
                 or return _apply_template("<p>Failed to delete!</p>",
                 $args{'template'});
+
+            $meta_for_hook->{success} = $rows_deleted;
+            if ($rows_deleted) {
+                # post-delete hook, in case user wants to do cunning things after the delete
+                execute_hook('delete_row_post_delete', $meta_for_hook );
+            }
 
             redirect _external_url($args{dancer_prefix}, $args{prefix});
         };
@@ -665,6 +682,8 @@ register_hook(qw(
     add_edit_row
     add_edit_row_pre_save
     add_edit_row_post_save
+    delete_row_pre_delete
+    delete_row_post_delete
 ));
 register_plugin;
 
@@ -898,7 +917,7 @@ sub _create_add_edit_route {
             # against it if they need to.  last_insert_id in some instances requires
             # catalog, schema, etc args, so we can't just call it and save the result.
             # important that we don't do any more database operations that would change
-            # last_insert_id between here and the hook, or this won'w work.
+            # last_insert_id between here and the hook, or this won't work.
             $meta_for_hook->{dbh} = $dbh;
             $verb = 'create new';
         }
@@ -1670,7 +1689,9 @@ args from the original route setup (C<args>), the table's key column
 (C<key_column>), and the values of the editable params (C<params>).
 
 In the post-save hook, you are also sent C<success> (the return value of
-quick_insert or quick_update) telling you if the save was successful,
+quick_insert or quick_update) telling you if the save was successful
+(which is a little redundant because your post-save hook won't be called unless
+the insert or update was successful). You'll also get
 C<dbh> giving you the instance of the handle used to save the entity
 (so you can access last_insert_id()), and C<verb> (currently either
 'create new' or 'update').
@@ -1685,6 +1706,19 @@ of example that you have a C<hash_pw()> function to return a hashed password:
           $args->{params}{password} = hash_pw($args->{params}{password});
       }
   };
+
+=head2 delete_row_pre_delete, delete_row_post_delete
+
+These fire right before and after a row is deleted.  As with the
+add_edit_row_pre_save and add_edit_row_post_save hooks, these are
+passed a hashref with metadata such as the name of the table
+(in C<table_name>), the args from the original route setup (C<args>),
+the table's key column (C<key_column>), and the values of the
+editable params (C<params>). As with the post-save hook, delete_row_post_delete hook won't be
+called if we weren't able to delete the row.
+
+You could use these to clean up ancillary data associated with a
+database row when it was deleted, for example.
 
 =head1 AUTHOR
 
