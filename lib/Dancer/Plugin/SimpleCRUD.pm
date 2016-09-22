@@ -998,6 +998,7 @@ sub _create_list_handler {
     my @searchtypes = (
         [ e   => { name => "Equals",           cmp => "=" } ],
         [ c   => { name => "Contains",         cmp => "like" } ],
+        [ b   => { name => "Begins With",      cmp => "like" } ],
         [ ne  => { name => "Does Not Equal",   cmp => "!=" } ],
         [ nc  => { name => "Does Not Contain", cmp => "not like" } ],
 
@@ -1164,6 +1165,8 @@ SEARCHFORM
                 my $search_value = $q;
                 if ($st eq 'c' || $st eq 'nc') {
                     $search_value = '%' . $search_value . '%';
+                } elsif ($st eq 'b') {
+                    $search_value = $search_value . '%';
                 }
 
                 my ($searchtype_row) = grep { $_->[0] eq $st } @searchtypes;
@@ -1174,9 +1177,7 @@ SEARCHFORM
                     . " $cmp ?" );
                 push(@search_binds, $search_value);
 
-                my $matchtype = $st eq "c" ? "contains": 
-                                $st eq "nc" ? "does not contain" :
-                                $st eq "ne" ? "does not equal": "equals";
+                my $matchtype = lc($searchtype_row->[1]->{name} || "equals");
                 $html
                     .= sprintf(
                     "<p>Showing results from searching for '%s' %s '%s'",
