@@ -32,6 +32,8 @@ my $custom_column = { name => 'extra', raw_column => 'id', transform => sub { "H
 # now set up our simple_crud interfaci
 simple_crud( prefix => '/users'  ,              record_title=>'A', db_table => 'users', editable => 0, );
 simple_crud( prefix => '/users_editable',       record_title=>'A', db_table => 'users', editable => 1, );
+simple_crud( prefix => '/users_editable_not_addable',       
+                                                record_title=>'A', db_table => 'users', editable => 1, addable => 0);
 simple_crud( prefix => '/users_custom_columns', record_title=>'A', db_table => 'users', editable => 0, custom_columns => [ $custom_column ] );
 
 1;

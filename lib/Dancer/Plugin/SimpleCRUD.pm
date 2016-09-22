@@ -111,6 +111,7 @@ connection.
         display_columns  => [ qw( id venue_id name division ) ],
         deleteable => 1,
         editable => 1,
+        addable => 0,   # does not allow adding rows
         sortable => 1,
         paginate => 300,
         template => 'simple_crud.tt',
@@ -370,7 +371,12 @@ given, and the edit form will have a "Delete $record_title" button.
 =item C<editable>
 
 Specify whether to support editing records.  Defaults to true.  If set to a
-false value, it will not be possible to add or edit rows in the table.
+false value, it will not be possible to add or edit rows in the table. See also C<addable>.
+
+=item C<addable>
+
+Specify whether to support adding records.  Defaults to the value of C<editable> if set,
+or true otherwise.  If set to a false value, it will not be possible to add rows in the table.
 
 =item C<sortable>
 
@@ -540,6 +546,7 @@ sub simple_crud {
     $args{key_column}   ||= 'id';
     $args{record_title} ||= 'record';
     $args{editable}         = 1 unless exists $args{editable};
+    $args{addable}          = $args{editable} unless exists $args{addable};
     $args{query_auto_focus} = 1 unless exists $args{query_auto_focus};
 
     # Sanitise things we'll have to interpolate into queries (yes, that makes me
@@ -558,7 +565,15 @@ sub simple_crud {
 
     if ($args{editable}) {
         _ensure_auth('edit', $handler, \%args);
-        for ('/add', '/edit/:id') {
+        for ('/edit/:id') {
+            my $url = _construct_url($args{dancer_prefix}, $args{prefix}, $_);
+            Dancer::Logger::debug("Setting up route for $url");
+            any ['get', 'post'] => $url => $handler;
+        }
+    }
+    if ($args{addable}) {
+        _ensure_auth('edit', $handler, \%args);
+        for ('/add') {
             my $url = _construct_url($args{dancer_prefix}, $args{prefix}, $_);
             Dancer::Logger::debug("Setting up route for $url");
             any ['get', 'post'] => $url => $handler;
@@ -1381,7 +1396,7 @@ SEARCHFORM
 
     $html .= $table->getTable || '';
 
-    if ($args->{editable} && _has_permission('edit', $args)) {
+    if ($args->{addable} && _has_permission('edit', $args)) {
         $html .= sprintf '<a href="%s">Add a new %s</a></p>',
             _external_url($args->{dancer_prefix}, $args->{prefix}, '/add'),
             $args->{record_title};
