@@ -51,6 +51,7 @@ sub main {
     # test html returned from GET $prefix on three cruds
     my ($users_response,                $users_tree)                = crud_fetch_to_htmltree( GET => '/users',                 200 );
     my ($users_editable_response,       $users_editable_tree)       = crud_fetch_to_htmltree( GET => '/users_editable',        200 );
+    my ($users_editable_not_addable_response, $users_editable_not_addable_tree)       = crud_fetch_to_htmltree( GET => '/users_editable_not_addable',        200 );
     my ($users_custom_columns_response, $users_custom_columns_tree) = crud_fetch_to_htmltree( GET => '/users_custom_columns',  200 );
     my ($users_search_response,         $users_search_tree)         = crud_fetch_to_htmltree( GET => '/users?q=2',             200 );
 
@@ -75,6 +76,9 @@ sub main {
 
     # 1a) check editable table gives 'actions' header
     test_htmltree_contents( $users_editable_tree,       [qw( thead:0 tr:0 )], ["id", "username", "password", "actions" ], "table headers, editable" );
+
+    # 1b) check editable but not addable table also gives 'actions' header
+    test_htmltree_contents( $users_editable_not_addable_tree,       [qw( thead:0 tr:0 )], ["id", "username", "password", "actions" ], "table headers, editable" );
 
     # 2) supplied custom columns are present
     test_htmltree_contents( $users_custom_columns_tree, [qw( thead:0 tr:0 )], ["id", "username", "password", "extra"   ], "table headers, custom column" );
