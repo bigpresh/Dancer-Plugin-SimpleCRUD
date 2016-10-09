@@ -436,6 +436,11 @@ build the custom column from, and C<transform>, a subref to be used as a
 HTML::Table::FromDatabase callback on the resulting column.  If no
 C<transform> is provided, sub { return shift; } will be used.
 
+If your custom column has the same name as an existing column, your customizations
+will be used in-place to override the display of the content in that column.
+In this case the column will be sorted by the underlying database content 
+for that row, and not by the output of your transform function.
+
 For a somewhat spurious example:
 
     ...
