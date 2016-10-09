@@ -1272,7 +1272,8 @@ SEARCHFORM
         } @all_cols;
 
         # And for custom columns, do the prettification, but don't include a
-        # link for sorting - as we can't sort by them currently (the sorting is
+        # link for sorting unless we're overriding the display of an already 
+        # sortable column. We can't sort non-overridden custom columns (sorting is
         # done by SQL, and the custom column values are calculated after we get
         # the results from the SQL query, so to support sorting by them we'd
         # have to stop getting the database to sort the data and sort it
@@ -1281,8 +1282,10 @@ SEARCHFORM
             for my $custom_column_name (
                 map { $_->{name} } @{ $args->{custom_columns} }
             ) {
-                $columns_sort_options{$custom_column_name}
-                    = _prettify_column_name($custom_column_name);
+                if ( !grep { $_ eq $custom_column_name } @all_cols) {
+                    $columns_sort_options{$custom_column_name}
+                        = _prettify_column_name($custom_column_name);
+                }
             }
         }
 
