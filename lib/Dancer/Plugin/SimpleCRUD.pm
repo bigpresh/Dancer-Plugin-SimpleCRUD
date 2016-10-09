@@ -1105,17 +1105,20 @@ SEARCHFORM
         $args->{custom_columns} = \@custom_cols_list;
     }
 
+    # If we're not overriding a column with the same name, then add custom column
     for my $custom_col_spec (@{ $args->{custom_columns} || [] }) {
         my $column_alias = $custom_col_spec->{name};
-        my $raw_column = $custom_col_spec->{raw_column}
-            or die "you must specify a raw_column that "
-                 . "$column_alias will be built using";
-        if ($raw_column =~ /^[\w_]+$/) {
-            push @custom_cols, "$table_name." 
-                . $dbh->quote_identifier($raw_column) 
-                . " AS ". $dbh->quote_identifier($column_alias);
-        } else {
-            push @custom_cols, "$raw_column AS $column_alias";
+        if( ! grep { $column_alias eq $_ } @select_cols) {
+            my $raw_column = $custom_col_spec->{raw_column}
+                or die "you must specify a raw_column that "
+                     . "$column_alias will be built using";
+            if ($raw_column =~ /^[\w_]+$/) {
+                push @custom_cols, "$table_name." 
+                    . $dbh->quote_identifier($raw_column) 
+                    . " AS ". $dbh->quote_identifier($column_alias);
+            } else {
+                push @custom_cols, "$raw_column AS $column_alias";
+            }
         }
     }
 
