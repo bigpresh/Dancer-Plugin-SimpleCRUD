@@ -438,7 +438,7 @@ C<transform> is provided, sub { return shift; } will be used.
 
 If your custom column has the same name as an existing column, your customizations
 will be used in-place to override the display of the content in that column.
-In this case the column will be sorted by the underlying database content 
+If sorting is enabled, the column will be sorted by the underlying database content 
 for that row, and not by the output of your transform function.
 
 For a somewhat spurious example:
