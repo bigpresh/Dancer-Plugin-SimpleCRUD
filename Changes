@@ -1,12 +1,6 @@
 Revision history for Dancer-Plugin-SimpleCRUD 
 
-1.00_02 2016-09-15
-        [ DEVELOPER RELEASE ]
-        - EXLOCK => 0 when creating temp file for SQLite DB tests - to avoid
-          test failures on *BSD systems (Issue #80, thansk to eserte)
-
-1.00_01 2016-09-14
-        [ DEVELOPER RELEASE ]
+1.01    2016-10-11
         [ ENHANCEMENTS ]
         - Add search options for Less Than, Less Than or Equal To, 
           Greater Than, and Greater Than or Equal To (joshrabinowitz)
@@ -14,6 +8,13 @@ Revision history for Dancer-Plugin-SimpleCRUD
         - /widgets/add?field=value sets field value in form (joshrabinowitz)
         - Improved tests check html generated from sqlite (joshrabinowitz)
         - Update dependency versions in Makefile.PL (joshrabinowitz)
+        - Allow records to be editable and not addable, and vice-versa 
+          (joshrabinowitz)
+        - New hooks: delete_row_pre_delete, delete_row_post_delete 
+          (joshrabinowitz)
+        [ BUG FIXES ]
+        - EXLOCK => 0 when creating temp file for SQLite DB tests - to avoid
+          test failures on *BSD systems (Issue #80, thanks to eserte)
 
 1.00    2016-09-05
         [ ENHANCEMENTS ]
@@ -23,8 +24,7 @@ Revision history for Dancer-Plugin-SimpleCRUD
         - where_filter extended to cover other routes
         - CSS classes on tables (jackson-tim)
         - custom_columns can now be ordered
-
-        [ BUGFIXES ]
+        [ BUG FIXES ]
         - avoid accidental URL injections (joshrabinowitz)
         - Require CGI::FormBuilder 3.10 to avoid uninitialized
           var warnings (joshrabinowitz)
@@ -48,7 +48,7 @@ Revision history for Dancer-Plugin-SimpleCRUD
         - Add support for Does Not Contain / Does Not Equal searches 
           (joshrabinowitz)
         - Show query in search box in search results (joshrabinowitz)
-        [BUG FIXES]
+        [ BUG FIXES ]
         - More careful about url/html injections (joshrabinowitz)
 
 0.96    2016-07-22
