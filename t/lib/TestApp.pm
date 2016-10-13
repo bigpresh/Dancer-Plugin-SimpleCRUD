@@ -24,6 +24,9 @@ my @sql = (
     qq/insert into users values (5, 'mousey', '$password')/,
     qq/insert into users values (6, 'mystery2', '$password')/,
     qq/insert into users values (7, 'mystery1', '$password')/,
+
+    qq/create table user_extras (id INTEGER, user_id INTEGER, extra VARCHAR)/,
+    qq/insert into user_extras values (1, 1, "sukria's extra data")/,
 );
 
 database->do($_) for @sql;
@@ -35,5 +38,11 @@ simple_crud( prefix => '/users_editable',       record_title=>'A', db_table => '
 simple_crud( prefix => '/users_editable_not_addable',       
                                                 record_title=>'A', db_table => 'users', editable => 1, addable => 0);
 simple_crud( prefix => '/users_custom_columns', record_title=>'A', db_table => 'users', editable => 0, custom_columns => [ $custom_column ] );
+
+simple_crud( prefix => '/users_with_join'  ,    record_title=>'A', db_table => 'users', editable => 0, 
+    joins => [ 
+        { db_table=>"user_extras", join_style=>"join", select_columns=>["extra"], join_on=> {"users.id" => "user_extras.user_id" } } 
+    ] 
+);
 
 1;

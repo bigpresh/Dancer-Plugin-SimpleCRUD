@@ -46,14 +46,16 @@ sub main {
     response_status_is [ GET => '/users/view/1' ],                          200, "GET /users/view/1 returns 200";
     response_status_is [ GET => '/users_editable/view/1' ],                 200, "GET /users_editable/view/1 returns 200";
     response_status_is [ GET => '/users?searchfield=id&searchtype=e&q=1' ], 200, "GET {search on id=1} returns 200";
+    response_status_is [ GET => '/users_with_join' ],                      200, "GET /users_with_join returns 200";
 
 
-    # test html returned from GET $prefix on three cruds
+    # test html returned from GET $prefix on cruds
     my ($users_response,                $users_tree)                = crud_fetch_to_htmltree( GET => '/users',                 200 );
     my ($users_editable_response,       $users_editable_tree)       = crud_fetch_to_htmltree( GET => '/users_editable',        200 );
     my ($users_editable_not_addable_response, $users_editable_not_addable_tree)       = crud_fetch_to_htmltree( GET => '/users_editable_not_addable',        200 );
     my ($users_custom_columns_response, $users_custom_columns_tree) = crud_fetch_to_htmltree( GET => '/users_custom_columns',  200 );
     my ($users_search_response,         $users_search_tree)         = crud_fetch_to_htmltree( GET => '/users?q=2',             200 );
+    my ($users_join_response,         $users_join_tree)         = crud_fetch_to_htmltree( GET => '/users_with_join',           200 );
 
     ###############################################################################
     # test suggestions from bigpresh:
@@ -95,6 +97,15 @@ sub main {
     # 6) sorting works
     # TODO
     
+    # 7) joins work
+    test_htmltree_contents( $users_join_tree, [qw( thead:0 tr:0 )], ["id", "username", "password", "extra"  ], "table headers, joined with user_extras.extra" );
+    test_htmltree_contents( $users_join_tree, [qw( tbody:0 tr:0 )], ["1", "sukria", "{SSHA}LfvBweDp3ieVPRjAUeWikwpaF6NoiTSK", "sukria's extra data"  ], "table content, joined with user_extras.extra" );
+
+    # uncomment if you want to see captured logs
+    #use Data::Dump qw(dump);
+    #my $trap = Dancer::Logger::Capture->trap;
+    #ok(1, "captured logs were " . dump($trap->read) . "\n");
+
     done_testing();
 }
 

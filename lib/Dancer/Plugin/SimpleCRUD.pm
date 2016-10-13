@@ -219,6 +219,32 @@ which returns the WHERE clause hashref - for instance:
 
   where_filter => sub { { customer_id => logged_in_user()->{customer_id} } },
 
+=item <joins> (optional)
+
+Specify one more more joins to other tables in order to fetch additional data for each
+row to be displayed. Useful with custom_columns. For example:
+
+    simple_crud(
+        prefix=>'bar_with_join',
+        db_table=>"users",
+        joins => [
+            { 
+                db_table=>"user_extras", 
+                join_style=>"join", 
+                select_columns=>["extra"], 
+                join_on=> {"users.id" => "user_extras.user_id" } },
+        ],
+        custom_columns [
+            # config using user_extras.extra column data.
+        ],
+        ...
+    );
+
+All fields each C<joins> hashref are required except join_style, which defaults
+to 'join'. You can pass 'left join' as the C<join_style> if you want null data 
+returned for each join's C<select_columns> where no row matches your C<join_on>
+condition. Otherwise such rows are not returned as per SQL C<join> semantics.
+
 =item C<db_connection_name> (optional)
 
 We use L<Dancer::Plugin::Database> to obtain database connections.  This option
@@ -1119,6 +1145,17 @@ SEARCHFORM
         }
     }
 
+    my @join_cols;
+    if (my $joins = $args->{joins}) {
+        for my $joiner (@$joins) {
+            my $select_cols = $joiner->{select_columns} || die "'join' directive needs 'select_columns' setting";
+            push(@join_cols, 
+                map { 
+                    $joiner->{db_table} . "." . $dbh->quote_identifier($_) 
+                } (@$select_cols)
+            );
+        }
+    }
     my $col_list = join(
         ',',
         map(
@@ -1127,13 +1164,25 @@ SEARCHFORM
         ),
         @foreign_cols,    # already assembled from quoted identifiers
         @custom_cols,
+        @join_cols
     );
     my $add_actions
         = $args->{editable}
         ? ", $table_name.$key_column AS actions"
         : '';
     my $query = "SELECT $col_list $add_actions FROM $table_name";
+    if (my $joins = $args->{joins}) {
+        for my $joiner (@$joins) {
+            my $join_style = $joiner->{join_style} || "join";
+            my $join_table = $joiner->{db_table} || die "'joins' directive needs 'db_table' setting";
+            my $join_on = $joiner->{join_on} || die "'joins' directive needs 'join_on' setting";
+            my @join_on_eq = %$join_on; # key and value flattened
+            $query .= " $join_style $join_table on $join_on_eq[0]=$join_on_eq[1]";
+        }
+        #error "AFTER JOINS: QUERY IS $query\n";
+    }
     my @binds;
+     
 
     # If we have foreign key relationship info, we need to join on those tables:
     if ($args->{foreign_keys}) {
