@@ -15,15 +15,14 @@ BEGIN {
 }
 my $password = "{SSHA}LfvBweDp3ieVPRjAUeWikwpaF6NoiTSK";     # password is 'tester'
 my @sql = (
-    #q/drop table if exists users/,
-    qq/create table users (id INTEGER, username VARCHAR, password VARCHAR)/,
-    qq/insert into users values (1, 'sukria', '$password')/,
-    qq/insert into users values (2, 'bigpresh', '$password')/,
-    qq/insert into users values (3, 'badger', '$password')/,
-    qq/insert into users values (4, 'bodger', '$password')/,
-    qq/insert into users values (5, 'mousey', '$password')/,
-    qq/insert into users values (6, 'mystery2', '$password')/,
-    qq/insert into users values (7, 'mystery1', '$password')/,
+    qq/create table users (id INTEGER, username VARCHAR, password VARCHAR, type_id INTEGER)/,
+    qq/insert into users values (1, 'sukria', '$password', 10)/,
+    qq/insert into users values (2, 'bigpresh', '$password', 11)/,
+    qq/insert into users values (3, 'badger', '$password', 11)/,
+    qq/insert into users values (4, 'bodger', '$password', 11)/,
+    qq/insert into users values (5, 'mousey', '$password', 11)/,
+    qq/insert into users values (6, 'mystery2', '$password', 11)/,
+    qq/insert into users values (7, 'mystery1', '$password', 11)/,
 
     qq/create table user_extras (id INTEGER, user_id INTEGER, extra VARCHAR)/,
     qq/insert into user_extras values (1, 1, "sukria's extra data")/,
@@ -31,8 +30,9 @@ my @sql = (
     qq/create table user_extras2 (id INTEGER, user_id INTEGER, extra2 VARCHAR)/,
     qq/insert into user_extras2 values (1, 1, "extra2 data")/,
 
-    qq/create table user_extras3 (id INTEGER, user_id INTEGER, extra3 VARCHAR)/,
-    qq/insert into user_extras3 values (1, 1, "extra3 data")/,
+    qq/create table user_types (id INTEGER, name VARCHAR)/,
+    qq/insert into user_types values (10, "carbon-based")/,
+    qq/insert into user_types values (11, "mercurial")/,
 );
 
 database->do($_) for @sql;
@@ -60,6 +60,11 @@ simple_crud( prefix => '/users_with_joins',   record_title=>'A', db_table => 'us
         { table=>"user_extras",  join_style=>"join",      select_columns=>["extra"],  key_column=>"id", join_column=>"user_id" },
         { table=>"user_extras2", join_style=>"left join", select_columns=>["extra2"], key_column=>"id", join_column=>"user_id" },
     ],
+);
+
+# one foreign key
+simple_crud( prefix => '/users_with_foreign_key',   record_title=>'A', db_table => 'users', editable => 0, 
+    foreign_keys => { type_id => { table=>"user_types", key_column=>"id", label_column=>"name" }, }
 );
 
 ## two joins (turntables) and a foreign key (microphone) with apologies to readers and Beck
