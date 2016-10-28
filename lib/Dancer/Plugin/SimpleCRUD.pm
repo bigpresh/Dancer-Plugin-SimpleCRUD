@@ -124,6 +124,14 @@ connection.
                 label_column => 'name',
             },
         },
+        joins => {
+            { 
+                table => 'user_extras', 
+                key_column => 'id',
+                join_column => 'user_id',
+                columns => ["extra"],
+            },
+        },
 	table_class => 'table table-bordered',
 	paginate_table_class => 'table table-borderless',
         custom_columns => [
@@ -218,6 +226,35 @@ example, based on the logged in user calling it), then you can provide a coderef
 which returns the WHERE clause hashref - for instance:
 
   where_filter => sub { { customer_id => logged_in_user()->{customer_id} } },
+
+=item <joins> (optional)
+
+Specify one more more joins to other tables in order to fetch additional data for each
+row to be displayed. Useful with custom_columns. For example:
+
+    simple_crud(
+        prefix=>'bar_with_join',
+        db_table=>"users",
+        joins => [
+            {   # join with the 'user_extras' table and select 'select_columns' 
+                # where the table.id=join_table.join_column
+                table=>"user_extras",   
+                join_style=>"join",     # "join" is default. "left join" ok too.
+                select_columns=>["extra"], 
+                key_column=>'id',
+                join_coumn=>'user_id',
+            },
+        ],
+        custom_columns [
+            # config using user_extras.extra column data.
+        ],
+        ...
+    );
+
+All fields each C<joins> hashref are required except join_style, which defaults
+to 'join'. You can alternately pass 'left join' as the C<join_style> if you want null data 
+returned for each join's C<select_columns> where no row matches your C<join_on>
+condition. Otherwise such rows are not returned as per SQL C<join> semantics.
 
 =item C<db_connection_name> (optional)
 
@@ -1127,6 +1164,18 @@ SEARCHFORM
         }
     }
 
+    # add 'select_columns' from 'joins' settings to @join_cols
+    my @join_cols;
+    if (my $joins = $args->{joins}) {
+        for my $joiner (@$joins) {
+            my $select_cols = $joiner->{select_columns} || die "'join' directive needs 'select_columns' setting";
+            push(@join_cols, 
+                map { 
+                    $dbh->quote_identifier($joiner->{table}) . "." . $dbh->quote_identifier($_) 
+                } (@$select_cols)
+            );
+        }
+    }
     my $col_list = join(
         ',',
         map(
@@ -1135,12 +1184,28 @@ SEARCHFORM
         ),
         @foreign_cols,    # already assembled from quoted identifiers
         @custom_cols,
+        @join_cols
     );
     my $add_actions
         = $args->{editable}
         ? ", $table_name.$key_column AS actions"
         : '';
     my $query = "SELECT $col_list $add_actions FROM $table_name";
+
+    # add joins from 'joins' clauses to $query
+    if (my $joins = $args->{joins}) {
+        for my $joiner (@$joins) {
+            my $join_style = $joiner->{join_style} || "JOIN";
+            die "'join_style' on 'joins' must be 'join' or 'left join'" unless( $join_style =~ /^(join|left join)$/i );
+            # right join could give empty left table columns
+            my $left_table = $dbh->quote_identifier( $table_name );
+            my $join_table = $dbh->quote_identifier( $joiner->{table} ) || die "'joins' directive needs 'table' setting";
+            my $join_on_left = $dbh->quote_identifier($joiner->{key_column}) || die "'joins' directive needs 'key_column' setting";
+            my $join_on_right = $dbh->quote_identifier($joiner->{join_column}) || die "'joins' directive needs 'join_column' setting";
+
+            $query .= " $join_style $join_table on $left_table.$join_on_left = $join_table.$join_on_right";
+        }
+    }
     my @binds;
 
     # If we have foreign key relationship info, we need to join on those tables:
