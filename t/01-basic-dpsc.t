@@ -33,6 +33,7 @@ my $conf = {
 set plugins => $conf;
 set logger => 'capture';
 set log => 'debug';
+my $trap = Dancer::Logger::Capture->trap;
 
 
 main();
@@ -46,7 +47,8 @@ sub main {
     response_status_is [ GET => '/users/view/1' ],                          200, "GET /users/view/1 returns 200";
     response_status_is [ GET => '/users_editable/view/1' ],                 200, "GET /users_editable/view/1 returns 200";
     response_status_is [ GET => '/users?searchfield=id&searchtype=e&q=1' ], 200, "GET {search on id=1} returns 200";
-    response_status_is [ GET => '/users_with_join' ],                      200, "GET /users_with_join returns 200";
+    response_status_is [ GET => '/users_with_join' ],                       200, "GET /users_with_join returns 200";
+    response_status_is [ GET => '/users_with_joins' ],                      200, "GET /users_with_joins returns 200";
 
 
     # test html returned from GET $prefix on cruds
@@ -56,7 +58,9 @@ sub main {
     my ($users_custom_columns_response, $users_custom_columns_tree) = crud_fetch_to_htmltree( GET => '/users_custom_columns',  200 );
     my ($users_customized_column_response, $users_customized_column_tree) = crud_fetch_to_htmltree( GET => '/users_customized_column',  200 );
     my ($users_search_response,         $users_search_tree)         = crud_fetch_to_htmltree( GET => '/users?q=2',             200 );
-    my ($users_join_response,         $users_join_tree)         = crud_fetch_to_htmltree( GET => '/users_with_join',           200 );
+    my ($users_join_response,           $users_join_tree)           = crud_fetch_to_htmltree( GET => '/users_with_join',           200 );   # 1 join
+    my ($users_joins_response,          $users_joins_tree)           = crud_fetch_to_htmltree( GET => '/users_with_joins',           200 ); # 2 joins
+    #my ($users_joins_and_foreign_key_response, $users_joins_and_foreign_key_tree) = crud_fetch_to_htmltree( GET => '/users_with_joins_and_foreign_key', 200 );
 
     ###############################################################################
     # test suggestions from bigpresh:
@@ -102,13 +106,14 @@ sub main {
     # TODO
     
     # 7) joins work
-    test_htmltree_contents( $users_join_tree, [qw( thead:0 tr:0 )], ["id", "username", "password", "extra"  ], "table headers, joined with user_extras.extra" );
-    test_htmltree_contents( $users_join_tree, [qw( tbody:0 tr:0 )], ["1", "sukria", "{SSHA}LfvBweDp3ieVPRjAUeWikwpaF6NoiTSK", "sukria's extra data"  ], "table content, joined with user_extras.extra" );
+    test_htmltree_contents( $users_join_tree,  [qw( thead:0 tr:0 )], ["id", "username", "password", "extra"  ], "table headers, joined with user_extras.extra" );
+    test_htmltree_contents( $users_join_tree,  [qw( tbody:0 tr:0 )], ["1", "sukria", "{SSHA}LfvBweDp3ieVPRjAUeWikwpaF6NoiTSK", "sukria's extra data"  ], "table content, joined with user_extras.extra" );
+    test_htmltree_contents( $users_joins_tree, [qw( tbody:0 tr:0 )], ["1", "sukria", "{SSHA}LfvBweDp3ieVPRjAUeWikwpaF6NoiTSK", "sukria's extra data", "extra2 data",  ], "table content, joined with 2 tables" );
 
     # uncomment if you want to see captured logs
-    #use Data::Dump qw(dump);
-    #my $trap = Dancer::Logger::Capture->trap;
-    #ok(1, "captured logs were " . dump($trap->read) . "\n");
+    my $traps = $trap->read();
+    my @errors = grep { $_->{level} eq "error" } @$traps;
+    ok( @errors == 0, "no runtime errors" );
 
     done_testing();
 }
