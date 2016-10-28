@@ -251,10 +251,13 @@ row to be displayed. Useful with custom_columns. For example:
         ...
     );
 
-All fields each C<joins> hashref are required except join_style, which defaults
+All fields in C<joins> hashref are required except C<join_style>, which defaults
 to 'join'. You can alternately pass 'left join' as the C<join_style> if you want null data 
-returned for each join's C<select_columns> where no row matches your C<join_on>
-condition. Otherwise such rows are not returned as per SQL C<join> semantics.
+returned for C<select_columns> where no row matches your join condition. 
+Otherwise such rows are not returned as per SQL C<join> semantics.
+
+Note that with C<foreign_keys>, C<key_column> specifies the column in the primary table, whereas with 
+C<joins>, C<key_column> specifies the column from the joined table.
 
 =item C<db_connection_name> (optional)
 
