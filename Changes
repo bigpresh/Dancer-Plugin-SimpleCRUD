@@ -1,6 +1,6 @@
 Revision history for Dancer-Plugin-SimpleCRUD 
 
-1.01    2016-10-11
+1.10    2016-10-28
         [ ENHANCEMENTS ]
         - Add search options for Less Than, Less Than or Equal To, 
           Greater Than, and Greater Than or Equal To (joshrabinowitz)
@@ -12,6 +12,10 @@ Revision history for Dancer-Plugin-SimpleCRUD
           (joshrabinowitz)
         - New hooks: delete_row_pre_delete, delete_row_post_delete 
           (joshrabinowitz)
+        - Allow display of any column to be customised, and allow customised
+          columns based on DB columns to be sortable (based on the raw value in
+          the DB)  (joshrabinowitz)
+
         [ BUG FIXES ]
         - EXLOCK => 0 when creating temp file for SQLite DB tests - to avoid
           test failures on *BSD systems (Issue #80, thanks to eserte)
