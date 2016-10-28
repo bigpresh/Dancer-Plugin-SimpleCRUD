@@ -45,7 +45,7 @@ simple_crud( prefix => '/users_customized_column', record_title=>'A', db_table =
 
 simple_crud( prefix => '/users_with_join'  ,    record_title=>'A', db_table => 'users', editable => 0, 
     joins => [ 
-        { db_table=>"user_extras", join_style=>"join", select_columns=>["extra"], join_on=> {"users.id" => "user_extras.user_id" } } 
+        { table=>"user_extras", join_style=>"join", select_columns=>["extra"], key_column=>"id", join_column=>"user_id" },
     ] 
 );
 

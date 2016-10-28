@@ -124,6 +124,14 @@ connection.
                 label_column => 'name',
             },
         },
+        joins => {
+            { 
+                table => 'user_extras', 
+                key_column => 'id',
+                join_column => 'user_id',
+                columns => ["extra"],
+            },
+        },
 	table_class => 'table table-bordered',
 	paginate_table_class => 'table table-borderless',
         custom_columns => [
@@ -228,11 +236,14 @@ row to be displayed. Useful with custom_columns. For example:
         prefix=>'bar_with_join',
         db_table=>"users",
         joins => [
-            { 
-                db_table=>"user_extras", 
-                join_style=>"join", 
+            {   # join with the 'user_extras' table and select 'select_columns' 
+                # where the table.id=join_table.join_column
+                table=>"user_extras",   
+                join_style=>"join",     # "join" is default. "left join" ok too.
                 select_columns=>["extra"], 
-                join_on=> {"users.id" => "user_extras.user_id" } },
+                key_column=>'id',
+                join_coumn=>'user_id',
+            },
         ],
         custom_columns [
             # config using user_extras.extra column data.
@@ -1159,7 +1170,7 @@ SEARCHFORM
             my $select_cols = $joiner->{select_columns} || die "'join' directive needs 'select_columns' setting";
             push(@join_cols, 
                 map { 
-                    $joiner->{db_table} . "." . $dbh->quote_identifier($_) 
+                    $dbh->quote_identifier($joiner->{table}) . "." . $dbh->quote_identifier($_) 
                 } (@$select_cols)
             );
         }
@@ -1181,13 +1192,15 @@ SEARCHFORM
     my $query = "SELECT $col_list $add_actions FROM $table_name";
     if (my $joins = $args->{joins}) {
         for my $joiner (@$joins) {
-            my $join_style = $joiner->{join_style} || "join";
+            my $join_style = $joiner->{join_style} || "JOIN";
             die "'join_style' on 'joins' must be 'join' or 'left join'" unless( $join_style =~ /^(join|left join)$/i );
-            # right join could give empty primary columns
-            my $join_table = $dbh->quote_identifier( $joiner->{db_table} ) || die "'joins' directive needs 'db_table' setting";
-            my $join_on = $joiner->{join_on} || die "'joins' directive needs 'join_on' setting";
-            my @join_on_eq = %$join_on; # key and value flattened
-            $query .= " $join_style $join_table on $join_on_eq[0]=$join_on_eq[1]";
+            # right join could give empty left table columns
+            my $left_table = $dbh->quote_identifier( $table_name );
+            my $join_table = $dbh->quote_identifier( $joiner->{table} ) || die "'joins' directive needs 'table' setting";
+            my $join_on_left = $dbh->quote_identifier($joiner->{key_column}) || die "'joins' directive needs 'key_column' setting";
+            my $join_on_right = $dbh->quote_identifier($joiner->{join_column}) || die "'joins' directive needs 'join_column' setting";
+
+            $query .= " $join_style $join_table on $left_table.$join_on_left = $join_table.$join_on_right";
         }
         #error "AFTER JOINS: QUERY IS $query\n";
     }
