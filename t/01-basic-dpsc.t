@@ -62,7 +62,9 @@ sub main {
     my ($users_join_response,           $users_join_tree)           = crud_fetch_to_htmltree( GET => '/users_with_join',           200 );   # 1 join
     my ($users_joins_response,          $users_joins_tree)           = crud_fetch_to_htmltree( GET => '/users_with_joins',           200 ); # 2 joins
     my ($users_with_foreign_key_response,    $users_with_foreign_key_tree)     = crud_fetch_to_htmltree( GET => '/users_with_foreign_key',           200 ); # foreign key
-    #my ($users_joins_and_foreign_key_response, $users_joins_and_foreign_key_tree) = crud_fetch_to_htmltree( GET => '/users_with_joins_and_foreign_key', 200 );
+
+    my ($users_with_joins_and_foreign_key_response, $users_with_joins_and_foreign_key_tree) 
+                                                                     = crud_fetch_to_htmltree( GET => '/users_with_joins_and_foreign_key', 200 ); # joins and foreign key
 
     ###############################################################################
     # test suggestions from bigpresh:
@@ -115,6 +117,14 @@ sub main {
     test_htmltree_contents( $users_join_tree,  [qw( tbody:0 tr:0 )], ["1", "sukria", "{SSHA}LfvBweDp3ieVPRjAUeWikwpaF6NoiTSK", 10, "sukria's extra data"  ], "table content, joined with user_extras.extra" );
     # 8A) primary + 2 tables joined, content tested
     test_htmltree_contents( $users_joins_tree, [qw( tbody:0 tr:0 )], ["1", "sukria", "{SSHA}LfvBweDp3ieVPRjAUeWikwpaF6NoiTSK", 10, "sukria's extra data", "extra2 data",  ], "table content, joined with 2 tables" );
+
+    # 9) two joins and a foreign key
+    test_htmltree_contents( 
+        $users_with_joins_and_foreign_key_tree, 
+        [qw( tbody:0 tr:0 )], 
+        ["1", "sukria", "{SSHA}LfvBweDp3ieVPRjAUeWikwpaF6NoiTSK", "carbon-based", "sukria's extra data", "extra2 data",  ], 
+        "table content, with foreign key" 
+    );
 
     # show captured errors
     my $traps = $trap->read();

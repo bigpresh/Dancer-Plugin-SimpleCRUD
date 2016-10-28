@@ -68,15 +68,13 @@ simple_crud( prefix => '/users_with_foreign_key',   record_title=>'A', db_table 
 );
 
 ## two joins (turntables) and a foreign key (microphone) with apologies to readers and Beck
-#simple_crud( prefix => '/users_with_joins_and_foreign_key',   record_title=>'A', db_table => 'users', editable => 0, 
-#    joins => [ 
-#        { table=>"user_extras",  join_style=>"join",      select_columns=>["extra"],  key_column=>"id", join_column=>"user_id" },
-#        { table=>"user_extras2", join_style=>"left join", select_columns=>["extra2"], key_column=>"id", join_column=>"user_id" },
-#    ],
-#    foreign_keys => {
-#        extra3 => { table=>"user_extras3", key_column=>"id", label_column=>"extra3" },
-#    }
-#);
+simple_crud( prefix => '/users_with_joins_and_foreign_key',   record_title=>'A', db_table => 'users', editable => 0, 
+    joins => [ 
+        { table=>"user_extras",  join_style=>"join",      select_columns=>["extra"],  key_column=>"id", join_column=>"user_id" },
+        { table=>"user_extras2", join_style=>"left join", select_columns=>["extra2"], key_column=>"id", join_column=>"user_id" },
+    ],
+    foreign_keys => { type_id => { table=>"user_types", key_column=>"id", label_column=>"name" }, }
+);
 
 
 1;
