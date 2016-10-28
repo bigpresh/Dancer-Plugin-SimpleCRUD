@@ -54,6 +54,7 @@ sub main {
     my ($users_editable_response,       $users_editable_tree)       = crud_fetch_to_htmltree( GET => '/users_editable',        200 );
     my ($users_editable_not_addable_response, $users_editable_not_addable_tree)       = crud_fetch_to_htmltree( GET => '/users_editable_not_addable',        200 );
     my ($users_custom_columns_response, $users_custom_columns_tree) = crud_fetch_to_htmltree( GET => '/users_custom_columns',  200 );
+    my ($users_customized_column_response, $users_customized_column_tree) = crud_fetch_to_htmltree( GET => '/users_customized_column',  200 );
     my ($users_search_response,         $users_search_tree)         = crud_fetch_to_htmltree( GET => '/users?q=2',             200 );
     my ($users_join_response,         $users_join_tree)         = crud_fetch_to_htmltree( GET => '/users_with_join',           200 );
 
@@ -87,6 +88,9 @@ sub main {
 
     # 3) values calculated in custom columns are as expected
     test_htmltree_contents( $users_custom_columns_tree, [qw( tbody:0 tr:0 )], ["1", "sukria", "{SSHA}LfvBweDp3ieVPRjAUeWikwpaF6NoiTSK", "Hello, id: 1" ], "table content, custom column" );
+
+    # 3A) overridden customized columns as expected
+    test_htmltree_contents( $users_customized_column_tree, [qw( tbody:0 tr:0 )], ["1", "Username: sukria", "{SSHA}LfvBweDp3ieVPRjAUeWikwpaF6NoiTSK", ], "table content, customized column" );
 
     # 4) add/edit/delete routes work (To Be Written)
     # TODO

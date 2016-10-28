@@ -38,7 +38,7 @@ use CGI::FormBuilder;
 use HTML::Entities;
 use URI::Escape;
 
-our $VERSION = '1.00_02';
+our $VERSION = '1.10';
 
 =encoding utf8
 
@@ -461,6 +461,11 @@ C<raw_column> indicating a column from the table that should be selected to
 build the custom column from, and C<transform>, a subref to be used as a
 HTML::Table::FromDatabase callback on the resulting column.  If no
 C<transform> is provided, sub { return shift; } will be used.
+
+If your custom column has the same name as an existing column, your customizations
+will be used in-place to override the display of the content in that column.
+If sorting is enabled, the column will be sorted by the underlying database content 
+for that row, and not by the output of your transform function.
 
 For a somewhat spurious example:
 
@@ -1131,17 +1136,20 @@ SEARCHFORM
         $args->{custom_columns} = \@custom_cols_list;
     }
 
+    # If we're not overriding a column with the same name, then add custom column
     for my $custom_col_spec (@{ $args->{custom_columns} || [] }) {
         my $column_alias = $custom_col_spec->{name};
-        my $raw_column = $custom_col_spec->{raw_column}
-            or die "you must specify a raw_column that "
-                 . "$column_alias will be built using";
-        if ($raw_column =~ /^[\w_]+$/) {
-            push @custom_cols, "$table_name." 
-                . $dbh->quote_identifier($raw_column) 
-                . " AS ". $dbh->quote_identifier($column_alias);
-        } else {
-            push @custom_cols, "$raw_column AS $column_alias";
+        if( ! grep { $column_alias eq $_ } @select_cols) {
+            my $raw_column = $custom_col_spec->{raw_column}
+                or die "you must specify a raw_column that "
+                     . "$column_alias will be built using";
+            if ($raw_column =~ /^[\w_]+$/) {
+                push @custom_cols, "$table_name." 
+                    . $dbh->quote_identifier($raw_column) 
+                    . " AS ". $dbh->quote_identifier($column_alias);
+            } else {
+                push @custom_cols, "$raw_column AS $column_alias";
+            }
         }
     }
 
@@ -1318,7 +1326,8 @@ SEARCHFORM
         } @all_cols;
 
         # And for custom columns, do the prettification, but don't include a
-        # link for sorting - as we can't sort by them currently (the sorting is
+        # link for sorting unless we're overriding the display of an already 
+        # sortable column. We can't sort non-overridden custom columns (sorting is
         # done by SQL, and the custom column values are calculated after we get
         # the results from the SQL query, so to support sorting by them we'd
         # have to stop getting the database to sort the data and sort it
@@ -1327,8 +1336,10 @@ SEARCHFORM
             for my $custom_column_name (
                 map { $_->{name} } @{ $args->{custom_columns} }
             ) {
-                $columns_sort_options{$custom_column_name}
-                    = _prettify_column_name($custom_column_name);
+                if ( !grep { $_ eq $custom_column_name } @all_cols) {
+                    $columns_sort_options{$custom_column_name}
+                        = _prettify_column_name($custom_column_name);
+                }
             }
         }
 

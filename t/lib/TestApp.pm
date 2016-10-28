@@ -39,10 +39,15 @@ simple_crud( prefix => '/users_editable_not_addable',
                                                 record_title=>'A', db_table => 'users', editable => 1, addable => 0);
 simple_crud( prefix => '/users_custom_columns', record_title=>'A', db_table => 'users', editable => 0, custom_columns => [ $custom_column ] );
 
+# override display of 'username' column
+simple_crud( prefix => '/users_customized_column', record_title=>'A', db_table => 'users', editable => 0, sortable=>1,
+                custom_columns => [ { name => "username", raw_column=>"username", transform => sub { "Username: $_[0]" } } ] );
+
 simple_crud( prefix => '/users_with_join'  ,    record_title=>'A', db_table => 'users', editable => 0, 
     joins => [ 
         { db_table=>"user_extras", join_style=>"join", select_columns=>["extra"], join_on=> {"users.id" => "user_extras.user_id" } } 
     ] 
 );
+
 
 1;
