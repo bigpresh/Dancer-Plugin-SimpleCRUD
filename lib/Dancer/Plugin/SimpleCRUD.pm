@@ -1164,6 +1164,7 @@ SEARCHFORM
         }
     }
 
+    # add 'select_columns' from 'joins' settings to @join_cols
     my @join_cols;
     if (my $joins = $args->{joins}) {
         for my $joiner (@$joins) {
@@ -1190,6 +1191,8 @@ SEARCHFORM
         ? ", $table_name.$key_column AS actions"
         : '';
     my $query = "SELECT $col_list $add_actions FROM $table_name";
+
+    # add joins from 'joins' clauses to $query
     if (my $joins = $args->{joins}) {
         for my $joiner (@$joins) {
             my $join_style = $joiner->{join_style} || "JOIN";
@@ -1202,7 +1205,6 @@ SEARCHFORM
 
             $query .= " $join_style $join_table on $left_table.$join_on_left = $join_table.$join_on_right";
         }
-        #error "AFTER JOINS: QUERY IS $query\n";
     }
     my @binds;
 
