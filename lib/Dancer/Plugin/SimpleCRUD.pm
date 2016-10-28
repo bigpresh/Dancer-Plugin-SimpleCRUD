@@ -241,7 +241,7 @@ row to be displayed. Useful with custom_columns. For example:
     );
 
 All fields each C<joins> hashref are required except join_style, which defaults
-to 'join'. You can pass 'left join' as the C<join_style> if you want null data 
+to 'join'. You can alternately pass 'left join' as the C<join_style> if you want null data 
 returned for each join's C<select_columns> where no row matches your C<join_on>
 condition. Otherwise such rows are not returned as per SQL C<join> semantics.
 
@@ -1182,7 +1182,9 @@ SEARCHFORM
     if (my $joins = $args->{joins}) {
         for my $joiner (@$joins) {
             my $join_style = $joiner->{join_style} || "join";
-            my $join_table = $joiner->{db_table} || die "'joins' directive needs 'db_table' setting";
+            die "'join_style' on 'joins' must be 'join' or 'left join'" unless( $join_style =~ /^(join|left join)$/i );
+            # right join could give empty primary columns
+            my $join_table = $dbh->quote_identifier( $joiner->{db_table} ) || die "'joins' directive needs 'db_table' setting";
             my $join_on = $joiner->{join_on} || die "'joins' directive needs 'join_on' setting";
             my @join_on_eq = %$join_on; # key and value flattened
             $query .= " $join_style $join_table on $join_on_eq[0]=$join_on_eq[1]";
@@ -1190,7 +1192,6 @@ SEARCHFORM
         #error "AFTER JOINS: QUERY IS $query\n";
     }
     my @binds;
-     
 
     # If we have foreign key relationship info, we need to join on those tables:
     if ($args->{foreign_keys}) {
