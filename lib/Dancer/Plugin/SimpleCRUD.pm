@@ -118,18 +118,18 @@ connection.
         query_auto_focus => 1,
         downloadable => 1,
         foreign_keys => {
-            columnname => {
+            columnname => { # name of column to join on in left table
                 table => 'venues',
-                key_column => 'id',
+                key_column => 'id', # the column in the right table
                 label_column => 'name',
             },
         },
         joins => {
             { 
                 table => 'user_extras', 
-                key_column => 'id',
-                join_column => 'user_id',
-                columns => ["extra"],
+                key_column => 'id',         # the column in the left table
+                join_column => 'user_id',   # the column in the right table
+                select_columns => ["extra"],
             },
         },
 	table_class => 'table table-bordered',
