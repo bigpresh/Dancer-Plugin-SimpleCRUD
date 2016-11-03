@@ -33,6 +33,7 @@ my $conf = {
 set plugins => $conf;
 set logger => 'capture';
 set log => 'debug';
+my $trap = Dancer::Logger::Capture->trap;
 
 
 main();
@@ -90,6 +91,13 @@ sub main {
     # 3A) overridden customized columns as expected
     test_htmltree_contents( $users_customized_column_tree, [qw( tbody:0 tr:0 )], ["1", "Username: sukria", "{SSHA}LfvBweDp3ieVPRjAUeWikwpaF6NoiTSK", ], "table content, customized column" );
 
+    # 3B) custom_column's column_class gets applied both with added columns and overridden columns
+    my $response = dancer_response( GET => "/users_custom_columns" );
+    cmp_ok( $response->{content}, "=~", qr{classhere}, "found class name 'classhere' in html from /users_custom_columns" );
+
+    $response = dancer_response( GET => "/users_customized_column" );
+    cmp_ok( $response->{content}, "=~", qr{classhere}, "found class name 'classhere' in html from /users_customized_column" );
+
     # 4) add/edit/delete routes work (To Be Written)
     # TODO
 
@@ -98,6 +106,14 @@ sub main {
 
     # 6) sorting works
     # TODO
+    
+    # show captured errors
+    my $traps = $trap->read();
+    my @errors = grep { $_->{level} eq "error" } @$traps;
+    ok( @errors == 0, "no errors" );
+    for my $error (@errors) {
+        diag( "trapped error: $error->{message}" );
+    }
     
     done_testing();
 }

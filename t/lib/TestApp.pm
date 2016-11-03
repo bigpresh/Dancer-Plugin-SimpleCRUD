@@ -28,7 +28,7 @@ my @sql = (
 
 database->do($_) for @sql;
 
-my $custom_column = { name => 'extra', raw_column => 'id', transform => sub { "Hello, id: $_[0]" } };
+my $custom_column = { name => 'extra', raw_column => 'id', transform => sub { "Hello, id: $_[0]" }, column_class=>"classhere" };
 # now set up our simple_crud interfaci
 simple_crud( prefix => '/users'  ,              record_title=>'A', db_table => 'users', editable => 0, );
 simple_crud( prefix => '/users_editable',       record_title=>'A', db_table => 'users', editable => 1, );
@@ -38,6 +38,7 @@ simple_crud( prefix => '/users_custom_columns', record_title=>'A', db_table => '
 
 # override display of 'username' column
 simple_crud( prefix => '/users_customized_column', record_title=>'A', db_table => 'users', editable => 0, sortable=>1,
-                custom_columns => [ { name => "username", raw_column=>"username", transform => sub { "Username: $_[0]" } } ] );
+                custom_columns => [ { name => "username", raw_column=>"username", transform => sub { "Username: $_[0]" }, column_class=>"classhere" } ], 
+            );
 
 1;

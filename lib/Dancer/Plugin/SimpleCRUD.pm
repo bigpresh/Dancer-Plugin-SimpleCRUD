@@ -37,6 +37,7 @@ use HTML::Table::FromDatabase;
 use CGI::FormBuilder;
 use HTML::Entities;
 use URI::Escape;
+use List::MoreUtils qw( first_index );
 
 our $VERSION = '1.10';
 
@@ -137,6 +138,7 @@ connection.
                     my $search = qq{http://news.google.com/news?q="$division_name"};
                     return "<a href='$search'>$label</a>";
                 },
+                column_class => "column-class",
             },
         ],
         auth => {
@@ -432,12 +434,13 @@ because it leaves the order of the columns unpredictable.)
 
 The keys of each hash are C<name>, the name to use for this custom column,
 C<raw_column> indicating a column from the table that should be selected to
-build the custom column from, and C<transform>, a subref to be used as a
-HTML::Table::FromDatabase callback on the resulting column.  If no
+build the custom column from, and optionally C<transform>, a subref to be used as a
+HTML::Table::FromDatabase callback on the resulting column, as well as C<column_class> 
+to specify a CSS class for this column.  If no 
 C<transform> is provided, sub { return shift; } will be used.
 
 If your custom column has the same name as an existing column, your customizations
-will be used in-place to override the display of the content in that column.
+will be used in-place to override the display and css class of the content in that column.
 If sorting is enabled, the column will be sorted by the underlying database content 
 for that row, and not by the output of your transform function.
 
@@ -452,6 +455,7 @@ For a somewhat spurious example:
                 my $value = shift;
                 return (split /@/, 1)[1];
             },
+            column_class => 'column-class',
         },
     ],
     ...
@@ -1405,6 +1409,15 @@ SEARCHFORM
         -html                => 'escape',
         -class               => "$table_class",
     );
+
+    # apply custom columns' column_classes as specified. Can this be done via HTML::Table::FromDatabase->new() above?
+    my @all_column_names = map { $_->{COLUMN_NAME} || $_->{name} } (@$columns, @{$args->{custom_columns}});
+    for my $custom_col_spec (@{ $args->{custom_columns} || [] } ) {
+        if (my $column_class = $custom_col_spec->{column_class}) {
+            my $index = first_index { $_ eq $custom_col_spec->{name} } @all_column_names;
+            $table->setColClass( $index, $column_class );
+        }
+    }
 
     $html .= $table->getTable || '';
 

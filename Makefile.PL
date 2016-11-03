@@ -21,6 +21,7 @@ WriteMakefile(
         'CGI::FormBuilder' => 3.10,
         'DBD::SQLite'   => 1.50,
         'HTML::TreeBuilder' => 5.03,
+        'List::MoreUtils' => 0.416,
     },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'Dancer-Plugin-SimpleCRUD-*' },
