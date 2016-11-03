@@ -1414,7 +1414,7 @@ SEARCHFORM
     my @all_column_names = map { $_->{COLUMN_NAME} || $_->{name} } (@$columns, @{$args->{custom_columns}});
     for my $custom_col_spec (@{ $args->{custom_columns} || [] } ) {
         if (my $column_class = $custom_col_spec->{column_class}) {
-            my $index = first_index { $_ eq $custom_col_spec->{name} } @all_column_names;
+            my $index = 1 + (first_index { $_ eq $custom_col_spec->{name} } @all_column_names);
             $table->setColClass( $index, $column_class );
         }
     }
