@@ -93,10 +93,10 @@ sub main {
 
     # 3B) custom_column's column_class gets applied both with added columns and overridden columns
     my $response = dancer_response( GET => "/users_custom_columns" );
-    cmp_matches( $response->{content}, q{<td class="classhere">Hello, id: \d+</td>}, "class 'classhere' in html from /users_custom_columns" );
+    cmp_ok( $response->{content}, '=~', q{<td class="classhere">Hello, id: \d+</td>}, "column_class in added custom_column" );
 
     $response = dancer_response( GET => "/users_customized_column" );
-    cmp_matches( $response->{content}, q{<td class="classhere">Username: sukria</td>}, "class 'classhere' in html from /users_customized_column" );
+    cmp_ok( $response->{content}, '=~', q{<td class="classhere">Username: sukria</td>}, "column_class from in /users_customized_column html" );
 
     # 4) add/edit/delete routes work (To Be Written)
     # TODO
@@ -139,8 +139,3 @@ sub test_htmltree_contents {
     eq_or_diff( \@texts, $row_contents_expected, $test_name );
 }
 
-sub cmp_matches {
-    my ($str, $regex, $testname) = @_;
-    my $match = ($str =~ /$regex/);
-    ok( $match, "$testname: found $regex in content" );
-}
