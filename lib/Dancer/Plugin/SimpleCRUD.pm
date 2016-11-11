@@ -39,7 +39,7 @@ use HTML::Entities;
 use URI::Escape;
 use List::MoreUtils qw( first_index );
 
-our $VERSION = '1.10';
+our $VERSION = '1.11';
 
 =encoding utf8
 
@@ -434,10 +434,10 @@ because it leaves the order of the columns unpredictable.)
 
 The keys of each hash are C<name>, the name to use for this custom column,
 C<raw_column> indicating a column from the table that should be selected to
-build the custom column from, and optionally C<transform>, a subref to be used as a
-HTML::Table::FromDatabase callback on the resulting column, as well as C<column_class> 
-to specify a CSS class for the the column.  If no C<transform> is provided, 
-sub { return shift; } will be used.
+build the custom column from, C<transform>, a subref to be used as a
+HTML::Table::FromDatabase callback on the resulting column, and C<column_class>,
+to specify a CSS class for the the column.  C<column_class> is optional, and if
+no C<transform> is provided, sub { return shift; } will be used.
 
 If your custom column has the same name as an existing column, your customizations
 will be used in-place to override the display of the content in that column.  
