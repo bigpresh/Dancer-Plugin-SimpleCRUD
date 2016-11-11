@@ -175,7 +175,7 @@ labels.
 
 The prefix for the routes which will be created.  Given a prefix of C</widgets>,
 then you can go to C</widgets/new> to create a new Widget, and C</widgets/42> to
-edit the widget with the ID (see keu_column) 42.
+edit the widget with the ID (see key_column) 42.
 
 Don't confuse this with Dancer's C<prefix> setting, which would be prepended
 before the prefix you pass to this plugin.  For example, if you used:
