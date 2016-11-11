@@ -436,13 +436,13 @@ The keys of each hash are C<name>, the name to use for this custom column,
 C<raw_column> indicating a column from the table that should be selected to
 build the custom column from, and optionally C<transform>, a subref to be used as a
 HTML::Table::FromDatabase callback on the resulting column, as well as C<column_class> 
-to specify a CSS class for this column.  If no 
-C<transform> is provided, sub { return shift; } will be used.
+to specify a CSS class for the the column.  If no C<transform> is provided, 
+sub { return shift; } will be used.
 
 If your custom column has the same name as an existing column, your customizations
-will be used in-place to override the display and css class of the content in that column.
-If sorting is enabled, the column will be sorted by the underlying database content 
-for that row, and not by the output of your transform function.
+will be used in-place to override the display of the content in that column.  
+If sorting is enabled, the column will be sorted by the 
+underlying database content for that row, and not by the output of your transform function.
 
 For a somewhat spurious example:
 
@@ -1407,11 +1407,11 @@ SEARCHFORM
         ],
         -rename_headers      => \%columns_sort_options,
         -html                => 'escape',
-        -class               => "$table_class",
+        -class               => $table_class,
     );
 
     # apply custom columns' column_classes as specified. Can this be done via HTML::Table::FromDatabase->new() above?
-    my @all_column_names = map { $_->{COLUMN_NAME} || $_->{name} } (@$columns, @{$args->{custom_columns}});
+    my @all_column_names = ( (map { $_->{COLUMN_NAME} } @$columns), (map { $_->{name} } @{$args->{custom_columns}}) );
     for my $custom_col_spec (@{ $args->{custom_columns} || [] } ) {
         if (my $column_class = $custom_col_spec->{column_class}) {
             my $index = 1 + (first_index { $_ eq $custom_col_spec->{name} } @all_column_names);
