@@ -37,8 +37,9 @@ use HTML::Table::FromDatabase;
 use CGI::FormBuilder;
 use HTML::Entities;
 use URI::Escape;
+use List::MoreUtils qw( first_index );
 
-our $VERSION = '1.10';
+our $VERSION = '1.11';
 
 =encoding utf8
 
@@ -137,6 +138,7 @@ connection.
                     my $search = qq{http://news.google.com/news?q="$division_name"};
                     return "<a href='$search'>$label</a>";
                 },
+                column_class => "column-class",
             },
         ],
         auth => {
@@ -173,7 +175,7 @@ labels.
 
 The prefix for the routes which will be created.  Given a prefix of C</widgets>,
 then you can go to C</widgets/new> to create a new Widget, and C</widgets/42> to
-edit the widget with the ID (see keu_column) 42.
+edit the widget with the ID (see key_column) 42.
 
 Don't confuse this with Dancer's C<prefix> setting, which would be prepended
 before the prefix you pass to this plugin.  For example, if you used:
@@ -432,14 +434,15 @@ because it leaves the order of the columns unpredictable.)
 
 The keys of each hash are C<name>, the name to use for this custom column,
 C<raw_column> indicating a column from the table that should be selected to
-build the custom column from, and C<transform>, a subref to be used as a
-HTML::Table::FromDatabase callback on the resulting column.  If no
-C<transform> is provided, sub { return shift; } will be used.
+build the custom column from, C<transform>, a subref to be used as a
+HTML::Table::FromDatabase callback on the resulting column, and C<column_class>,
+to specify a CSS class for the the column.  C<column_class> is optional, and if
+no C<transform> is provided, sub { return shift; } will be used.
 
 If your custom column has the same name as an existing column, your customizations
-will be used in-place to override the display of the content in that column.
-If sorting is enabled, the column will be sorted by the underlying database content 
-for that row, and not by the output of your transform function.
+will be used in-place to override the display of the content in that column.  
+If sorting is enabled, the column will be sorted by the 
+underlying database content for that row, and not by the output of your transform function.
 
 For a somewhat spurious example:
 
@@ -452,6 +455,7 @@ For a somewhat spurious example:
                 my $value = shift;
                 return (split /@/, 1)[1];
             },
+            column_class => 'column-class',
         },
     ],
     ...
@@ -1403,8 +1407,17 @@ SEARCHFORM
         ],
         -rename_headers      => \%columns_sort_options,
         -html                => 'escape',
-        -class               => "$table_class",
+        -class               => $table_class,
     );
+
+    # apply custom columns' column_classes as specified. Can this be done via HTML::Table::FromDatabase->new() above?
+    my @all_column_names = ( (map { $_->{COLUMN_NAME} } @$columns), (map { $_->{name} } @{$args->{custom_columns}}) );
+    for my $custom_col_spec (@{ $args->{custom_columns} || [] } ) {
+        if (my $column_class = $custom_col_spec->{column_class}) {
+            my $index = 1 + (first_index { $_ eq $custom_col_spec->{name} } @all_column_names);
+            $table->setColClass( $index, $column_class );
+        }
+    }
 
     $html .= $table->getTable || '';
 

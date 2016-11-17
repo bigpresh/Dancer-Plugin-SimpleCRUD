@@ -1,5 +1,10 @@
 Revision history for Dancer-Plugin-SimpleCRUD 
 
+1.11    2016-11-11
+        [ ENHANCEMENTS ]
+        - Add column_class feature to specify CSS classes for custom_columns
+          (joshrabinowitz)
+
 1.10    2016-10-28
         [ ENHANCEMENTS ]
         - Add search options for Less Than, Less Than or Equal To, 
