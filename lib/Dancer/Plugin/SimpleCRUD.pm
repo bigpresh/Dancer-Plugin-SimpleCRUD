@@ -1030,6 +1030,8 @@ sub _create_list_handler {
         [ lte => { name => "Less Than or Equal To",    cmp => "<=" } ],
         [ gt  => { name => "Greater Than",             cmp => ">" } ],
         [ gte => { name => "Greater Than or Equal To", cmp => ">=" } ],
+
+        [ like => { name => "Like", cmp => "LIKE" } ],
     );
     my $searchtype_options = join( "\n",
         map { 
@@ -1190,9 +1192,9 @@ SEARCHFORM
 
             if ($column_data) {
                 my $search_value = $q;
-                if ($st eq 'c' || $st eq 'nc') {
+                if ($st eq 'c' || $st eq 'nc') {    # contains or does not contain
                     $search_value = '%' . $search_value . '%';
-                } elsif ($st eq 'b') {
+                } elsif ($st eq 'b') {              # begins with
                     $search_value = $search_value . '%';
                 }
 

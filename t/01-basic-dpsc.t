@@ -47,6 +47,7 @@ sub main {
     response_status_is [ GET => '/users/view/1' ],                          200, "GET /users/view/1 returns 200";
     response_status_is [ GET => '/users_editable/view/1' ],                 200, "GET /users_editable/view/1 returns 200";
     response_status_is [ GET => '/users?searchfield=id&searchtype=e&q=1' ], 200, "GET {search on id=1} returns 200";
+    response_status_is [ GET => '/users?searchfield=id&searchtype=like&q=1' ],       200, "GET {search on id like '1'} returns 200";
 
 
     # test html returned from GET $prefix on three cruds
@@ -56,6 +57,7 @@ sub main {
     my ($users_custom_columns_response, $users_custom_columns_tree) = crud_fetch_to_htmltree( GET => '/users_custom_columns',  200 );
     my ($users_customized_column_response, $users_customized_column_tree) = crud_fetch_to_htmltree( GET => '/users_customized_column',  200 );
     my ($users_search_response,         $users_search_tree)         = crud_fetch_to_htmltree( GET => '/users?q=2',             200 );
+    my ($users_like_search_response,    $users_like_search_tree)    = crud_fetch_to_htmltree( GET => '/users?q=2&searchtype=like',      200 );
 
     ###############################################################################
     # test suggestions from bigpresh:
@@ -103,6 +105,7 @@ sub main {
 
     # 5) searching works
     test_htmltree_contents( $users_search_tree,         [qw( tbody:0 tr:0 )], ["2", "bigpresh", "{SSHA}LfvBweDp3ieVPRjAUeWikwpaF6NoiTSK"  ],               "table content, search q=2" );
+    test_htmltree_contents( $users_like_search_tree,    [qw( tbody:0 tr:0 )], ["2", "bigpresh", "{SSHA}LfvBweDp3ieVPRjAUeWikwpaF6NoiTSK"  ],               "table content, search q=2" );
 
     # 6) sorting works
     # TODO
