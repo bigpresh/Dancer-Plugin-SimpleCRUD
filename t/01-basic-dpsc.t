@@ -47,7 +47,7 @@ sub main {
     response_status_is [ GET => '/users/view/1' ],                          200, "GET /users/view/1 returns 200";
     response_status_is [ GET => '/users_editable/view/1' ],                 200, "GET /users_editable/view/1 returns 200";
     response_status_is [ GET => '/users?searchfield=id&searchtype=e&q=1' ], 200, "GET {search on id=1} returns 200";
-    response_status_is [ GET => '/users?searchfield=id&searchtype=like&q=1' ],       200, "GET {search on id like '1'} returns 200";
+    response_status_is [ GET => '/users?searchfield=username&searchtype=like&q=1' ],       200, "GET {search on id like '1'} returns 200";
 
 
     # test html returned from GET $prefix on three cruds
@@ -57,7 +57,7 @@ sub main {
     my ($users_custom_columns_response, $users_custom_columns_tree) = crud_fetch_to_htmltree( GET => '/users_custom_columns',  200 );
     my ($users_customized_column_response, $users_customized_column_tree) = crud_fetch_to_htmltree( GET => '/users_customized_column',  200 );
     my ($users_search_response,         $users_search_tree)         = crud_fetch_to_htmltree( GET => '/users?q=2',             200 );
-    my ($users_like_search_response,    $users_like_search_tree)    = crud_fetch_to_htmltree( GET => '/users?q=2&searchtype=like',      200 );
+    my ($users_like_search_response,    $users_like_search_tree)    = crud_fetch_to_htmltree( GET => '/users?searchtype=like&searchfield=username&q=bigpresh',      200 );
 
     ###############################################################################
     # test suggestions from bigpresh:
@@ -121,6 +121,8 @@ sub main {
     done_testing();
 }
 
+# my ($response, $tree_base) = crud_fetch_to_htmltree( $method, $path, $status );
+# runs one test internally
 sub crud_fetch_to_htmltree {
     my ($method, $path, $status) = @_;
     my $response = dancer_response( $method=>$path );
@@ -128,6 +130,8 @@ sub crud_fetch_to_htmltree {
     return( $response, HTML::TreeBuilder->new_from_content( $response->{content} ) );
 }
 
+# test_htmltree_contents( $tree, $elements_spec, $row_contents_expected, $test_name)
+# look for nested element using elements_spec, and test if found row is as expected. Runs one test.
 sub test_htmltree_contents {
     my ($tree, $elements_spec, $row_contents_expected, $test_name) = @_;
     my $node = $tree;
@@ -136,7 +140,7 @@ sub test_htmltree_contents {
         $node = ($node->look_down( '_tag', $tag ))[$n];
         last unless $node;
     }
-    return ok(0, "can't find html matching elements_spec (@$elements_spec)") unless $node;
+    return ok(0, "$test_name: can't find html matching elements_spec (@$elements_spec)") unless $node;
 
     my @texts = map { $_->as_text() } $node->content_list();
     eq_or_diff( \@texts, $row_contents_expected, $test_name );
