@@ -1,5 +1,9 @@
 Revision history for Dancer-Plugin-SimpleCRUD 
 
+1.12    2017-02-11
+        [ ENHANCEMENTS ]
+        - Add support for sql 'like' searches (joshrabinowitz)
+
 1.11    2016-11-17
         [ ENHANCEMENTS ]
         - Add column_class feature to specify CSS classes for custom_columns

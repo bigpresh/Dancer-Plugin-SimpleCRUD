@@ -39,7 +39,7 @@ use HTML::Entities;
 use URI::Escape;
 use List::MoreUtils qw( first_index );
 
-our $VERSION = '1.11';
+our $VERSION = '1.12';
 
 =encoding utf8
 
