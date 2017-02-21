@@ -50,12 +50,14 @@ sub main {
 
 
     # test html returned from GET $prefix on three cruds
-    my ($users_response,                $users_tree)                = crud_fetch_to_htmltree( GET => '/users',                 200 );
-    my ($users_editable_response,       $users_editable_tree)       = crud_fetch_to_htmltree( GET => '/users_editable',        200 );
-    my ($users_editable_not_addable_response, $users_editable_not_addable_tree)       = crud_fetch_to_htmltree( GET => '/users_editable_not_addable',        200 );
-    my ($users_custom_columns_response, $users_custom_columns_tree) = crud_fetch_to_htmltree( GET => '/users_custom_columns',  200 );
-    my ($users_customized_column_response, $users_customized_column_tree) = crud_fetch_to_htmltree( GET => '/users_customized_column',  200 );
-    my ($users_search_response,         $users_search_tree)         = crud_fetch_to_htmltree( GET => '/users?q=2',             200 );
+    my ($users_tree)                = crud_fetch_to_htmltree( GET => '/users',                 200 );
+    my ($users_editable_tree)       = crud_fetch_to_htmltree( GET => '/users_editable',        200 );
+    my ($users_editable_not_addable_tree)       = crud_fetch_to_htmltree( GET => '/users_editable_not_addable',        200 );
+    my ($users_custom_columns_tree) = crud_fetch_to_htmltree( GET => '/users_custom_columns',  200 );
+    my ($users_customized_column_tree) = crud_fetch_to_htmltree( GET => '/users_customized_column',  200 );
+    my ($users_customized_column2_tree) = crud_fetch_to_htmltree( GET => '/users_customized_column2',  200 );
+    my ($users_customized_column3_tree) = crud_fetch_to_htmltree( GET => '/users_customized_column3',  200 );
+    my ($users_search_tree)         = crud_fetch_to_htmltree( GET => '/users?q=2',             200 );
 
     ###############################################################################
     # test suggestions from bigpresh:
@@ -86,10 +88,12 @@ sub main {
     test_htmltree_contents( $users_custom_columns_tree, [qw( thead:0 tr:0 )], ["id", "username", "password", "extra"   ], "table headers, custom column" );
 
     # 3) values calculated in custom columns are as expected
-    test_htmltree_contents( $users_custom_columns_tree, [qw( tbody:0 tr:0 )], ["1", "sukria", "{SSHA}LfvBweDp3ieVPRjAUeWikwpaF6NoiTSK", "Hello, id: 1" ], "table content, custom column" );
+    test_htmltree_contents( $users_custom_columns_tree, [qw( tbody:0 tr:0 )], ["Hello, id: 1", "sukria", "{SSHA}LfvBweDp3ieVPRjAUeWikwpaF6NoiTSK", "Extra: 1" ], "table content, custom column" );
 
     # 3A) overridden customized columns as expected
     test_htmltree_contents( $users_customized_column_tree, [qw( tbody:0 tr:0 )], ["1", "Username: sukria", "{SSHA}LfvBweDp3ieVPRjAUeWikwpaF6NoiTSK", ], "table content, customized column" );
+    test_htmltree_contents( $users_customized_column2_tree, [qw( tbody:0 tr:0 )], ["1", "Username: sukria", "{SSHA}LfvBweDp3ieVPRjAUeWikwpaF6NoiTSK", "Extra: 1"], "table content, customized column" );
+    test_htmltree_contents( $users_customized_column3_tree, [qw( tbody:0 tr:0 )], ["Hello, id: 1", "Username: sukria", "{SSHA}LfvBweDp3ieVPRjAUeWikwpaF6NoiTSK", "Extra: 1"], "table content, customized column" );
 
     # 3B) custom_column's column_class gets applied both with added columns and overridden columns
     my $response = dancer_response( GET => "/users_custom_columns" );
@@ -122,7 +126,7 @@ sub crud_fetch_to_htmltree {
     my ($method, $path, $status) = @_;
     my $response = dancer_response( $method=>$path );
     is $response->{status}, $status, "response for $method $path is $status";
-    return( $response, HTML::TreeBuilder->new_from_content( $response->{content} ) );
+    return( HTML::TreeBuilder->new_from_content( $response->{content} ) );
 }
 
 sub test_htmltree_contents {
