@@ -37,7 +37,7 @@ use HTML::Table::FromDatabase;
 use CGI::FormBuilder;
 use HTML::Entities;
 use URI::Escape;
-use List::MoreUtils qw( first_index );
+use List::MoreUtils qw( first_index uniq );
 
 our $VERSION = '1.11';
 
@@ -1414,8 +1414,9 @@ SEARCHFORM
     my @all_column_names = ( (map { $_->{COLUMN_NAME} } @$columns), (map { $_->{name} } @{$args->{custom_columns}}) );
     for my $custom_col_spec (@{ $args->{custom_columns} || [] } ) {
         if (my $column_class = $custom_col_spec->{column_class}) {
-            my $index = 1 + (first_index { $_ eq $custom_col_spec->{name} } @all_column_names);
-            $table->setColClass( $index, $column_class );
+            my $first_index = first_index { $_ eq $custom_col_spec->{name} } uniq @all_column_names;
+            die "Cannot find index of column '$custom_col_spec->{name}'" if ($first_index == -1);
+            $table->setColClass( 1 + $first_index, $column_class );
         }
     }
 
