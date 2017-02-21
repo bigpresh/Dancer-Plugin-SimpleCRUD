@@ -47,17 +47,20 @@ sub main {
     response_status_is [ GET => '/users/view/1' ],                          200, "GET /users/view/1 returns 200";
     response_status_is [ GET => '/users_editable/view/1' ],                 200, "GET /users_editable/view/1 returns 200";
     response_status_is [ GET => '/users?searchfield=id&searchtype=e&q=1' ], 200, "GET {search on id=1} returns 200";
+    response_status_is [ GET => '/users?searchfield=username&searchtype=like&q=1' ],       200, "GET {search on username like '1'} returns 200";
 
 
-    # test html returned from GET $prefix on three cruds
-    my ($users_tree)                = crud_fetch_to_htmltree( GET => '/users',                 200 );
-    my ($users_editable_tree)       = crud_fetch_to_htmltree( GET => '/users_editable',        200 );
-    my ($users_editable_not_addable_tree)       = crud_fetch_to_htmltree( GET => '/users_editable_not_addable',        200 );
-    my ($users_custom_columns_tree) = crud_fetch_to_htmltree( GET => '/users_custom_columns',  200 );
-    my ($users_customized_column_tree) = crud_fetch_to_htmltree( GET => '/users_customized_column',  200 );
-    my ($users_customized_column2_tree) = crud_fetch_to_htmltree( GET => '/users_customized_column2',  200 );
-    my ($users_customized_column3_tree) = crud_fetch_to_htmltree( GET => '/users_customized_column3',  200 );
-    my ($users_search_tree)         = crud_fetch_to_htmltree( GET => '/users?q=2',             200 );
+    # test html returned from GET $prefix on cruds
+    my $users_tree                = crud_fetch_to_htmltree( GET => '/users',                 200 );
+    my $users_editable_tree       = crud_fetch_to_htmltree( GET => '/users_editable',        200 );
+    my $users_editable_not_addable_tree       = crud_fetch_to_htmltree( GET => '/users_editable_not_addable',        200 );
+    my $users_custom_columns_tree = crud_fetch_to_htmltree( GET => '/users_custom_columns',  200 );
+    my $users_customized_column_tree = crud_fetch_to_htmltree( GET => '/users_customized_column',  200 );
+    my $users_customized_column2_tree = crud_fetch_to_htmltree( GET => '/users_customized_column2',  200 );
+    my $users_customized_column3_tree = crud_fetch_to_htmltree( GET => '/users_customized_column3',  200 );
+    my $users_search_tree         = crud_fetch_to_htmltree( GET => '/users?q=2',             200 );
+    my $users_like_search_tree    = crud_fetch_to_htmltree( GET => '/users?searchtype=like&searchfield=username&q=bigpresh',      200 );
+
 
     ###############################################################################
     # test suggestions from bigpresh:
@@ -84,10 +87,10 @@ sub main {
     # 1b) check editable but not addable table also gives 'actions' header
     test_htmltree_contents( $users_editable_not_addable_tree,       [qw( thead:0 tr:0 )], ["id", "username", "password", "actions" ], "table headers, editable" );
 
-    # 2) supplied custom columns are present
+    # 2) supplied custom columns are present. the spec tests the header row.
     test_htmltree_contents( $users_custom_columns_tree, [qw( thead:0 tr:0 )], ["id", "username", "password", "extra"   ], "table headers, custom column" );
 
-    # 3) values calculated in custom columns are as expected
+    # 3) values calculated in custom columns are as expected. Spec tests the 0'th body row
     test_htmltree_contents( $users_custom_columns_tree, [qw( tbody:0 tr:0 )], ["Hello, id: 1", "sukria", "{SSHA}LfvBweDp3ieVPRjAUeWikwpaF6NoiTSK", "Extra: 1" ], "table content, custom column" );
 
     # 3A) overridden customized columns as expected
@@ -108,6 +111,8 @@ sub main {
     # 5) searching works
     test_htmltree_contents( $users_search_tree,         [qw( tbody:0 tr:0 )], ["2", "bigpresh", "{SSHA}LfvBweDp3ieVPRjAUeWikwpaF6NoiTSK"  ],               "table content, search q=2" );
 
+    test_htmltree_contents( $users_like_search_tree,    [qw( tbody:0 tr:0 )], ["2", "bigpresh", "{SSHA}LfvBweDp3ieVPRjAUeWikwpaF6NoiTSK"  ],               "table content, search username like 'bigpresh'" );
+
     # 6) sorting works
     # TODO
     
@@ -122,13 +127,17 @@ sub main {
     done_testing();
 }
 
+# my $tree_base = crud_fetch_to_htmltree( $method, $path, $status );
+# runs one test internally
 sub crud_fetch_to_htmltree {
     my ($method, $path, $status) = @_;
     my $response = dancer_response( $method=>$path );
     is $response->{status}, $status, "response for $method $path is $status";
-    return( HTML::TreeBuilder->new_from_content( $response->{content} ) );
+    return HTML::TreeBuilder->new_from_content( $response->{content} );
 }
 
+# test_htmltree_contents( $tree, $elements_spec, $row_contents_expected, $test_name)
+# look for nested element using elements_spec, and test if found row is as expected. Runs one test.
 sub test_htmltree_contents {
     my ($tree, $elements_spec, $row_contents_expected, $test_name) = @_;
     my $node = $tree;
@@ -137,7 +146,7 @@ sub test_htmltree_contents {
         $node = ($node->look_down( '_tag', $tag ))[$n];
         last unless $node;
     }
-    return ok(0, "can't find html matching elements_spec (@$elements_spec)") unless $node;
+    return ok(0, "$test_name: can't find html matching elements_spec (@$elements_spec)") unless $node;
 
     my @texts = map { $_->as_text() } $node->content_list();
     eq_or_diff( \@texts, $row_contents_expected, $test_name );
