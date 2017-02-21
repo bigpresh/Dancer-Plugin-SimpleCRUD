@@ -119,14 +119,14 @@ connection.
         query_auto_focus => 1,
         downloadable => 1,
         foreign_keys => {
-            columnname => {
+           columnname => {
                 table => 'venues',
                 key_column => 'id',
                 label_column => 'name',
             },
         },
-	table_class => 'table table-bordered',
-	paginate_table_class => 'table table-borderless',
+        table_class => 'table table-bordered',
+        paginate_table_class => 'table table-borderless',
         custom_columns => [
             {
                 name => "division_news",
@@ -1329,7 +1329,7 @@ SEARCHFORM
         my $url = _external_url($args->{dancer_prefix}, $args->{prefix})
             . "?o=$o&d=$d&q=$qt&searchfield=$sf&searchtype=$st";
         $html .= "<p>";
-	$html .= "<table class=\"$paginate_table_class\"><tr>";
+    $html .= "<table class=\"$paginate_table_class\"><tr>";
 
         if ($page > 0) {
             $html
@@ -1413,10 +1413,10 @@ SEARCHFORM
     );
 
     # apply custom columns' column_classes as specified. Can this be done via HTML::Table::FromDatabase->new() above?
-    my @all_column_names = ( (map { $_->{COLUMN_NAME} } @$columns), (map { $_->{name} } @{$args->{custom_columns}}) );
+    my @all_column_names = uniq ( (map { $_->{COLUMN_NAME} } @$columns), (map { $_->{name} } @{$args->{custom_columns}}) );
     for my $custom_col_spec (@{ $args->{custom_columns} || [] } ) {
         if (my $column_class = $custom_col_spec->{column_class}) {
-            my $first_index = first_index { $_ eq $custom_col_spec->{name} } uniq @all_column_names;
+            my $first_index = first_index { $_ eq $custom_col_spec->{name} } @all_column_names;
             die "Cannot find index of column '$custom_col_spec->{name}'" if ($first_index == -1);
             $table->setColClass( 1 + $first_index, $column_class );
         }
