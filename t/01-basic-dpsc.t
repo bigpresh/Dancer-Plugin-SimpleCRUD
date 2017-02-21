@@ -56,8 +56,11 @@ sub main {
     my $users_editable_not_addable_tree       = crud_fetch_to_htmltree( GET => '/users_editable_not_addable',        200 );
     my $users_custom_columns_tree = crud_fetch_to_htmltree( GET => '/users_custom_columns',  200 );
     my $users_customized_column_tree = crud_fetch_to_htmltree( GET => '/users_customized_column',  200 );
+    my $users_customized_column2_tree = crud_fetch_to_htmltree( GET => '/users_customized_column2',  200 );
+    my $users_customized_column3_tree = crud_fetch_to_htmltree( GET => '/users_customized_column3',  200 );
     my $users_search_tree         = crud_fetch_to_htmltree( GET => '/users?q=2',             200 );
     my $users_like_search_tree    = crud_fetch_to_htmltree( GET => '/users?searchtype=like&searchfield=username&q=bigpresh',      200 );
+
 
     ###############################################################################
     # test suggestions from bigpresh:
@@ -88,10 +91,12 @@ sub main {
     test_htmltree_contents( $users_custom_columns_tree, [qw( thead:0 tr:0 )], ["id", "username", "password", "extra"   ], "table headers, custom column" );
 
     # 3) values calculated in custom columns are as expected. Spec tests the 0'th body row
-    test_htmltree_contents( $users_custom_columns_tree, [qw( tbody:0 tr:0 )], ["1", "sukria", "{SSHA}LfvBweDp3ieVPRjAUeWikwpaF6NoiTSK", "Hello, id: 1" ], "table content, custom column" );
+    test_htmltree_contents( $users_custom_columns_tree, [qw( tbody:0 tr:0 )], ["Hello, id: 1", "sukria", "{SSHA}LfvBweDp3ieVPRjAUeWikwpaF6NoiTSK", "Extra: 1" ], "table content, custom column" );
 
     # 3A) overridden customized columns as expected
     test_htmltree_contents( $users_customized_column_tree, [qw( tbody:0 tr:0 )], ["1", "Username: sukria", "{SSHA}LfvBweDp3ieVPRjAUeWikwpaF6NoiTSK", ], "table content, customized column" );
+    test_htmltree_contents( $users_customized_column2_tree, [qw( tbody:0 tr:0 )], ["1", "Username: sukria", "{SSHA}LfvBweDp3ieVPRjAUeWikwpaF6NoiTSK", "Extra: 1"], "table content, customized column" );
+    test_htmltree_contents( $users_customized_column3_tree, [qw( tbody:0 tr:0 )], ["Hello, id: 1", "Username: sukria", "{SSHA}LfvBweDp3ieVPRjAUeWikwpaF6NoiTSK", "Extra: 1"], "table content, customized column" );
 
     # 3B) custom_column's column_class gets applied both with added columns and overridden columns
     my $response = dancer_response( GET => "/users_custom_columns" );
@@ -105,6 +110,7 @@ sub main {
 
     # 5) searching works
     test_htmltree_contents( $users_search_tree,         [qw( tbody:0 tr:0 )], ["2", "bigpresh", "{SSHA}LfvBweDp3ieVPRjAUeWikwpaF6NoiTSK"  ],               "table content, search q=2" );
+
     test_htmltree_contents( $users_like_search_tree,    [qw( tbody:0 tr:0 )], ["2", "bigpresh", "{SSHA}LfvBweDp3ieVPRjAUeWikwpaF6NoiTSK"  ],               "table content, search username like 'bigpresh'" );
 
     # 6) sorting works
