@@ -42,13 +42,13 @@ simple_crud( prefix => '/users_custom_columns', record_title=>'A', db_table => '
 
 # override display of 'username' column
 simple_crud( prefix => '/users_customized_column', record_title=>'A', db_table => 'users', editable => 0, sortable=>1,
-                custom_columns => [ $username_custom_column, ], # NO WARNING
+                custom_columns => [ $username_custom_column, ], 
             );
 simple_crud( prefix => '/users_customized_column2', record_title=>'A', db_table => 'users', editable => 0, sortable=>1,
-                custom_columns => [ $username_custom_column, $extra_custom_column, ], # WARNING?
+                custom_columns => [ $username_custom_column, $extra_custom_column, ],
             );
 simple_crud( prefix => '/users_customized_column3', record_title=>'A', db_table => 'users', editable => 0, sortable=>1,
-                custom_columns => [ $username_custom_column, $extra_custom_column, $id_custom_column ], # WARNING
+                custom_columns => [ $username_custom_column, $extra_custom_column, $id_custom_column ],
             );
 
 1;
