@@ -1,7 +1,7 @@
 # First, a dead simple object that can be fed a hashref of params from the
 # Dancer params() keyword, and returns then when its param() method is called,
 # so that we can feed it to CGI::FormBuilder:
-package Dancer::Plugin::SimpleCRUD::ParamsObject;
+package Dancer::Plugin::SimpleCRUD::FormBuilderParamsObject;
 
 sub new {
     my ($class, $params) = @_;
@@ -25,6 +25,36 @@ sub param {
     }
 }
 
+# this records the values from params() that we care about
+package Dancer::Plugin::SimpleCRUD::Params;
+use Mouse;
+has 'q' => ( is=>'rw', isa=>"Str" );    # query
+has 'sf' => ( is=>'rw', isa=>"Str" );   # searchfield
+has 'st' => ( is=>'rw', isa=>"Str" );   # searchtype
+has 'o' => ( is=>'rw', isa=>"Str" );   # order
+has 'd' => ( is=>'rw', isa=>"Str" );   # direction
+has 'page' => ( is=>'rw', isa=>"Int" );   # page num
+
+package Dancer::Plugin::SimpleCRUD::Constants;
+use base 'Exporter';
+our @EXPORT_OK = qw( default_searchtype searchtypes );
+use constant default_searchtype => 'e'; # equality
+use constant searchtypes => (
+    [ e   => { name => "Equals",           cmp => "=" } ],
+    [ c   => { name => "Contains",         cmp => "like" } ],
+    [ b   => { name => "Begins With",      cmp => "like" } ],
+    [ ne  => { name => "Does Not Equal",   cmp => "!=" } ],
+    [ nc  => { name => "Does Not Contain", cmp => "not like" } ],
+
+    [ lt  => { name => "Less Than",                cmp => "<" } ],
+    [ lte => { name => "Less Than or Equal To",    cmp => "<=" } ],
+    [ gt  => { name => "Greater Than",             cmp => ">" } ],
+    [ gte => { name => "Greater Than or Equal To", cmp => ">=" } ],
+
+    [ like => { name => "Like", cmp => "LIKE" } ],
+);
+
+
 # Now, on to the real stuff
 package Dancer::Plugin::SimpleCRUD;
 
@@ -38,6 +68,7 @@ use CGI::FormBuilder;
 use HTML::Entities;
 use URI::Escape;
 use List::MoreUtils qw( first_index uniq );
+use Data::Dump qw(dump);
 
 our $VERSION = '1.12';
 
@@ -119,14 +150,14 @@ connection.
         query_auto_focus => 1,
         downloadable => 1,
         foreign_keys => {
-            columnname => {
+           columnname => {
                 table => 'venues',
                 key_column => 'id',
                 label_column => 'name',
             },
         },
-	table_class => 'table table-bordered',
-	paginate_table_class => 'table table-borderless',
+        table_class => 'table table-bordered',
+        paginate_table_class => 'table table-borderless',
         custom_columns => [
             {
                 name => "division_news",
@@ -139,6 +170,15 @@ connection.
                     return "<a href='$search'>$label</a>";
                 },
                 column_class => "column-class",
+            },
+        ],
+        search_columns => [
+            { 
+                name => 'division_region', # join through team -> division -> region tables
+                joins => [ 
+                    { table => 'division',  on_left => 'id', on_right => 'team_id', match_column='name' },  
+                        # join division on (team.id=division.team_id) where division.name = value
+                ],
             },
         ],
         auth => {
@@ -808,14 +848,14 @@ sub _create_add_edit_route {
     # Only give CGI::FormBuilder our fake CGI object if the form has been
     # POSTed to us already; otherwise, it will ignore default values from
     # the DB, it seems.
-    my $paramsobj
+    my $formbuilder_paramsobj
         = request->{method} eq 'POST'
-        ? Dancer::Plugin::SimpleCRUD::ParamsObject->new({ params() })
+        ? Dancer::Plugin::SimpleCRUD::FormBuilderParamsObject->new({ params() })
         : undef;
 
     my $form = CGI::FormBuilder->new(
         fields   => \@editable_columns,
-        params   => $paramsobj,
+        params   => $formbuilder_paramsobj,
         values   => $values_from_database,
         validate => $validation,
         method   => 'post',
@@ -976,6 +1016,7 @@ sub _create_add_edit_route {
     }
 }
 
+# this function is too long.
 sub _create_list_handler {
     my ($args, $table_name, $key_column) = @_;
 
@@ -1018,28 +1059,13 @@ sub _create_list_handler {
             "<option $sel value='$_->{COLUMN_NAME}'>$friendly_name</option>"
             } @$columns
     );
-    my $default_searchtype = "e";
-    my @searchtypes = (
-        [ e   => { name => "Equals",           cmp => "=" } ],
-        [ c   => { name => "Contains",         cmp => "like" } ],
-        [ b   => { name => "Begins With",      cmp => "like" } ],
-        [ ne  => { name => "Does Not Equal",   cmp => "!=" } ],
-        [ nc  => { name => "Does Not Contain", cmp => "not like" } ],
-
-        [ lt  => { name => "Less Than",                cmp => "<" } ],
-        [ lte => { name => "Less Than or Equal To",    cmp => "<=" } ],
-        [ gt  => { name => "Greater Than",             cmp => ">" } ],
-        [ gte => { name => "Greater Than or Equal To", cmp => ">=" } ],
-
-        [ like => { name => "Like", cmp => "LIKE" } ],
-    );
     my $searchtype_options = join( "\n",
         map { 
             my ($search_code, $hashref) = @$_;
             my $name = $hashref->{name};
-            my $sel = (params->{searchtype} || $default_searchtype) eq $search_code;
+            my $sel = (params->{searchtype} || default_searchtype()) eq $search_code;
             sprintf("<option value='%s'%s>%s</option>", $search_code, $sel ? " selected" : "", $name);
-        } @searchtypes 
+        } (searchtypes())
     );
 
     my $order_by_param     = params->{'o'} || "";
@@ -1170,6 +1196,7 @@ SEARCHFORM
         }
     }
 
+
     # If we have a query or a where_filter, we need to assemble a WHERE clause...
     my $where_filter = _get_where_filter_from_args($args);
     if (length $q || $where_filter) {
@@ -1181,6 +1208,8 @@ SEARCHFORM
 
         my (@search_wheres, @search_binds);
         if (length $q) {    # this nested code is all for queries in $q
+
+            #look for columns with matching names
             my ($column_data)
                 = grep { lc $_->{COLUMN_NAME} eq lc $searchfield }
                 @{$columns};
@@ -1188,17 +1217,12 @@ SEARCHFORM
                 "Searching on $column_data->{COLUMN_NAME} which is a "
                 . "$column_data->{TYPE_NAME}"
             );
-            my $st = params->{searchtype} || $default_searchtype;
+            my $st = params->{searchtype} || default_searchtype();
 
             if ($column_data) {
-                my $search_value = $q;
-                if ($st eq 'c' || $st eq 'nc') {    # contains or does not contain
-                    $search_value = '%' . $search_value . '%';
-                } elsif ($st eq 'b') {              # begins with
-                    $search_value = $search_value . '%';
-                }
+                my $search_value = _search_value_from_query_and_searchtype( $q, $st );
 
-                my ($searchtype_row) = grep { $_->[0] eq $st } @searchtypes;
+                my ($searchtype_row) = grep { $_->[0] eq $st } searchtypes();
                 my $cmp = $searchtype_row->[1]->{cmp} || '=';
                 push(@search_wheres,
                     "$table_name."
@@ -1214,7 +1238,20 @@ SEARCHFORM
                 );
                 $html .= sprintf '&mdash;<a href="%s">Reset search</a></p>',
                     _external_url($args->{dancer_prefix}, $args->{prefix});
+            } 
+            # now look for search_columns, which we don't display but are searchable
+            elsif (0 && $args->{search_columns}) {
+                my $search_column = first { lc( $_->{name} ) eq lc $searchfield} @{$args->{search_columns}};
+                die "$0: can't find column or search_column to perform query on" unless $search_column;
+                if ($search_column) {
+                    my $search_value = _search_value_from_query_and_searchtype( $q, $st );
+                    my $joins = $search_column->{joins};
+                    #my $cmp = "=";
+                    #push( @search_wheres, "$joins->{table}." . $dbh->quote_identifier($joins->{match_column})
+
+                }
             }
+
         }
         # add the 'where' clauses to $query and the binds to @binds
         $query .= " where " . join( " AND ", grep { length $_ } ($where_filter_sql, @search_wheres));
@@ -1222,18 +1259,20 @@ SEARCHFORM
     }
 
     if ($args->{downloadable}) {
-        my $qt   = uri_escape($q);
+
+        my $qt   = uri_escape($q);  # DUP CODE
         my $sf   = uri_escape($searchfield);
-        my $st   = uri_escape(params->{searchtype} || $default_searchtype);
+        my $st   = uri_escape(params->{searchtype} || default_searchtype());
         my $o    = uri_escape(params->{'o'}         || "");
         my $d    = uri_escape(params->{'d'}         || "");
         my $page = uri_escape(params->{'p'}         || 0);
+        $page = 0 unless $page =~ /^\d+$/;
 
-        my @formats = qw/csv tabular json xml/;
 
         my $url = _external_url($args->{dancer_prefix}, $args->{prefix})
             . "?o=$o&d=$d&q=$qt&searchfield=$sf&searchtype=$st&p=$page";
 
+        my @formats = qw/csv tabular json xml/;
         $html
             .= "<p>Download as: "
             . join(", ", map { "<a href=\"$url&format=$_\">$_</a>" } @formats)
@@ -1242,9 +1281,9 @@ SEARCHFORM
 
     my %columns_sort_options;
     if ($args->{sortable}) {
-        my $qt              = uri_escape($q);
+        my $qt              = uri_escape($q);   # PARTIAL DUP CODE
         my $sf              = uri_escape($searchfield);
-        my $st              = uri_escape(params->{searchtype} || $default_searchtype);
+        my $st              = uri_escape(params->{searchtype} || default_searchtype());
         my $order_by_column = uri_escape(params->{'o'})        || $key_column;
 
         # Invalid column name ? discard it
@@ -1277,7 +1316,8 @@ SEARCHFORM
                 $direction_char = ($direction eq "asc") ? "&uarr;" : "&darr;";
             }
             my $url = _external_url($args->{dancer_prefix}, $args->{prefix})
-                . "?o=$col_name&d=$direction&q=$q&searchfield=$sf&searchtype=$st";
+                . "?o=$col_name&d=$direction&q=$q&searchfield=$sf&searchtype=$st";  # DUP CODE
+
             $col_name =>
                 "<a href=\"$url\">$friendly_name&nbsp;$direction_char</a>";
         } @all_cols;
@@ -1315,9 +1355,9 @@ SEARCHFORM
     if ($args->{paginate} && $args->{paginate} =~ /^\d+$/) {
         my $page_size = $args->{paginate};
 
-        my $qt   = uri_escape($q);
+        my $qt   = uri_escape($q);          # DUP CODE
         my $sf   = uri_escape($searchfield);
-        my $st   = uri_escape(params->{searchtype} || $default_searchtype);
+        my $st   = uri_escape(params->{searchtype} || default_searchtype());
         my $o    = uri_escape(params->{'o'}         || "");
         my $d    = uri_escape(params->{'d'}         || "");
         my $page = uri_escape(params->{'p'}         || 0);
@@ -1329,7 +1369,7 @@ SEARCHFORM
         my $url = _external_url($args->{dancer_prefix}, $args->{prefix})
             . "?o=$o&d=$d&q=$qt&searchfield=$sf&searchtype=$st";
         $html .= "<p>";
-	$html .= "<table class=\"$paginate_table_class\"><tr>";
+    $html .= "<table class=\"$paginate_table_class\"><tr>";
 
         if ($page > 0) {
             $html
@@ -1413,10 +1453,10 @@ SEARCHFORM
     );
 
     # apply custom columns' column_classes as specified. Can this be done via HTML::Table::FromDatabase->new() above?
-    my @all_column_names = ( (map { $_->{COLUMN_NAME} } @$columns), (map { $_->{name} } @{$args->{custom_columns}}) );
+    my @all_column_names = uniq ( (map { $_->{COLUMN_NAME} } @$columns), (map { $_->{name} } @{$args->{custom_columns}}) );
     for my $custom_col_spec (@{ $args->{custom_columns} || [] } ) {
         if (my $column_class = $custom_col_spec->{column_class}) {
-            my $first_index = first_index { $_ eq $custom_col_spec->{name} } uniq @all_column_names;
+            my $first_index = first_index { $_ eq $custom_col_spec->{name} } @all_column_names;
             die "Cannot find index of column '$custom_col_spec->{name}'" if ($first_index == -1);
             $table->setColClass( 1 + $first_index, $column_class );
         }
@@ -1655,6 +1695,16 @@ sub _has_permission {
 sub _defined_or_empty {
     my $v = shift;
     return defined($v) ? $v : "";
+}
+sub _search_value_from_query_and_searchtype {
+    my ($query, $searchtype) = @_;
+    my $search_value = $query;
+    if ($searchtype eq 'c' || $searchtype eq 'nc') {    # contains or does not contain
+        $search_value = '%' . $search_value . '%';
+    } elsif ($searchtype eq 'b') {              # begins with
+        $search_value = $search_value . '%';
+    }
+    return $search_value;
 }
 
 # where_filter  "if it's a coderef, call it and check it gave us a hashref to
