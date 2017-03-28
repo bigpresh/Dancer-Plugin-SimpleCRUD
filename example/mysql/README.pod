@@ -4,9 +4,11 @@ Dancer::Plugin::SimpleCRUD example application with MySQL and Bootstrap 4
 
 =head1 DESCRIPTION
 
-A simple L<Dancer> application to demonstrate L<Dancer::Plugin::SimpleCRUD> in action with MySQL and Bootstrap 4 for responsive webs
+A simple L<Dancer> application to demonstrate L<Dancer::Plugin::SimpleCRUD> in action with MySQL and Bootstrap 4 for responsive web
 
 =head1 USAGE
+
+Use schema.sql to create the db and tables on your host (localhost or external host) with a user with sufficient privileges (such as root)
 
 Just change into the C<example/> directory and run it:
 

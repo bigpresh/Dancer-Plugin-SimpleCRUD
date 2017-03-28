@@ -29,4 +29,3 @@ CREATE TABLE employer ( id integer NOT NULL AUTO_INCREMENT primary key, name var
 INSERT INTO employer VALUES(1,'ACME Ltd');
 INSERT INTO employer VALUES(2,'Bob''s Widgets Ltd');
 INSERT INTO employer VALUES(3,'Bertie''s Badgers PLC');
-COMMIT;
