@@ -28,6 +28,6 @@ it in action, anyway, assuming it works for you.
 
 David Precious <davidp@preshweb.co.uk>
 
-=head1 CONTRIBUTOR
+=head2 CONTRIBUTOR
 
 Marvin Agüero <marvin-aguero@hotmail.com>
