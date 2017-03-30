@@ -1,3 +1,4 @@
+appname: My App name
 charset: UTF-8
 logger: console
 log: core

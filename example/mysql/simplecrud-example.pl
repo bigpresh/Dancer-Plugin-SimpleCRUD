@@ -11,6 +11,7 @@ simple_crud(
     prefix => '/people',
     acceptable_values => {
         gender => [ qw( Male Female ) ],
+		is_admin => [ qw( 0 1 ) ],
     },
     deletable => 'yes',
     sortable => 'yes',
@@ -51,11 +52,15 @@ get '/' => sub {
     redirect '/people';
 };
 
+# redirect for add new register in db_table arg
+get '/add' => sub {
+    redirect '/people/add';
+};
+
 # manipulate the name entered via a hook
 hook add_edit_row => sub {
     my $row = shift;
     $_ = ucfirst lc $_ for (@$row{qw(first_name last_name)});
 };
-
 
 dance;
