@@ -90,13 +90,14 @@ sub main {
     # 2) supplied custom columns are present. the spec tests the header row.
     test_htmltree_contents( $users_custom_columns_tree, [qw( thead:0 tr:0 )], ["id", "username", "password", "extra"   ], "table headers, custom column" );
 
-    # 3) values calculated in custom columns are as expected. Spec tests the 0'th body row
-    test_htmltree_contents( $users_custom_columns_tree, [qw( tbody:0 tr:0 )], ["Hello, id: 1", "sukria", "{SSHA}LfvBweDp3ieVPRjAUeWikwpaF6NoiTSK", "Extra: 1" ], "table content, custom column" );
+    # 3) values calculated in custom columns are as expected. (Test first two rows)
+    test_htmltree_contents( $users_custom_columns_tree, [qw( tbody:0 tr:0 )], ["Hello, id: 0", "nobody", "nobodyhasaplaintextpassword!", "Extra: 0" ], "table content, custom column" );
+    test_htmltree_contents( $users_custom_columns_tree, [qw( tbody:0 tr:1 )], ["Hello, id: 1", "sukria", "{SSHA}LfvBweDp3ieVPRjAUeWikwpaF6NoiTSK", "Extra: 1" ], "table content, custom column" );
 
     # 3A) overridden customized columns as expected
-    test_htmltree_contents( $users_customized_column_tree, [qw( tbody:0 tr:0 )], ["1", "Username: sukria", "{SSHA}LfvBweDp3ieVPRjAUeWikwpaF6NoiTSK", ], "table content, customized column" );
-    test_htmltree_contents( $users_customized_column2_tree, [qw( tbody:0 tr:0 )], ["1", "Username: sukria", "{SSHA}LfvBweDp3ieVPRjAUeWikwpaF6NoiTSK", "Extra: 1"], "table content, customized column" );
-    test_htmltree_contents( $users_customized_column3_tree, [qw( tbody:0 tr:0 )], ["Hello, id: 1", "Username: sukria", "{SSHA}LfvBweDp3ieVPRjAUeWikwpaF6NoiTSK", "Extra: 1"], "table content, customized column" );
+    test_htmltree_contents( $users_customized_column_tree, [qw( tbody:0 tr:1 )], ["1", "Username: sukria", "{SSHA}LfvBweDp3ieVPRjAUeWikwpaF6NoiTSK", ], "table content, customized column" );
+    test_htmltree_contents( $users_customized_column2_tree, [qw( tbody:0 tr:1 )], ["1", "Username: sukria", "{SSHA}LfvBweDp3ieVPRjAUeWikwpaF6NoiTSK", "Extra: 1"], "table content, customized column" );
+    test_htmltree_contents( $users_customized_column3_tree, [qw( tbody:0 tr:1 )], ["Hello, id: 1", "Username: sukria", "{SSHA}LfvBweDp3ieVPRjAUeWikwpaF6NoiTSK", "Extra: 1"], "table content, customized column" );
 
     # 3B) custom_column's column_class gets applied both with added columns and overridden columns
     my $response = dancer_response( GET => "/users_custom_columns" );
@@ -106,7 +107,21 @@ sub main {
     cmp_ok( $response->{content}, '=~', q{<td class="classhere">Username: sukria</td>}, "column_class from in /users_customized_column html" );
 
     # 4) add/edit/delete routes work (To Be Written)
-    # TODO
+    # We can edit user 0, and expect the existing data to be populated
+    $response = dancer_response( GET => "/users_editable/edit/0" );
+    like(
+        $response->content,
+        qr/value="nobodyhasaplaintextpassword!"/,
+        "Fetching user 0 populates data (GH-100)",
+    );
+
+    # Can't try to edit a record that doesn't exist
+    for my $fake_id (qw(100 -50 badger)) {
+        $response = dancer_response( GET => "/users_editable/edit/$fake_id" );
+        is( $response->status, 404, "No edit page for fake ID $fake_id" );
+    }
+
+    # TODO: test actual editing (submit changes, etc)
 
     # 5) searching works
     test_htmltree_contents( $users_search_tree,         [qw( tbody:0 tr:0 )], ["2", "bigpresh", "{SSHA}LfvBweDp3ieVPRjAUeWikwpaF6NoiTSK"  ],               "table content, search q=2" );
