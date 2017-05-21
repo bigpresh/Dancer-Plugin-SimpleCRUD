@@ -101,10 +101,18 @@ sub main {
 
     # 3B) custom_column's column_class gets applied both with added columns and overridden columns
     my $response = dancer_response( GET => "/users_custom_columns" );
-    cmp_ok( $response->{content}, '=~', q{<td class="classhere">Hello, id: \d+</td>}, "column_class in added custom_column" );
+    like(
+        $response->{content},
+        qr{<td class="classhere">Hello, id: \d+</td>},
+        "column_class in added custom_column",
+    );
 
     $response = dancer_response( GET => "/users_customized_column" );
-    cmp_ok( $response->{content}, '=~', q{<td class="classhere">Username: sukria</td>}, "column_class from in /users_customized_column html" );
+    like(
+        $response->{content},
+        qr{<td class="classhere">Username: sukria</td>},
+        "column_class from in /users_customized_column html",
+    );
 
     # 4) add/edit/delete routes work (To Be Written)
     # We can edit user 0, and expect the existing data to be populated
