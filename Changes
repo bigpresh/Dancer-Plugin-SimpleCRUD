@@ -1,5 +1,11 @@
 Revision history for Dancer-Plugin-SimpleCRUD 
 
+1.13    2017-05-21
+        [ BUG FIXES ]
+        - Allow editing record 0 (GH-100) (bigpresh)
+        - Edit handler now throws 404 if asked to edit non-existent record,
+          rather than just empty form (bigpresh)
+
 1.12    2017-02-12
         [ ENHANCEMENTS ]
         - Add support for sql 'like' searches (joshrabinowitz)
