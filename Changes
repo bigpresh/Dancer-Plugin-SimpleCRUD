@@ -1,5 +1,9 @@
 Revision history for Dancer-Plugin-SimpleCRUD 
 
+1.14    2017-05-22
+        [ BUG FIXES]
+        - Fix double prefixes when Dancer prefix is in effect (GH-36) (bigpresh)
+
 1.13    2017-05-21
         [ BUG FIXES ]
         - Allow editing record 0 (GH-100) (bigpresh)
