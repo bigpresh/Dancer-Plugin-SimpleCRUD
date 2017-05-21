@@ -725,6 +725,10 @@ sub _create_add_edit_route {
         $where->{$key_column} = $id;
         $values_from_database
             = $dbh->quick_select($table_name, $where);
+        if (!$values_from_database) {
+            send_error "$params->{title} $id not found", 404;
+
+        }
     }
 
     # Find out about table columns:
