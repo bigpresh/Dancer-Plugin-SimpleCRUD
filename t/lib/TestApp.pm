@@ -17,6 +17,7 @@ my $password = "{SSHA}LfvBweDp3ieVPRjAUeWikwpaF6NoiTSK";     # password is 'test
 my @sql = (
     #q/drop table if exists users/,
     qq/create table users (id INTEGER, username VARCHAR, password VARCHAR)/,
+    qq/insert into users values (0, 'nobody', 'nobodyhasaplaintextpassword!')/,
     qq/insert into users values (1, 'sukria', '$password')/,
     qq/insert into users values (2, 'bigpresh', '$password')/,
     qq/insert into users values (3, 'badger', '$password')/,
