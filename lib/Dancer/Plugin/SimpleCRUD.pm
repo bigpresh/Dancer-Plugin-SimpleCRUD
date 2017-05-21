@@ -720,7 +720,7 @@ sub _create_add_edit_route {
 
     # a hash containing the current values in the database
     my $values_from_database;
-    if ($id) {
+    if (defined $id) {
         my $where = _get_where_filter_from_args($args);
         $where->{$key_column} = $id;
         $values_from_database
