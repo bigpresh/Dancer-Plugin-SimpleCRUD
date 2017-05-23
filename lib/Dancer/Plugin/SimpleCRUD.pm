@@ -725,7 +725,7 @@ sub _create_add_edit_route {
         $values_from_database
             = $dbh->quick_select($table_name, $where);
         if (!$values_from_database) {
-            send_error "$params->{title} $id not found", 404;
+            send_error "$args->{record_title} $id not found", 404;
 
         }
     }
