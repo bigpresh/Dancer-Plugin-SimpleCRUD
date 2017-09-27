@@ -30,4 +30,4 @@ David Precious <davidp@preshweb.co.uk>
 
 =head2 CONTRIBUTOR
 
-Marvin Agüero <marvin-aguero@hotmail.com>
+Marvin Aguero <marvin-aguero@hotmail.com>
