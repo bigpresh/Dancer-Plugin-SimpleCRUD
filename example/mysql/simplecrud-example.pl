@@ -52,11 +52,6 @@ get '/' => sub {
     redirect '/people';
 };
 
-# redirect for add new register in db_table arg
-get '/add' => sub {
-    redirect '/people/add';
-};
-
 # manipulate the name entered via a hook
 hook add_edit_row => sub {
     my $row = shift;
