@@ -11,7 +11,7 @@ simple_crud(
     prefix => '/people',
     acceptable_values => {
         gender => [ qw( Male Female ) ],
-		is_admin => [ qw( 0 1 ) ],
+	is_admin => [ qw( 0 1 ) ],
     },
     deletable => 'yes',
     sortable => 'yes',
