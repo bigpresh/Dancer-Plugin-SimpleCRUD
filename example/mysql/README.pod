@@ -1,0 +1,33 @@
+=head1 NAME
+
+Dancer::Plugin::SimpleCRUD example application with MySQL and Bootstrap 4
+
+=head1 DESCRIPTION
+
+A simple L<Dancer> application to demonstrate L<Dancer::Plugin::SimpleCRUD> in action with MySQL and Bootstrap 4 for responsive web
+
+=head1 USAGE
+
+Use schema.sql to create the db and tables on your host (localhost or external host) with a user with sufficient privileges (such as root)
+
+Just change into the C<example/> directory and run it:
+
+  ./simplecrud-example.pl
+
+As it's a Dancer app you can run it on a specific port with e.g.
+
+  ./simplecrud-example.pl --port 5000
+
+Then, point your browser at L<http://localhost:3000/> (or the port you chose -
+changing the hostname if it's on a different box to the one your browser is on),
+and see it in action, swoon, and send me lovely compliments.  Well, at least see
+it in action, anyway, assuming it works for you.
+
+
+=head1 AUTHOR
+
+David Precious <davidp@preshweb.co.uk>
+
+=head2 CONTRIBUTOR
+
+Marvin Aguero <marvin-aguero@hotmail.com>

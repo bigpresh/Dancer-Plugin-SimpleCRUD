@@ -20,6 +20,7 @@ WriteMakefile(
         'HTML::Table::FromDatabase' => 1.10,
         'CGI::FormBuilder' => 3.10,
         'DBD::SQLite'   => 1.50,
+        'Text::CSV'    => 0,
         'HTML::TreeBuilder' => 5.03,
         'List::MoreUtils' => 0.416,
     },

@@ -1,0 +1,33 @@
+appname: My App name
+charset: UTF-8
+logger: console
+log: core
+layout: main
+session: simple
+plugins:
+    Database:
+        driver: 'mysql'
+        database: 'base1'
+        host: 'yourIPAddress'
+        port: 3306
+        username: 'yourusername'
+        password: 'yourpassusername'
+    #connection_check_threshold: 10
+        dbi_params:
+            RaiseError: 1
+            AutoCommit: 1
+        on_connect_do: ["SET NAMES 'utf8'", "SET CHARACTER SET 'utf8'" ]
+        log_queries: 1
+    Auth::Extensible:
+        realms:
+            foo:
+                provider: Config
+                users:
+                    - user: viewer
+                      pass: viewer
+                    - user: editor
+                      pass: editor
+                      roles:
+                        - editor
+
+
