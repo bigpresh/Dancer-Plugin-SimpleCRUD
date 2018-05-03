@@ -1,4 +1,4 @@
-package t::lib::TestApp;
+package t::lib::TestAppDatabase;
 
 use Dancer;
 use Dancer::Plugin::Database;

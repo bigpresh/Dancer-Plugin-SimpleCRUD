@@ -3,7 +3,7 @@ use warnings;
 
 use Test::More import => ['!pass'];
 use Test::Differences;
-use t::lib::TestApp;
+use t::lib::TestAppDatabase;
 use Dancer ':syntax';
 
 use Dancer::Test;

@@ -17,7 +17,7 @@ WriteMakefile(
         'Dancer'     => 1.3,
         'Dancer::Plugin::Database' => 2.13,
         'Dancer::Plugin::Database::Core' => 0.20,
-        'Dancer::Plugin::DBIC' => 0.2104,
+        #'Dancer::Plugin::DBIC' => 0.2104,  # we do not make this a hard dependency
         'DBIx::Class::Schema::Loader' => 0.07049,
         'HTML::Table::FromDatabase' => 1.10,
         'CGI::FormBuilder' => 3.10,
