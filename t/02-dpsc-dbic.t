@@ -13,6 +13,10 @@ eval { require DBD::SQLite };
 if ($@) {
     plan skip_all => 'DBD::SQLite required to run these tests';
 }
+eval { require Dancer::Plugin::DBIC };
+if ($@) {
+    plan skip_all => 'Dancer::Plugin::DBIC required to run these tests';
+}
 
 my $dsn = t::lib::TestAppDBIC::_dsn();
 

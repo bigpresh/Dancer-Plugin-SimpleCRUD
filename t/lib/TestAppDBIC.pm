@@ -1,7 +1,8 @@
 package t::lib::TestAppDBIC;
 
 use Dancer;
-use Dancer::Plugin::DBIC;
+#use Dancer::Plugin::DBIC;
+require Dancer::Plugin::DBIC;   # no hard requirement
 use Test::More import => ['!pass']; # import avoids 'prototype mismatch' with Dancer
 use File::Temp qw(tempfile);
 
@@ -27,7 +28,7 @@ my @sql = (
     qq/insert into users values (7, 'mystery1', '$password')/,
 );
 
-schema->storage->dbh->do($_) for @sql;
+Dancer::Plugin::DBIC::schema()->storage->dbh->do($_) for @sql;
 
 # now set up our simple_crud interface, and use DBIC
 simple_crud( prefix => '/users',  record_title=>'A', db_table => 'users', editable => 0, db_connection_provider => "DBIC" );
