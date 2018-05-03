@@ -32,8 +32,8 @@ use warnings;
 use strict;
 use Dancer::Plugin;
 use Dancer qw(:syntax);
-#use Dancer::Plugin::Database;
-#use Dancer::Plugin::DBIC;
+use Dancer::Plugin::Database;
+#use Dancer::Plugin::DBIC;  # not a hard dependency
 use HTML::Table::FromDatabase;
 use CGI::FormBuilder;
 use HTML::Entities;
@@ -224,9 +224,12 @@ which returns the WHERE clause hashref - for instance:
 
 =item C<db_connection_provider> (optional)
 
-By default, we use L<Dancer::Plugin::Database> to obtain database connections.  
-If you set this option to 'DBIC', it will instead use L<Dancer::Plugin::DBIC>
+By default, we use L<Dancer::Plugin::Database> to obtain database connections.
+ 
+If the moculde L<Dancer::Plugin::DBIC> is installed and you set this option to 'DBIC', 
+the database connection will be created using L<Dancer::Plugin::DBIC> 
 and its corresponding configuration options for database connections.
+Note that in DBIC, the default connection is named 'dafault', not ''.
 
 =item C<db_connection_name> (optional)
 
@@ -241,6 +244,9 @@ If this is not supplied or is empty, the default
 database connection details in your config file will be used - this is often
 what you want, so unless your app is dealing with multiple DBs, you probably
 won't need to worry about this option.
+
+Note that in L<Dancer::Plugin::Database>, the default connection is named 'dafault', 
+but in L<Dancer::Plugin::DBIC> the default connection is named ''.
 
 =item C<labels> (optional)
 
