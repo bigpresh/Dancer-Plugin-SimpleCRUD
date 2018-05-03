@@ -726,7 +726,7 @@ sub _database {
     my %args = @_;
     if ($args{db_connection_provider} && $args{db_connection_provider} eq "DBIC") {
         require Dancer::Plugin::DBIC;
-        return schema($args{db_connection_name})->storage->dbh;
+        return Dancer::Plugin::DBIC::schema($args{db_connection_name})->storage->dbh;
     } else {
         require Dancer::Plugin::Database;
         return Dancer::Plugin::Database::database($args{db_connection_name});
