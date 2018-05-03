@@ -1,7 +1,12 @@
 Revision history for Dancer-Plugin-SimpleCRUD 
 
+1.15    2018-05-02
+        [ ENHANCEMENTS ]
+        - Support for using Dancer::Plugin::DBIC for database connections
+          (joshrabinowitz)
+
 1.14    2017-05-22
-        [ BUG FIXES]
+        [ BUG FIXES ]
         - Fix double prefixes when Dancer prefix is in effect (GH-36) (bigpresh)
 
 1.13    2017-05-21
