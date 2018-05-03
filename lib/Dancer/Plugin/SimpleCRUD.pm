@@ -32,7 +32,8 @@ use warnings;
 use strict;
 use Dancer::Plugin;
 use Dancer qw(:syntax);
-use Dancer::Plugin::Database;
+#use Dancer::Plugin::Database;
+#use Dancer::Plugin::DBIC;
 use HTML::Table::FromDatabase;
 use CGI::FormBuilder;
 use HTML::Entities;
@@ -221,12 +222,22 @@ which returns the WHERE clause hashref - for instance:
 
   where_filter => sub { { customer_id => logged_in_user()->{customer_id} } },
 
+=item C<db_connection_provider> (optional)
+
+By default, we use L<Dancer::Plugin::Database> to obtain database connections.  
+If you set this option to 'DBIC', it will instead use L<Dancer::Plugin::DBIC>
+and its corresponding configuration options for database connections.
+
 =item C<db_connection_name> (optional)
 
-We use L<Dancer::Plugin::Database> to obtain database connections.  This option
+By default, we use L<Dancer::Plugin::Database> to obtain database connections.  
+(You can override this using the C<db_connection_provider> option.)
+The db_connection_name
 allows you to specify the name of a connection defined in the config file to
-use.  See the documentation for L<Dancer::Plugin::Database> for how multiple
-database configurations work.  If this is not supplied or is empty, the default
+use.  See the documentation for L<Dancer::Plugin::Database> (or 
+L<Dancer::Plugin::DBIC> for how multiple database configurations work.
+
+If this is not supplied or is empty, the default
 database connection details in your config file will be used - this is often
 what you want, so unless your app is dealing with multiple DBs, you probably
 won't need to worry about this option.
@@ -525,7 +536,7 @@ sub simple_crud {
     my (%args) = @_;
 
     # Get a database connection to verify that the table name is OK, etc.
-    my $dbh = database($args{db_connection_name});
+    my $dbh = _database(%args);
 
     if (!$dbh) {
         warn "No database handle";
@@ -630,7 +641,7 @@ CONFIRMDELETE
         );
         my $delete_handler = sub {
             my ($id) = params->{record_id} || splat;
-            my $dbh = database($args{db_connection_name});
+            my $dbh = _database( %args );
             my $where = _get_where_filter_from_args(\%args);
             $where->{$key_column} = $id;
 
@@ -676,7 +687,7 @@ sub _create_view_handler {
     my $params = params;
     my $id     = $params->{id} or return _apply_template("<p>Need id to view!</p>", $args->{'template'});
 
-    my $dbh = database($args->{db_connection_name});
+    my $dbh = _database(%$args);
 
     # a hash containing the current values in the database.  Take where_filter
     # into account, so we can't fetch a row if it doesn't match the filter
@@ -710,12 +721,23 @@ register_hook(qw(
 ));
 register_plugin;
 
+
+sub _database {
+    my %args = @_;
+    if ($args{db_connection_provider} && $args{db_connection_provider} eq "DBIC") {
+        require Dancer::Plugin::DBIC;
+        return schema($args{db_connection_name})->storage->dbh;
+    } else {
+        require Dancer::Plugin::Database;
+        return Dancer::Plugin::Database::database($args{db_connection_name});
+    }
+}
 sub _create_add_edit_route {
     my ($args, $table_name, $key_column) = @_;
     my $params = params;
     my $id     = $params->{id};
 
-    my $dbh = database($args->{db_connection_name});
+    my $dbh = _database(%$args);
 
     # a hash containing the current values in the database
     my $values_from_database;
@@ -982,7 +1004,7 @@ sub _create_add_edit_route {
 sub _create_list_handler {
     my ($args, $table_name, $key_column) = @_;
 
-    my $dbh = database($args->{db_connection_name});
+    my $dbh = _database(%$args);
     my $columns = _find_columns($dbh, $table_name);
 
     my $display_columns = $args->{'display_columns'};
