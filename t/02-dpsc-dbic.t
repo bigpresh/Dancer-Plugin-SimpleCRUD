@@ -17,6 +17,10 @@ eval { require Dancer::Plugin::DBIC };
 if ($@) {
     plan skip_all => 'Dancer::Plugin::DBIC required to run these tests';
 }
+eval { require DBIx::Class::Schema::Loader };
+if ($@) {
+    plan skip_all => 'DBIx::Class::Schema::Loader required to run these tests';
+}
 
 my $dsn = t::lib::TestAppDBIC::_dsn();
 
