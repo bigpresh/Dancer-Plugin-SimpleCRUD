@@ -542,7 +542,7 @@ sub simple_crud {
     my (%args) = @_;
 
     # Get a database connection to verify that the table name is OK, etc.
-    my $dbh = _database(%args);
+    my $dbh = _database(\%args);
 
     if (!$dbh) {
         warn "No database handle";
@@ -647,7 +647,7 @@ CONFIRMDELETE
         );
         my $delete_handler = sub {
             my ($id) = params->{record_id} || splat;
-            my $dbh = _database( %args );
+            my $dbh = _database( \%args );
             my $where = _get_where_filter_from_args(\%args);
             $where->{$key_column} = $id;
 
@@ -693,7 +693,7 @@ sub _create_view_handler {
     my $params = params;
     my $id     = $params->{id} or return _apply_template("<p>Need id to view!</p>", $args->{'template'});
 
-    my $dbh = _database(%$args);
+    my $dbh = _database( $args );
 
     # a hash containing the current values in the database.  Take where_filter
     # into account, so we can't fetch a row if it doesn't match the filter
@@ -729,24 +729,24 @@ register_plugin;
 
 
 sub _database {
-    my %args = @_;
-    my $provider = $args{db_connection_provider} || "Database";
-    if ($provider eq "DBIC") {
+    my $args = shift;
+    my $provider = $args->{db_connection_provider} || "Database";
+    if ($provider eq "Database") {
+        return Dancer::Plugin::Database::database($args->{db_connection_name});  # D:P:Database already loaded
+    } elsif ($provider eq "DBIC") {
         require Dancer::Plugin::DBIC;
-        return Dancer::Plugin::DBIC::schema($args{db_connection_name})->storage->dbh;
-    } elsif ($provider eq "Database") {
-        require Dancer::Plugin::Database;
-        return Dancer::Plugin::Database::database($args{db_connection_name});
+        return Dancer::Plugin::DBIC::schema($args->{db_connection_name})->storage->dbh;
     } else {
         die "don't understand db_connection_provider setting: $provider";
     }
 }
+
 sub _create_add_edit_route {
     my ($args, $table_name, $key_column) = @_;
     my $params = params;
     my $id     = $params->{id};
 
-    my $dbh = _database(%$args);
+    my $dbh = _database($args);
 
     # a hash containing the current values in the database
     my $values_from_database;
@@ -1013,7 +1013,7 @@ sub _create_add_edit_route {
 sub _create_list_handler {
     my ($args, $table_name, $key_column) = @_;
 
-    my $dbh = _database(%$args);
+    my $dbh = _database($args);
     my $columns = _find_columns($dbh, $table_name);
 
     my $display_columns = $args->{'display_columns'};
