@@ -724,12 +724,15 @@ register_plugin;
 
 sub _database {
     my %args = @_;
-    if ($args{db_connection_provider} && $args{db_connection_provider} eq "DBIC") {
+    my $provider = $args{db_connection_provider} || "Database";
+    if ($provider eq "DBIC") {
         require Dancer::Plugin::DBIC;
         return Dancer::Plugin::DBIC::schema($args{db_connection_name})->storage->dbh;
-    } else {
+    } elsif ($provider eq "Database") {
         require Dancer::Plugin::Database;
         return Dancer::Plugin::Database::database($args{db_connection_name});
+    } else {
+        die "don't understand db_connection_provider setting: $provider";
     }
 }
 sub _create_add_edit_route {
