@@ -43,5 +43,7 @@ sub main {
     # test basic route returns 200 codes and /users/add returns 404
     response_status_is [GET => '/users'],     200, "GET /users returns 200";
     response_status_is [GET => '/users/add'], 404, "GET /users/add returns 404";
+
+    done_testing();
 }
 
