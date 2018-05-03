@@ -11,7 +11,8 @@ config->{plugins}{Database}{driver} = "SQLite";
 config->{plugins}{Database}{database} = $db_fh->filename;
 
 BEGIN {
-    use_ok( 'Dancer::Plugin::SimpleCRUD' ) || die "Can't load Dancer::Plugin::SimpleCrud. Bail out!\n";
+    eval { use Dancer::Plugin::SimpleCRUD; };
+    if ($@) { die "Can't load Dancer::Plugin::SimpleCRUD. Bail out!\n"; }
 }
 my $password = "{SSHA}LfvBweDp3ieVPRjAUeWikwpaF6NoiTSK";     # password is 'tester'
 my @sql = (
