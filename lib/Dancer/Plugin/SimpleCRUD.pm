@@ -232,10 +232,10 @@ and its corresponding configuration options for database connections.
 
 By default, we use L<Dancer::Plugin::Database> to obtain database connections.  
 (You can override this using the C<db_connection_provider> option.)
-The db_connection_name
+The db_connection_name option
 allows you to specify the name of a connection defined in the config file to
 use.  See the documentation for L<Dancer::Plugin::Database> (or 
-L<Dancer::Plugin::DBIC> for how multiple database configurations work.
+L<Dancer::Plugin::DBIC>) for how multiple database configurations work.
 
 If this is not supplied or is empty, the default
 database connection details in your config file will be used - this is often
