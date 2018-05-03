@@ -5,10 +5,12 @@ README
 lib/Dancer/Plugin/SimpleCRUD.pm
 t/00-load.t
 t/01-basic-dpsc.t
+t/02-dpsc-dbic.t
 t/manifest.t
 t/pod-coverage.t
 t/pod.t
 t/lib/TestApp.pm
+t/lib/TestAppDBIC.pm
 example/config.yml
 example/README.pod
 example/schema.sql
