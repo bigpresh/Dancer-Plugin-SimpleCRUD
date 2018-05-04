@@ -37,22 +37,24 @@ sub setup_database_and_crud {
 
     $self->dbh->do($_) for @sql;
 
-    my $extra_custom_column = { name => 'extra', raw_column => 'id', transform => sub { "Extra: $_[0]" }, column_class=>"classhere" };
-    my $id_custom_column    = { name => 'id', raw_column => 'id', transform => sub { "Hello, id: $_[0]" }, column_class=>"classhere" };
-    my $username_custom_column = { name => "username", raw_column=>"username", transform => sub { "Username: $_[0]" }, column_class=>"classhere" };
-
     my %p = ( 
         db_connection_provider => $self->provider,
         record_title => "A",
         db_table => 'users' 
     );
+    my $extra_custom_column = { name => 'extra', raw_column => 'id', transform => sub { "Extra: $_[0]" }, column_class=>"classhere" };
+    my $id_custom_column    = { name => 'id', raw_column => 'id', transform => sub { "Hello, id: $_[0]" }, column_class=>"classhere" };
+    my $username_custom_column = { name => "username", raw_column=>"username", transform => sub { "Username: $_[0]" }, column_class=>"classhere" };
 
-    # now set up our simple_crud interfaci
-    simple_crud( %p, prefix => '/users'  ,              editable => 0, );
-    simple_crud( %p, prefix => '/users_editable',       editable => 1, );
-    simple_crud( %p, prefix => '/users_editable_not_addable',       editable => 1, addable => 0);
 
-    simple_crud( %p, prefix => '/users_custom_columns', editable => 0, custom_columns => [ $extra_custom_column, $id_custom_column ] );
+    # now set up our simple_crud interfaces
+    simple_crud( %p, prefix => '/users_editable', );
+    simple_crud( %p, prefix => '/users', editable => 0, );
+    simple_crud( %p, prefix => '/users_editable_not_addable', editable => 1, addable => 0);
+
+    simple_crud( %p, prefix => '/users_custom_columns', editable => 0, 
+                    custom_columns => [ $extra_custom_column, $id_custom_column ] 
+                );
 
     # override display of 'username' column
     simple_crud( %p, prefix => '/users_customized_column', editable => 0, sortable=>1,
