@@ -25,14 +25,21 @@ sub _dsn {
     my $tmpfile = shift;
     return "dbi:SQLite:$tmpfile";
 }
+sub dbh {
+    my $self = shift;
+    my $dbh = schema()->storage->dbh;
+    bless $dbh => 'Dancer::Plugin::Database::Core::Handle';
+    return $dbh;
+}
 sub setup_database_and_crud {
     my $self = shift;
     config->{plugins}{DBIC}{default}{dsn} = _dsn( $self->db_fh );
-    my $test_app_base = t::lib::TestAppBase->new( dbh => schema()->storage->dbh, provider=>"DBIC" );
+    my $test_app_base = t::lib::TestAppBase->new( dbh => $self->dbh(), provider=>"DBIC" );
     $test_app_base->setup_database_and_crud();
 } 
 sub test {
-    my $test_app_base = t::lib::TestAppBase->new( dbh => schema()->storage->dbh, provider=>"DBIC" );
+    my $self = shift;
+    my $test_app_base = t::lib::TestAppBase->new( dbh => $self->dbh(), provider=>"DBIC" );
     $test_app_base->test();
 }
 1;
