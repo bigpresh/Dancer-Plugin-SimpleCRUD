@@ -647,7 +647,7 @@ CONFIRMDELETE
         );
         my $delete_handler = sub {
             my ($id) = params->{record_id} || splat;
-            my $dbh = _database( \%args );
+            my $dbh = _database(\%args);
             my $where = _get_where_filter_from_args(\%args);
             $where->{$key_column} = $id;
 
@@ -693,7 +693,7 @@ sub _create_view_handler {
     my $params = params;
     my $id     = $params->{id} or return _apply_template("<p>Need id to view!</p>", $args->{'template'});
 
-    my $dbh = _database( $args );
+    my $dbh = _database($args);
 
     # a hash containing the current values in the database.  Take where_filter
     # into account, so we can't fetch a row if it doesn't match the filter
@@ -735,7 +735,9 @@ sub _database {
         return Dancer::Plugin::Database::database($args->{db_connection_name});  # D:P:Database already loaded
     } elsif ($provider eq "DBIC") {
         require Dancer::Plugin::DBIC;
-        return Dancer::Plugin::DBIC::schema($args->{db_connection_name})->storage->dbh;
+        my $dbh =  Dancer::Plugin::DBIC::schema($args->{db_connection_name})->storage->dbh;
+        bless $dbh => 'Dancer::Plugin::Database::Core::Handle'; # so we can use ->quick_update/_insert
+        return $dbh;
     } else {
         die "don't understand db_connection_provider setting: $provider";
     }
