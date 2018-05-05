@@ -74,13 +74,13 @@ sub setup_database_and_crud {
                     custom_columns => [ $username_custom_column, $extra_custom_column, $id_custom_column ],
                 );
 
-    # auth
-    simple_crud( %p, prefix => '/users_auth', 
-               auth => {
-                   view => { require_login => 1, },
-                   edit => { require_role => 'superadmin', },
-               },
-    );
+    ## TODO - crud path with auth
+    #simple_crud( %p, prefix => '/users_auth', 
+    #           auth => {
+    #               view => { require_login => 1, },
+    #               edit => { require_role => 'superadmin', },
+    #           },
+    #);
 }
 
 sub test {
@@ -104,10 +104,11 @@ sub test {
         GET => '/users?searchfield=username&searchtype=like&q=1'
     ], 200, "GET {search on username like '1'} returns 200";
 
-    # /users_auth returns 302
-    response_status_is [
-        GET => '/users_auth',
-    ], 302, "GET on /users_auth redirects";
+    ## TODO - test path with auth
+    ## /users_auth returns 302
+    #response_status_is [
+    #    GET => '/users_auth',
+    #], 302, "GET on /users_auth redirects";
 
     # test html returned from GET $prefix on cruds
     my $users_tree = crud_fetch_to_htmltree(GET => '/users', 200);

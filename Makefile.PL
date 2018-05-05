@@ -25,7 +25,7 @@ WriteMakefile(
         'HTML::TreeBuilder' => 5.03,
         'List::MoreUtils' => 0.416,
         'Moo' => 0,
-        'Dancer::Plugin::Auth::Extensible' => 0,    # for auth login tests
+        #'Dancer::Plugin::Auth::Extensible' => 0,    # for auth login tests
     },
     dist                => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean               => { FILES => 'Dancer-Plugin-SimpleCRUD-*' },
