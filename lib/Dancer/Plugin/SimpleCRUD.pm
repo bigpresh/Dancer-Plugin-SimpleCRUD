@@ -582,7 +582,6 @@ sub simple_crud {
         }
     }
     if ($args{addable}) {
-        _ensure_auth('edit', $handler, \%args);
         for ('/add') {
             my $url = _construct_url($args{prefix}, $_);
             Dancer::Logger::debug("Setting up route for $url");
