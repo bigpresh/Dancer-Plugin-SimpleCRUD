@@ -2,12 +2,9 @@ use strict;
 use warnings;
 
 use Test::More import => ['!pass'];
-#use Test::Differences;
 use t::lib::TestAppDBIC;
 use Dancer ':syntax';
-#
 use Dancer::Test;
-use HTML::TreeBuilder;
 
 eval { require DBD::SQLite };
 if ($@) {
@@ -17,9 +14,9 @@ eval { require Dancer::Plugin::DBIC };
 if ($@) {
     plan skip_all => 'Dancer::Plugin::DBIC required to run these tests';
 }
-my $tmpfile = File::Temp->new( EXLOCK => 0 );
 
-my $dsn = t::lib::TestAppDBIC::_dsn($tmpfile);
+my $tmpfile = File::Temp->new( EXLOCK => 0 );
+my $dsn = "dbi:SQLite:$tmpfile";
 
 my $conf = {
     DBIC => {

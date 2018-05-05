@@ -2,11 +2,8 @@ use strict;
 use warnings;
 
 use Test::More import => ['!pass'];
-#use Test::Differences;
 use t::lib::TestAppDatabase;
 use Dancer ':syntax';
-
-use HTML::TreeBuilder;
 
 eval { require DBD::SQLite };
 if ($@) {

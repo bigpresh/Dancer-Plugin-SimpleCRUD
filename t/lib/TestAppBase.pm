@@ -6,6 +6,7 @@ use Dancer::Test;
 
 use Test::More import => ['!pass'];
 use Test::Differences;
+use HTML::TreeBuilder;
 
 use Moo;
 has 'dbh'  => (is=>'rw', required=>1);
