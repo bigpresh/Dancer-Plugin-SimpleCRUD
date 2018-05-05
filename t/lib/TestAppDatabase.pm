@@ -6,10 +6,9 @@ use Test::More import => ['!pass']; # import avoids 'prototype mismatch' with Da
 use File::Temp qw(tempfile);
 use t::lib::TestAppBase;
 
-use Mouse;
+use Moo;
 
-has 'db_fh' => (is=>'rw', isa=>"File::Temp", default=>sub{ File::Temp->new( EXLOCK => 0 ) } );
-
+has 'db_fh' => (is=>'rw', default=>sub{ File::Temp->new( EXLOCK => 0 ) } );
 
 sub setup_database_and_crud {
     my $self = shift;

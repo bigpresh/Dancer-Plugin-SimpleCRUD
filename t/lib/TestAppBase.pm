@@ -7,10 +7,10 @@ use Dancer::Test;
 use Test::More import => ['!pass'];
 use Test::Differences;
 
-use Mouse;
+use Moo;
 has 'dbh'  => (is=>'rw', required=>1);
-has 'trap' => (is=>'rw', isa=>"Dancer::Logger::Capture::Trap", default=>sub { Dancer::Logger::Capture->trap } );
-has 'provider' => (is=>'rw', isa=>"Str", required=>1); # "Database" or "DBIC"
+has 'trap' => (is=>'rw', default=>sub { Dancer::Logger::Capture->trap } );
+has 'provider' => (is=>'rw', required=>1); # "Database" or "DBIC"
 
 BEGIN {
     eval { use Dancer::Plugin::SimpleCRUD; };

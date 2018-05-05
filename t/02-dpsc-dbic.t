@@ -31,7 +31,6 @@ my $conf = {
                 PrintError => 0,
                 PrintWarn  => 0,
             },
-            #handle_class => 'TestHandleClass',
         }
     }
 };
