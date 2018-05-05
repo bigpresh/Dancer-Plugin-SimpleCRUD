@@ -34,6 +34,12 @@ sub setup_database_and_crud {
         qq/insert into users values (5, 'mousey', '$password')/,
         qq/insert into users values (6, 'mystery2', '$password')/,
         qq/insert into users values (7, 'mystery1', '$password')/,
+
+        qq/create table roles (id INTEGER, role VARCHAR)/,
+        qq/insert into roles values (1, 'superadmin')/,
+
+        qq/create table user_roles (user_id INTEGER, role_id INTEGER)/,
+        qq/insert into user_roles values (1, 1)/,
     );
 
     $self->dbh->do($_) for @sql;
@@ -67,6 +73,14 @@ sub setup_database_and_crud {
     simple_crud( %p, prefix => '/users_customized_column3', editable => 0, sortable=>1,
                     custom_columns => [ $username_custom_column, $extra_custom_column, $id_custom_column ],
                 );
+
+    # auth
+    simple_crud( %p, prefix => '/users_auth', 
+               auth => {
+                   view => { require_login => 1, },
+                   edit => { require_role => 'superadmin', },
+               },
+    );
 }
 
 sub test {
@@ -89,6 +103,10 @@ sub test {
     response_status_is [
         GET => '/users?searchfield=username&searchtype=like&q=1'
     ], 200, "GET {search on username like '1'} returns 200";
+
+    response_status_is [
+        GET => '/users_auth',
+    ], 302, "GET on /users_auth redirects";
 
     # test html returned from GET $prefix on cruds
     my $users_tree = crud_fetch_to_htmltree(GET => '/users', 200);
