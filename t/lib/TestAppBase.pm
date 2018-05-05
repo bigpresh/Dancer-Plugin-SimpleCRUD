@@ -104,6 +104,7 @@ sub test {
         GET => '/users?searchfield=username&searchtype=like&q=1'
     ], 200, "GET {search on username like '1'} returns 200";
 
+    # /users_auth returns 302
     response_status_is [
         GET => '/users_auth',
     ], 302, "GET on /users_auth redirects";

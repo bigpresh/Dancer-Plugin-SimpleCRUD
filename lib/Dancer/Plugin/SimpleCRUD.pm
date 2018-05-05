@@ -733,14 +733,13 @@ sub _database {
     my $provider = $args->{db_connection_provider} || "Database";
     if ($provider eq "Database") {
         return Dancer::Plugin::Database::database($args->{db_connection_name});  # D:P:Database already loaded
-    } elsif ($provider eq "DBIC") {
+    } 
+    if ($provider eq "DBIC") {
         require Dancer::Plugin::DBIC;
         my $dbh =  Dancer::Plugin::DBIC::schema($args->{db_connection_name})->storage->dbh;
-        bless $dbh => 'Dancer::Plugin::Database::Core::Handle'; # so we can use ->quick_update/_insert
-        return $dbh;
-    } else {
-        die "don't understand db_connection_provider setting: $provider";
-    }
+        return bless $dbh => 'Dancer::Plugin::Database::Core::Handle'; # so we can use ->quick_update/_insert
+    } 
+    die "don't understand db_connection_provider setting: $provider";
 }
 
 sub _create_add_edit_route {

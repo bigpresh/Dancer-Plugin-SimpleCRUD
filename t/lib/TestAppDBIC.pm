@@ -3,7 +3,7 @@ package t::lib::TestAppDBIC;
 use Test::More import => ['!pass']; # import avoids 'prototype mismatch' with Dancer
 use t::lib::TestAppBase;
 use Dancer ':syntax';
-use Dancer::Plugin::DBIC;
+#use Dancer::Plugin::DBIC;  # not a hard req
 
 use Moo;
 
@@ -20,7 +20,7 @@ if ($@) { die "Can't load Dancer::Plugin::SimpleCRUD. Bail out!\n"; }
 
 sub dbh {
     my $self = shift;
-    my $dbh = schema()->storage->dbh;
+    my $dbh = Dancer::Plugin::DBIC::schema()->storage->dbh;
     bless $dbh => 'Dancer::Plugin::Database::Core::Handle';
     return $dbh;
 }
