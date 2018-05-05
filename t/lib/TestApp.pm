@@ -34,7 +34,8 @@ my $id_custom_column    = { name => 'id', raw_column => 'id', transform => sub {
 my $username_custom_column = { name => "username", raw_column=>"username", transform => sub { "Username: $_[0]" }, column_class=>"classhere" };
 
 # now set up our simple_crud interfaci
-simple_crud( prefix => '/users'  ,              record_title=>'A', db_table => 'users', editable => 0, );
+simple_crud( prefix => '/users',                record_title=>'A', db_table => 'users', editable => 0, );
+simple_crud( prefix => '/users_auth',           record_title=>'A', db_table => 'users', editable => 1, auth => { require_login => 1 } );
 simple_crud( prefix => '/users_editable',       record_title=>'A', db_table => 'users', editable => 1, );
 simple_crud( prefix => '/users_editable_not_addable',       
                                                 record_title=>'A', db_table => 'users', editable => 1, addable => 0);
