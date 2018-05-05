@@ -35,10 +35,10 @@ my $conf = {
 set plugins => $conf;
 set logger  => 'capture';
 set log     => 'debug';
-my $app = t::lib::TestAppDBIC->new(db_fh=>$tmpfile);
+
+my $app = t::lib::TestAppDBIC->new();
 $app->setup_database_and_crud();
 $app->test();
 
 done_testing();
-
 
