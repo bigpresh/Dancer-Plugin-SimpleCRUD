@@ -226,7 +226,7 @@ which returns the WHERE clause hashref - for instance:
 
 By default, we use L<Dancer::Plugin::Database> to obtain database connections.
  
-If the moculde L<Dancer::Plugin::DBIC> is installed and you set this option to 'DBIC', 
+If the module L<Dancer::Plugin::DBIC> is installed and you set this option to 'DBIC', 
 the database connection will be created using L<Dancer::Plugin::DBIC> 
 and its corresponding configuration options for database connections.
 Note that in DBIC, the default connection is named 'dafault', not ''.
