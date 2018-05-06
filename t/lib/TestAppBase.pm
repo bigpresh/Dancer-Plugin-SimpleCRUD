@@ -55,8 +55,10 @@ sub setup_database_and_crud {
 
 
     # now set up our simple_crud interfaces
+    simple_crud( %p, prefix => '/users', editable => 0 );
+    simple_crud( %p, prefix => '/users_auth', editable => 1, auth => { require_login => 1 } );
+
     simple_crud( %p, prefix => '/users_editable', );
-    simple_crud( %p, prefix => '/users', editable => 0, );
     simple_crud( %p, prefix => '/users_editable_not_addable', editable => 1, addable => 0);
 
     simple_crud( %p, prefix => '/users_custom_columns', editable => 0, 
@@ -88,6 +90,11 @@ sub test {
 
     # test basic routes return 200 codes
     response_status_is [GET => '/users'], 200, "GET /users returns 200";
+    response_status_is [GET => '/users_auth'], 302, "GET /users_auth returns 302";
+
+    response_status_is [GET => '/users_auth/add'], 302, "GET /users_auth/add returns 302";
+    response_status_is [GET => '/users_auth/edit/1'], 302, "GET /users_auth/edit/1 returns 302";
+
     response_status_is [GET => '/users/add'], 404,
         "GET /users/add returns 404";
     response_status_is [GET => '/users_editable/add'], 200,
