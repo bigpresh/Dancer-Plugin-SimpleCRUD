@@ -40,6 +40,11 @@ sub main {
 
     # test basic routes return 200 codes
     response_status_is [GET => '/users'], 200, "GET /users returns 200";
+    response_status_is [GET => '/users_auth'], 302, "GET /users_auth returns 302";
+
+    response_status_is [GET => '/users_auth/add'], 302, "GET /users_auth/add returns 302";
+    response_status_is [GET => '/users_auth/edit/1'], 302, "GET /users_auth/edit/1 returns 302";
+
     response_status_is [GET => '/users/add'], 404,
         "GET /users/add returns 404";
     response_status_is [GET => '/users_editable/add'], 200,
