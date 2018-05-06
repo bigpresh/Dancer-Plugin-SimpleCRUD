@@ -1,5 +1,13 @@
 Revision history for Dancer-Plugin-SimpleCRUD 
 
+1.15    2018-05-06
+        [ SECURITY ]
+        - Some calls to _ensure_auth() were previously incorrect, meaning that
+          certain routes were not actually protected by the `auth` option.
+          See PR #109 for full details.  Any users of D::P::SimpleCRUD who use
+          the auth option to require a login / certain roles to access it are
+          urged to upgrade immediately.  Also, sorry.
+
 1.14    2017-05-22
         [ BUG FIXES]
         - Fix double prefixes when Dancer prefix is in effect (GH-36) (bigpresh)
