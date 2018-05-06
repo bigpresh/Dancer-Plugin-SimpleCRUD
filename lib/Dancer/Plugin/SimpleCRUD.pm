@@ -742,7 +742,7 @@ sub _database {
         my $dbh =  Dancer::Plugin::DBIC::schema($args->{db_connection_name})->storage->dbh;
         return bless $dbh => 'Dancer::Plugin::Database::Core::Handle'; # so we can use ->quick_update/_insert
     } 
-    die "don't understand db_connection_provider setting: $provider";
+    die "db_connection_provider can be 'Database' or 'DBIC'. Don't understand '$provider'";
 }
 
 sub _create_add_edit_route {
