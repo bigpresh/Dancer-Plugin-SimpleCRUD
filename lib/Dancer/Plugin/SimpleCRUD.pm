@@ -245,8 +245,8 @@ database connection details in your config file will be used - this is often
 what you want, so unless your app is dealing with multiple DBs, you probably
 won't need to worry about this option.
 
-Note that in L<Dancer::Plugin::Database>, the default connection is named 'dafault', 
-but in L<Dancer::Plugin::DBIC> the default connection is named ''.
+Note that in L<Dancer::Plugin::Database>, the default connection is named '', 
+but in L<Dancer::Plugin::DBIC> the default connection is named 'default'.
 
 =item C<labels> (optional)
 
