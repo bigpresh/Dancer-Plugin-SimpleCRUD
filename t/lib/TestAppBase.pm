@@ -9,9 +9,9 @@ use Test::Differences;
 use HTML::TreeBuilder;
 
 use Moo;
-has 'dbh'  => (is=>'rw', required=>1);
-has 'trap' => (is=>'rw', default=>sub { Dancer::Logger::Capture->trap } );
+has 'dbh'      => (is=>'rw', required=>1);
 has 'provider' => (is=>'rw', required=>1); # "Database" or "DBIC"
+has 'trap'     => (is=>'rw', default=>sub { Dancer::Logger::Capture->trap } );
 
 BEGIN {
     eval { use Dancer::Plugin::SimpleCRUD; };

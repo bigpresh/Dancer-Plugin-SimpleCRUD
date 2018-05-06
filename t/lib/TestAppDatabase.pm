@@ -7,17 +7,15 @@ use File::Temp qw(tempfile);
 use t::lib::TestAppBase;
 
 use Moo;
-
+has 'base' => ( is=>'rw', default=>sub {  t::lib::TestAppBase->new( dbh=>database(), provider=>"Database" ); } );
 
 sub setup_database_and_crud {
     my $self = shift;
-    my $test_app_base = t::lib::TestAppBase->new( dbh=>database(), provider=>"Database" );
-    $test_app_base->setup_database_and_crud();
+    $self->base->setup_database_and_crud();
 }
 sub test {
     my $self = shift;
-    my $test_app_base = t::lib::TestAppBase->new( dbh=>database(), provider=>"Database" );
-    $test_app_base->test();
+    $self->base->test();
 }
 
 1;
