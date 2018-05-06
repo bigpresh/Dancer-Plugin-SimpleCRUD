@@ -1,6 +1,6 @@
 Revision history for Dancer-Plugin-SimpleCRUD 
 
-1.15    2018-05-02
+1.16    2018-05-02
         [ ENHANCEMENTS ]
         - Support for using Dancer::Plugin::DBIC for database connections
           (joshrabinowitz)
