@@ -1460,12 +1460,20 @@ SEARCHFORM
         }
     }
 
-    $html .= $table->getTable || '';
-
+    my $add_link_html;
     if ($args->{addable} && _has_permission('edit', $args)) {
-        $html .= sprintf '<a href="%s">Add a new %s</a></p>',
+        $add_link_html = sprintf '<p><a href="%s">Add a new %s</a></p>',
             _external_url($args->{dancer_prefix}, $args->{prefix}, '/add'),
             $args->{record_title};
+    }
+
+    $html .= $add_link_html;
+
+    $html .= $table->getTable || '';
+
+    $html .= $add_link_html;
+
+    if ($args->{deleteable} && _has_permission('delete', $args)) {
 
         # Append a little Javascript which asks for confirmation that they'd
         # like to delete the record, then makes a POST request via a hidden
