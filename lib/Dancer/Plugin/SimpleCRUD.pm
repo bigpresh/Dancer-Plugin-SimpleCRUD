@@ -838,7 +838,8 @@ sub _create_add_edit_route {
             }
             $constrain_values{$name} = \%possible_values;
 
-        } elsif (my $values_from_db = $field->{mysql_values}) {
+        } elsif (my $values_from_db = $field->{mysql_values}
+				   || $field->{mariadb_values}) {
             $constrain_values{$name} = $values_from_db;
         }
     }
@@ -1587,10 +1588,10 @@ sub _return_downloadable_query {
 # NULLABLE
 # DATETIME ?
 # TYPE_NAME (e.g. INT, VARCHAR, ENUM)
-# MySQL-specific stuff includes:
-# mysql_type_name (e.g. "enum('One', 'Two', 'Three')"
-# mysql_is_pri_key
-# mysql_values (for an enum, ["One", "Two", "Three"]
+# MySQL/MariaDB-specific stuff includes:
+# {mysql,mariadb}_type_name (e.g. "enum('One', 'Two', 'Three')"
+# {mysql,mariadb}_is_pri_key
+# {mysql,mariadb}_values (for an enum, ["One", "Two", "Three"]
 sub _find_columns {
     my ($dbh, $table_name) = @_;
     my $sth = $dbh->column_info(undef, undef, $table_name, undef)
