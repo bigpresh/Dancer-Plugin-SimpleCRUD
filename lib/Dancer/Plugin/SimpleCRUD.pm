@@ -1460,7 +1460,7 @@ SEARCHFORM
         }
     }
 
-    my $add_link_html;
+    my $add_link_html = "";
     if ($args->{addable} && _has_permission('edit', $args)) {
         $add_link_html = sprintf '<p><a href="%s">Add a new %s</a></p>',
             _external_url($args->{dancer_prefix}, $args->{prefix}, '/add'),
