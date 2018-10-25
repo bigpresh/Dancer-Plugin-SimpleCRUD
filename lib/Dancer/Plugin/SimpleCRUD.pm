@@ -1836,6 +1836,8 @@ Martijn Lievaart
 
 Josh Rabinowitz
 
+Phil Carmody (thefatphil)
+
 =head1 BUGS
 
 Please report any bugs or feature requests to C<bug-dancer-plugin-simplecrud at rt.cpan.org>, or through
@@ -1891,7 +1893,7 @@ L<http://search.cpan.org/dist/Dancer-Plugin-SimpleCRUD/>
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2010-16 David Precious.
+Copyright 2010-18 David Precious.
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of either: the GNU General Public License as published
