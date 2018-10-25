@@ -1,10 +1,11 @@
 Revision history for Dancer-Plugin-SimpleCRUD 
 
 
-1.16    2018-XX-XX
+1.16    2018-10-25
         [ ENHANCEMENTS ]
         - Support for using Dancer::Plugin::DBIC for database connections
           (joshrabinowitz)
+        - Support ENUM types under DBD::MariaDB (thefatphil)
 
 1.15    2018-05-06
         [ SECURITY ]
