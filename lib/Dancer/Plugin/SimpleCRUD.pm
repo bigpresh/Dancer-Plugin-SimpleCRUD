@@ -1470,9 +1470,9 @@ SEARCHFORM
 
     $html .= $add_link_html;
 
-    $html .= $table->getTable || "No records yet";
+    $html .= $table->getTable || qq{<p id="err_no_records">No records yet</p>};
 
-    $html .= $add_link_html if $table->getTable;
+    $html .= $add_link_html if $sth->rows;
 
     if ($args->{deleteable} && _has_permission('delete', $args)) {
 
