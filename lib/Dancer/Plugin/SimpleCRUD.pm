@@ -1470,7 +1470,7 @@ SEARCHFORM
 
     $html .= $add_link_html;
 
-    $html .= $table->getTable || '';
+    $html .= $table->getTable || "No records yet";
 
     $html .= $add_link_html if $table->getTable;
 
