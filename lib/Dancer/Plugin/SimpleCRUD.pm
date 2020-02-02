@@ -1472,7 +1472,7 @@ SEARCHFORM
 
     $html .= $table->getTable || '';
 
-    $html .= $add_link_html;
+    $html .= $add_link_html if $table->getTable;
 
     if ($args->{deleteable} && _has_permission('delete', $args)) {
 
